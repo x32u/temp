@@ -39,7 +39,7 @@ async def shard_stats(self):
                 async with session.post(
                     "https://kure.pl/shards/post",  # Updated FastAPI server URL
                     json=shard_data,
-                    headers={"api-key": "58ZCTj0fTkai"}  # Replace with your actual API key
+                    headers={"api-key": self.bot.evict_api}  # Replace with your actual API key
                 ) as response:
                     if response.status == 200:
                         log.info("Shard data successfully sent to the API")

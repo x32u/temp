@@ -16,7 +16,6 @@ from cogs.voicemaster import vmbuttons
 from cogs.ticket import CreateTicket, DeleteTicket
 from cogs.giveaway import GiveawayView
 
-from rivalapi.rivalapi import RivalAPI
 from redis.asyncio import StrictRedis as AsyncStrictRedis
 from redis.asyncio.connection import BlockingConnectionPool
 from redis.backoff import EqualJitterBackoff
@@ -133,7 +132,6 @@ class Evict(commands.AutoShardedBot):
         self.evict_api = os.environ.get("evict_api")
         self.rival_api = os.environ.get("rival_api")
         self.proxy_url = os.environ.get("proxy_url")
-        self.rival = RivalAPI(self.rival_api)
         
         self.commands_url = os.environ.get("commands_url")
         self.support_server = os.environ.get("support_server")

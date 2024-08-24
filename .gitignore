@@ -4,4 +4,9 @@
 *.json
 *.jar
 *.gz
+*.log
 node_modules/
+plugins/
+__pycache__
+*.sql
+logs/
