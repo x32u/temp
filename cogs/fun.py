@@ -340,20 +340,6 @@ class fun(commands.Cog):
      rand = ['**Yes**', '**No**', '**definitely yes**', '**Of course not**', '**Maybe**', '**Never**', '**Yes, dummy**', '**No wtf**']
      e = discord.Embed(color=self.bot.color, description=f"You asked: {arg}\nAnswer: {random.choice(rand)}")
      await ctx.reply(embed=e)
-    
-    @commands.command(aliases=['img'])
-    async def image(
-      self, ctx: commands.Context, *, query: str
-    ):
-      try:
-        async with aiohttp.ClientSession() as session:
-          async with session.post("https://api.rival.rocks/google/image", data=query, params={"safe": "true"}, headers={"api-key": self.bot.rival_api}) as response:
-            response = await response.json()
-            embeds = [discord.Embed(title=res.get('title', 'Untitled'), url="https://" + res.get('domain', ''), color=res.get('color', discord.Color.default())).set_image(url=res.get('url', '')) for res in response]
-          # if len(embeds) == 0: return await ctx.warning("Nothing found.")
-          return await ctx.paginate(embeds=embeds)
-      except Exception:
-        return await ctx.warning(f"Could not find anything with this query")
 
     @commands.command(name='search', description='search for something on google', usage='[query]', aliases=['google'])
     async def search(self, ctx: commands.Context, *, query: str):

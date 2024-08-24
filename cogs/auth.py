@@ -8,7 +8,7 @@ class auth(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @Permissions.authorize()
+    @Permissions.staff()
     async def authorize(self, ctx: commands.Context, guild: int, buyer: Union[discord.Member, discord.User]): 
      
      channel = self.bot.get_channel(1268645258288435346)
@@ -49,7 +49,7 @@ class auth(commands.Cog):
         await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: authorized **all** servers."))
      
     @commands.command()
-    @Permissions.authorize()
+    @Permissions.staff()
     async def getauth(self, ctx: commands.Context, *, member: discord.User): 
      
      results = await self.bot.db.fetch("SELECT * FROM authorize WHERE buyer = $1", member.id)
@@ -60,7 +60,7 @@ class auth(commands.Cog):
             {"name": member.name, "icon_url": member.display_avatar.url})
 
     @commands.command()
-    @commands.is_owner()
+    @Permissions.staff()
     async def unauthorize(self, ctx: commands.Context, id:int=None, *, reason: str='No Reason Provided'): 
 
         channel = self.bot.get_channel(1268645258288435346)

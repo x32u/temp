@@ -39,7 +39,7 @@ class owner(commands.Cog):
        if result is not None: return await ctx.warning(f"{member} is already a donor")
        ts = int(datetime.datetime.now().timestamp()) 
        await self.bot.db.execute("INSERT INTO donor VALUES ($1,$2)", member.id, ts)
-       return await ctx.warning(f"{member.mention} is now a donor")
+       return await ctx.success(f"{member.mention} is now a donor")
 
    @commands.is_owner()
    @donor.command(name='remove', description="remove a user from donor", usage="[member id]", brief="bot owner")
@@ -47,12 +47,12 @@ class owner(commands.Cog):
        result = await self.bot.db.fetchrow("SELECT * FROM donor WHERE user_id = {}".format(member.id)) 
        if result is None: return await ctx.warning(f"{member} isn't a donor")
        await self.bot.db.execute("DELETE FROM donor WHERE user_id = {}".format(member.id))
-       return await ctx.warning(f"{member.mention} is not a donor anymore")
+       return await ctx.success(f"{member.mention} is not a donor anymore")
    
    @commands.command()
    @commands.is_owner()
    async def restart(self, ctx: commands.Context):
-    await ctx.warning("restarting the bot.")
+    await ctx.success("restarting the bot.")
     os.system("pm2 restart evict")
 
    @commands.is_owner()
@@ -97,7 +97,7 @@ class owner(commands.Cog):
      await self.bot.db.execute("DELETE FROM cmderror")
      await ctx.reply("deleted all errors")
 
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(aliases=['trace'])
    async def error(self, ctx: commands.Context, code: str):
 
@@ -157,7 +157,7 @@ class owner(commands.Cog):
     await self.bot.db.execute("DELETE FROM nodata WHERE user_id = {}".format(member.id))            
     await ctx.success(f'unglobalbanned **{member}**')  
  
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(name='blacklist', description="blacklist a user from the bot", brief="owner", usage="[user]")
    async def blacklist(self, ctx: commands.Context, *, member: discord.User): 
       if member.id in self.bot.owner_ids: return await ctx.warning("do not blacklist a bot owner, retard.")
@@ -231,7 +231,7 @@ class owner(commands.Cog):
         except discord.HTTPException:
             await ctx.warning('failed to update bot banner.')
 
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(name='mutuals', description="show servers a user shares with the bot", usage="[user]", brief="bot owner")
    async def mutuals(self, ctx, user: discord.User = None): 
             
@@ -276,7 +276,7 @@ class owner(commands.Cog):
        for i in range(amount):
         await channel.send(message)
    
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(name='pingu', description="have the bot spam something and delete it", usage="[channel] [amount] [message]", brief="bot owner")
    async def pingu(self, ctx, channel: Optional[discord.TextChannel], amount:int, *, message: str):
        if not channel:
@@ -320,7 +320,7 @@ class owner(commands.Cog):
         await self.bot.db.execute("DELETE FROM gblacklist WHERE guild_id = $1", guild)
         await ctx.success("the guild has been **unblacklisted**.")
         
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(aliases=["gg"], description="show information about a server", brief="bot owner")
    async def getguild(self, ctx: Context, guild:int):
         guild = self.bot.get_guild(int(guild))   
@@ -375,7 +375,7 @@ class owner(commands.Cog):
           
           await ctx.paginate(guwulock_list, f"globaluwulock list [{len(results)}]")
             
-   @commands.is_owner()
+   @Permissions.staff()
    @commands.command(aliases=["globalbanned"], description='globalbanned members', brief='bot owner')
    async def gbanned(self, ctx: commands.Context): 
           
