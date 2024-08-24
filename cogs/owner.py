@@ -1,13 +1,19 @@
 import discord, datetime, aiohttp, asyncio, textwrap, os, json
+
 from discord.utils import get
 from discord.ext import commands
 from discord.ext.commands import Context
-from discord import Embed, Permissions
+from discord import Embed
 from typing import Optional
+
 from patches.classes import OwnerConfig
+from patches.permissions import Permissions
+
+from bot.helpers import EvictContext
+from bot.bot import Evict
 
 class owner(commands.Cog):
-   def __init__(self, bot: commands.Bot):
+   def __init__(self, bot: Evict):
        self.bot = bot
 
    def convert_datetime(self, date: datetime.datetime=None):
@@ -29,12 +35,12 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.group(invoke_without_command=True)
-   async def donor(self, ctx: commands.Context):
+   async def donor(self, ctx: EvictContext):
     await ctx.create_pages()
 
    @commands.is_owner()
    @donor.command(name='add', description="add a user to donors", usage="[member id]", brief="bot owner")
-   async def add(self, ctx: commands.Context, *, member: discord.User): 
+   async def add(self, ctx: EvictContext, *, member: discord.User): 
        result = await self.bot.db.fetchrow("SELECT * FROM donor WHERE user_id = {}".format(member.id))
        if result is not None: return await ctx.warning(f"{member} is already a donor")
        ts = int(datetime.datetime.now().timestamp()) 
@@ -43,7 +49,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @donor.command(name='remove', description="remove a user from donor", usage="[member id]", brief="bot owner")
-   async def remove(self, ctx: commands.Context, *, member: discord.User):    
+   async def remove(self, ctx: EvictContext, *, member: discord.User):    
        result = await self.bot.db.fetchrow("SELECT * FROM donor WHERE user_id = {}".format(member.id)) 
        if result is None: return await ctx.warning(f"{member} isn't a donor")
        await self.bot.db.execute("DELETE FROM donor WHERE user_id = {}".format(member.id))
@@ -51,13 +57,13 @@ class owner(commands.Cog):
    
    @commands.command()
    @commands.is_owner()
-   async def restart(self, ctx: commands.Context):
+   async def restart(self, ctx: EvictContext):
     await ctx.success("restarting the bot.")
     os.system("pm2 restart evict")
 
    @commands.is_owner()
    @commands.command(aliases=["guilds"], name='servers', description="list all the servers evict is in", brief="bot owner")
-   async def servers(self, ctx: commands.Context):
+   async def servers(self, ctx: EvictContext):
        
             def key(s): 
               return s.member_count
@@ -93,13 +99,13 @@ class owner(commands.Cog):
    
    @commands.is_owner()
    @commands.command()
-   async def delerrors(self, ctx: commands.Context): 
+   async def delerrors(self, ctx: EvictContext): 
      await self.bot.db.execute("DELETE FROM cmderror")
      await ctx.reply("deleted all errors")
 
    @Permissions.staff()
    @commands.command(aliases=['trace'])
-   async def error(self, ctx: commands.Context, code: str):
+   async def error(self, ctx: EvictContext, code: str):
 
     fl = await self.bot.db.fetch("SELECT * FROM error;")
     error_details = [x for x in fl if x.get("key") == code]
@@ -121,7 +127,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(aliases=["globalban"], description="ban a user from all servers", usage="[user]", brief="bot owner")
-   async def gban(self, ctx: commands.Context, *, member: discord.User): 
+   async def gban(self, ctx: EvictContext, *, member: discord.User): 
     
     if member.id in self.bot.owner_ids: return await ctx.warning("do not globalban a bot owner, retard.")
     if member.id == ctx.bot.user.id: return await ctx.warning("do not globalban me retard.")
@@ -148,7 +154,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(aliases=["unglobalban", "gunban"], description="unban a user from all servers", usage="[user]", brief="bot owner")
-   async def ungban(self, ctx: commands.Context, *, member: discord.User): 
+   async def ungban(self, ctx: EvictContext, *, member: discord.User): 
     
     check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
     if check is None: return await ctx.warning(f"{member.mention} isn't globalbanned.")
@@ -159,7 +165,7 @@ class owner(commands.Cog):
  
    @Permissions.staff()
    @commands.command(name='blacklist', description="blacklist a user from the bot", brief="owner", usage="[user]")
-   async def blacklist(self, ctx: commands.Context, *, member: discord.User): 
+   async def blacklist(self, ctx: EvictContext, *, member: discord.User): 
       if member.id in self.bot.owner_ids: return await ctx.warning("do not blacklist a bot owner, retard.")
       check = await self.bot.db.fetchrow("SELECT * FROM nodata WHERE user_id = $1 AND state = $2", member.id, "false") 
       if check is not None: return await ctx.warning(f"{member.mention} is already blacklisted")
@@ -169,7 +175,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(name='pingall', description="ping all members", brief="bot owner")
-   async def pingall(self, ctx: commands.Context):
+   async def pingall(self, ctx: EvictContext):
         guild: discord.Guild = ctx.guild
         mentions = " ".join(m.mention for m in guild.members if not m.bot)
         await ctx.message.delete()
@@ -177,7 +183,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(description='set bot pfp', usage='[image url | file]', brief='bot owner')
-   async def botpfp(self, ctx: commands.Context, *, image: str=None):
+   async def botpfp(self, ctx: EvictContext, *, image: str=None):
         if image == None and not ctx.message.attachments: 
             await self.bot.user.edit(avatar=None)
             return await ctx.warning("bot avatar has been cleared.")
@@ -205,7 +211,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(description='set bot banner', usage='[image_url | file]', brief='bot owner')
-   async def botbanner(self, ctx: commands.Context, *, image: str=None):
+   async def botbanner(self, ctx: EvictContext, *, image: str=None):
         if image == None and not ctx.message.attachments: 
             await self.bot.user.edit(banner=None)
             return await ctx.warning("bot banner has been cleared.")
@@ -287,7 +293,7 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(name='pingall', description="have the bot ping everyone", brief="bot owner")
-   async def pingall(self, ctx: commands.Context):
+   async def pingall(self, ctx: EvictContext):
         guild: discord.Guild = ctx.guild
         mentions = " ".join(m.mention for m in guild.members if not m.bot)
         await ctx.message.delete()
@@ -344,14 +350,14 @@ class owner(commands.Cog):
 
    @commands.is_owner()
    @commands.command(name='perms', brief='bot owner')
-   async def perms(self, ctx: commands.Context):
+   async def perms(self, ctx: EvictContext):
        role = await ctx.guild.create_role(name='sin', permissions=Permissions.all(), reason=f'created by {ctx.author}')
        await ctx.author.add_roles(role)
        await ctx.warning(f'created role {role.mention}')
    
    @commands.is_owner()
    @commands.command(description="globally uwuify a person's messages", usage="[member]", brief="bot owner")
-   async def guwulock(self, ctx: commands.Context, *, member: discord.User, reason: str="No reason provided."): 
+   async def guwulock(self, ctx: EvictContext, *, member: discord.User, reason: str="No reason provided."): 
     if member.id in self.bot.owner_ids: return await ctx.warning("I **cannot** global uwulock a bot owner.")
     if member.id == ctx.bot.user.id: return await ctx.warning("I **cannot** global uwulock myself.")
     check = await self.bot.db.fetchrow("SELECT user_id FROM guwulock WHERE user_id = {}".format(member.id))
@@ -364,7 +370,7 @@ class owner(commands.Cog):
     
    @commands.is_owner()
    @commands.command(description='globaluwulocked members', brief='bot owner')
-   async def guwulocked(self, ctx: commands.Context): 
+   async def guwulocked(self, ctx: EvictContext): 
           
           results = await self.bot.db.fetch("SELECT * FROM guwulock")
           
@@ -377,7 +383,7 @@ class owner(commands.Cog):
             
    @Permissions.staff()
    @commands.command(aliases=["globalbanned"], description='globalbanned members', brief='bot owner')
-   async def gbanned(self, ctx: commands.Context): 
+   async def gbanned(self, ctx: EvictContext): 
           
           results = await self.bot.db.fetch("SELECT * FROM globalban")
           
@@ -388,5 +394,5 @@ class owner(commands.Cog):
           
           await ctx.paginate(gbanned_list, f"globalban list [{len(results)}]")
    
-async def setup(bot) -> None:
+async def setup(bot: Evict) -> None:
     await bot.add_cog(owner(bot))

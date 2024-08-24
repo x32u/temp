@@ -284,7 +284,7 @@ class information(commands.Cog):
         
     @commands.command(description='shows bot information', help='information', aliases=['info', 'bi'])
     async def botinfo(self, ctx: commands.Context):
-        embed = discord.Embed(title=f"{ctx.author.name}", description= 'Developers: [sin](https://discordapp.com/users/598125772754124823) **&** [fiji](https://discordapp.com/users/971464344749629512)', color=self.bot.color)
+        embed = discord.Embed(title=f"{ctx.author.name}", description= 'Developers: [sin](https://discordapp.com/users/598125772754124823)', color=self.bot.color)
         embed.add_field(name='Created', value=f'<t:{int(self.bot.user.created_at.timestamp())}:R>', inline=True)
         embed.add_field(name='Servers', value=f"`{len(self.bot.guilds)}`", inline=True)
         embed.add_field(name='Users', value=f"`{len(self.bot.users)}`", inline=True)

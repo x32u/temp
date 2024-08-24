@@ -1,10 +1,13 @@
 import humanfriendly, discord 
 from discord.ext import commands
-from patches.permissions import Permissions
-from patches.permissions import Whitelist
+
+from patches.permissions import Permissions, Whitelist
+
+from bot.helpers import EvictContext
+from bot.bot import Evict
 
 def check_whitelist(module: str):
-        async def predicate(ctx: commands.Context):
+        async def predicate(ctx: EvictContext):
             
             if ctx.guild is None: return False 
             if ctx.author.id == ctx.guild.owner.id: return True
@@ -19,18 +22,18 @@ def check_whitelist(module: str):
             return commands.check(predicate) 
 
 class antiraid(commands.Cog): 
-    def __init__(self, bot: commands.AutoShardedBot): 
+    def __init__(self, bot: Evict): 
       
       self.bot = bot 
       self.massjoin_cooldown = 10 
       self.massjoin_cache = {} 
 
     @commands.group(invoke_without_command=True)
-    async def antiraid(self, ctx: commands.Context): 
+    async def antiraid(self, ctx: EvictContext): 
       await ctx.create_pages()
     
     @antiraid.command(aliases=['stats'], description="check antiraid settings", help="antiraid", name="settings")
-    async def antiraid_settings(self, ctx: commands.Context): 
+    async def antiraid_settings(self, ctx: EvictContext): 
      
      settings_enabled = {"massjoin": self.bot.no, "defaultavatar": self.bot.no, "newaccounts": self.bot.no} 
      results = await self.bot.db.fetch("SELECT command FROM antiraid WHERE guild_id = $1", ctx.guild.id)
@@ -46,7 +49,7 @@ class antiraid(commands.Cog):
 
     @antiraid.command(brief="server owner", aliases=["wl"], description="whitelist an user so they can use antiraid commands", help="antiraid", usage="[member]")
     @Permissions.server_owner()
-    async def whitelist(self, ctx: commands.Context, *, member: discord.Member):       
+    async def whitelist(self, ctx: EvictContext, *, member: discord.Member):       
         
         check = await self.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND object_id = $2 AND module = $3 AND mode = $4", ctx.guild.id, member.id, "antiraid", "user")        
         if check: return await ctx.warning(f"**{member}** is already whitelisted for **anti raid**")
@@ -56,7 +59,7 @@ class antiraid(commands.Cog):
 
     @antiraid.command(brief="server owner", aliases=["uwl"], description="unwhitelist an user from antiraid commands", help="antiraid", usage="[member]") 
     @Permissions.server_owner()
-    async def unwhitelist(self, ctx: commands.Context, *, member: discord.User): 
+    async def unwhitelist(self, ctx: EvictContext, *, member: discord.User): 
         
         check = await self.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND object_id = $2 AND module = $3 AND mode = $4", ctx.guild.id, member.id, "antiraid", "user")        
         if not check: return await ctx.warning(f"**{member}** is not whitelisted for **anti raid**")
@@ -66,7 +69,7 @@ class antiraid(commands.Cog):
     
     @antiraid.command(brief="manage guild")      
     @Permissions.has_permission(manage_guild=True)
-    async def whitelisted(self, ctx: commands.Context):
+    async def whitelisted(self, ctx: EvictContext):
       
       results = await self.bot.db.fetch("SELECT * FROM whitelist WHERE guild_id = $1 AND module = $2 AND mode = $3", ctx.guild.id, "antiraid", "user")
           
@@ -79,12 +82,12 @@ class antiraid(commands.Cog):
       await ctx.paginate(whitelisted)  
     
     @antiraid.group(invoke_without_command=True, description="prevend join raids", help="antiraid", usage="[status (enable/disable)] [punishment] [joins per 10 seconds]\nexample: antiraid massjoin enable 10")
-    async def massjoin(self, ctx: commands.Context): 
+    async def massjoin(self, ctx: EvictContext): 
       return await ctx.create_pages() 
     
     @massjoin.command(brief="antiraid whitelisted", name="enable", description="prevent join raids", help="antiraid", usage="[punishment] [joins per 10 seconds]\nexample: antiraid massjoin enable ban 10")
     @check_whitelist("antiraid")
-    async def massjoin_enable(self, ctx: commands.Context, punishment: str, joins: int):
+    async def massjoin_enable(self, ctx: EvictContext, punishment: str, joins: int):
      
      check = await self.bot.db.fetchrow("SELECT * FROM antiraid WHERE guild_id = $1 AND command = $2", ctx.guild.id, "massjoin")          
      if check: return await ctx.warning("Massjoin protection is **already** enabled")
@@ -94,7 +97,7 @@ class antiraid(commands.Cog):
     
     @massjoin.command(brief="antiraid whitelisted", name="disable", description="disable massjoin protection", help="antiraid")
     @check_whitelist("antiraid")
-    async def massjoin_disable(self, ctx: commands.Context):
+    async def massjoin_disable(self, ctx: EvictContext):
      
      check = await self.bot.db.fetchrow("SELECT * FROM antiraid WHERE guild_id = $1 AND command = $2", ctx.guild.id, "massjoin")          
      if not check: return await ctx.warning("Massjoin protection is **not** enabled")
@@ -103,12 +106,12 @@ class antiraid(commands.Cog):
      return await ctx.success(f"Massjoin protection disabled")      
     
     @antiraid.group(invoke_without_command=True, description="prevent alt accounts from joining your server", help="antiraid", usage="[subcommand] [time] [punishment]\nantiraid newaccounts on 2d ban")
-    async def newaccounts(self, ctx: commands.Context):
+    async def newaccounts(self, ctx: EvictContext):
        return await ctx.create_pages()
     
     @newaccounts.command(brief="antiraid whitelisted", name="whitelist", description="let a young account join", help="antiraid", usage="[user]", aliases=['wl'])
     @check_whitelist("antiraid")
-    async def newaccounts_whitelist(self, ctx: commands.Context, *, member: discord.User): 
+    async def newaccounts_whitelist(self, ctx: EvictContext, *, member: discord.User): 
      
      check = await ctx.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND module = $2 AND object_id = $3 AND mode = $4", ctx.guild.id, "newaccounts", member.id, "user")
      if check: return await ctx.warning(f"**{member}** is **already** whitelisted for **antiraid newaccounts**")
@@ -118,7 +121,7 @@ class antiraid(commands.Cog):
     
     @newaccounts.command(brief="antiraid whitelisted", name="unwhitelist", description="remove the whitelist of a new account", help="antiraid", usage="[member]", aliases=['uwl'])
     @check_whitelist("antiraid")
-    async def newaccounts_unwhitelist(self, ctx: commands.Context, *, member: discord.User): 
+    async def newaccounts_unwhitelist(self, ctx: EvictContext, *, member: discord.User): 
      
      check = await ctx.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND module = $2 AND object_id = $3 AND mode = $4", ctx.guild.id, "newaccounts", member.id, "user")
      if not check: return await ctx.warning(f"**{member}** is **not** whitelisted for **antiraid newaccounts**")
@@ -127,12 +130,12 @@ class antiraid(commands.Cog):
      return await ctx.success(f"**{member}** is not whitelisted for **antiraid newaccounts** anymore")  
     
     @newaccounts.command(name="whitelisted", aliases=['list'], description="returns the whitelisted members from the newaccounts antiraid system")
-    async def newaccounts_whitelisted(self, ctx: commands.Context): 
+    async def newaccounts_whitelisted(self, ctx: EvictContext): 
      return await Whitelist.whitelisted_things(ctx, "newaccounts", "user") 
 
     @newaccounts.command(brief="antiraid whitelisted", name="on", description="turn on newaccounts", help="antiraid", usage="[time] [punishment]\nexample: antiraid newaccounts on 2d ban")
     @check_whitelist("antiraid")
-    async def newaccounts_on(self, ctx: commands.Context, time: str, punishment: str):   
+    async def newaccounts_on(self, ctx: EvictContext, time: str, punishment: str):   
         try:
          if not punishment in ["kick", "ban"]: return await ctx.error("Punishment is not either **kick** or **ban**")
          time = humanfriendly.parse_timespan(time)
@@ -147,7 +150,7 @@ class antiraid(commands.Cog):
     
     @newaccounts.command(brief="antiraid whitelisted", name="off", description="turn off newaccounts", help="antiraid")
     @check_whitelist("antiraid")
-    async def newaccounts_off(self, ctx: commands.Context):
+    async def newaccounts_off(self, ctx: EvictContext):
           
           check = await self.bot.db.fetchrow("SELECT * FROM antiraid WHERE guild_id = $1 AND command = $2", ctx.guild.id, "newaccounts")        
           if check is None: return await ctx.warning("Newaccounts is **not** enabled")
@@ -156,12 +159,12 @@ class antiraid(commands.Cog):
           return await ctx.success("Newaccounts antiraid disabled")
 
     @antiraid.group(invoke_without_command=True, description="prevent members with no avatar from joining your server", help="antiraid", aliases=["noavatar", "defaultpfp"])
-    async def defaultavatar(self, ctx: commands.Context): 
+    async def defaultavatar(self, ctx: EvictContext): 
       return await ctx.create_pages()
 
     @defaultavatar.command(brief="antiraid whitelisted", help="antiraid", name="on", description="turn on defaultavatar")
     @check_whitelist("antiraid")
-    async def defaultpfp_on(self, ctx: commands.Context, punishment: str): 
+    async def defaultpfp_on(self, ctx: EvictContext, punishment: str): 
      
      if not punishment in ["kick", "ban"]: return await ctx.warning("Punishment can be either **ban** or **kick**")
      check = await self.bot.db.fetchrow("SELECT * FROM antiraid WHERE guild_id = $1 AND command = $2", ctx.guild.id, "defaultavatar")          
@@ -173,7 +176,7 @@ class antiraid(commands.Cog):
    
     @defaultavatar.command(brief="antiraid whitelisted", help="antiraid", name="off", description="turn off defaultavatar")
     @check_whitelist("antiraid")
-    async def defaultpfp_off(self, ctx: commands.Context): 
+    async def defaultpfp_off(self, ctx: EvictContext): 
      
      check = await self.bot.db.fetchrow("SELECT * FROM antiraid WHERE guild_id = $1 AND command = $2", ctx.guild.id, "defaultavatar")          
      if not check: return await ctx.warning("Defaultavatar is **not** enabled")  
@@ -183,7 +186,7 @@ class antiraid(commands.Cog):
     
     @defaultavatar.command(brief="antiraid whitelisted", name="whitelist", description="let a person with no avatar", help="antiraid", usage="[user]", aliases=['wl'])
     @check_whitelist("antiraid")
-    async def defaultavatar_whitelist(self, ctx: commands.Context, *, member: discord.User): 
+    async def defaultavatar_whitelist(self, ctx: EvictContext, *, member: discord.User): 
      
      check = await ctx.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND module = $2 AND object_id = $3 AND mode = $4", ctx.guild.id, "defaultavatar", member.id, "user")
      if check: return await ctx.warning(f"**{member}** is **already** whitelisted for **antiraid defaultavatar**")
@@ -193,7 +196,7 @@ class antiraid(commands.Cog):
     
     @defaultavatar.command(brief="antiraid whitelisted", name="unwhitelist", description="remove the whitelist of a no avatar member", help="antiraid", usage="[member]", aliases=['uwl'])
     @check_whitelist("antiraid")
-    async def defaultavatar_unwhitelist(self, ctx: commands.Context, *, member: discord.User): 
+    async def defaultavatar_unwhitelist(self, ctx: EvictContext, *, member: discord.User): 
      
      check = await ctx.bot.db.fetchrow("SELECT * FROM whitelist WHERE guild_id = $1 AND module = $2 AND object_id = $3 AND mode = $4", ctx.guild.id, "defaultavatar", member.id, "user")
      if not check: return await ctx.warning(f"**{member}** is **not** whitelisted for **antiraid defaultavatar**")
@@ -202,7 +205,7 @@ class antiraid(commands.Cog):
      return await ctx.success(f"**{member}**is not whitelisted for **antiraid defaultavatar** anymore")  
     
     @defaultavatar.command(name="whitelisted", aliases=['list'], description="returns the whitelisted members from the defaultavatar antiraid system")
-    async def defaultavatar_whitelisted(self, ctx: commands.Context): 
+    async def defaultavatar_whitelisted(self, ctx: EvictContext): 
      return await Whitelist.whitelisted_things(ctx, "defaultavatar", "user") 
 
 async def setup(bot): 

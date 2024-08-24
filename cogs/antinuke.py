@@ -7,8 +7,11 @@ from patches.permissions import Permissions
 
 from utils.emojis import Emojis
 
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 def has_admin():
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: EvictContext) -> bool:
         if ctx.author.id in ctx.bot.owner_ids or ctx.author.id == ctx.guild.owner.id: return True
         admin = await ctx.bot.db.fetchrow("SELECT * FROM antinuke_admins WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, ctx.author.id)
         if not admin: return await ctx.success("You do not have **anti-nuke admin**")
@@ -17,7 +20,7 @@ def has_admin():
     return commands.check(predicate)
 
 def is_enabled():
-    async def predicate(ctx: commands.Context) -> bool:
+    async def predicate(ctx: EvictContext) -> bool:
         module = await ctx.bot.db.fetchrow("SELECT * FROM antinuke WHERE guild_id = $1", ctx.guild.id)
         if not module:
             return await ctx.success("AntiNuke is not **enabled** in this server. Use `antinuke enable` to **enable** it.")
@@ -26,7 +29,7 @@ def is_enabled():
     return commands.check(predicate)
 
 class antinuke(commands.Cog):
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: Evict):
         self.bot = bot
         self.modules = ["Ban", "Kick", "Bot", "Roles", "Vanity", "Webhook", "Channels", "Permissions"]
         self.actions = {}
@@ -34,14 +37,14 @@ class antinuke(commands.Cog):
     @has_admin()
     @commands.group(invoke_without_command=True, description='Anti-Nuke Commands', help="<subcommand>", usage="settings",  brief="Anti-Nuke Admin", aliases=['an'])
     @Permissions.has_permission(administrator=True)
-    async def antinuke(self, ctx: commands.Context):
+    async def antinuke(self, ctx: EvictContext):
         await ctx.create_pages()
         
     @has_admin()
     @is_enabled()    
     @antinuke.command(description='Anti-Nuke Settings', help="", usage="",  brief="Anti-Nuke Admin", aliases=['config'])
     @Permissions.has_permission(administrator=True)
-    async def settings(self, ctx: commands.Context):
+    async def settings(self, ctx: EvictContext):
         
         embed = discord.Embed(title=f"Anti-Nuke Settings - {ctx.guild.name}", color=self.bot.color)
         embed.set_footer(icon_url=ctx.me.avatar.url, text=f"If you have any questions, please join our support server: {self.bot.support_server}")
@@ -59,7 +62,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Add an Anti-Nuke Whitelisted Member', help="[User]", usage="@Sam", brief="Anti-Nuke Admin", aliases=['wl'])
     @Permissions.has_permission(administrator=True)
-    async def whitelist(self, ctx: commands.Context, user: discord.User):
+    async def whitelist(self, ctx: EvictContext, user: discord.User):
         
         whitelist = await ctx.bot.db.fetchrow("SELECT * FROM antinuke_whitelist WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         if whitelist: 
@@ -75,7 +78,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Add an Anti-Nuke Admin', help="[User]", usage="@Sam", brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def admin(self, ctx: commands.Context, user: discord.User):
+    async def admin(self, ctx: EvictContext, user: discord.User):
         
         admin = await ctx.bot.db.fetchrow("SELECT * FROM antinuke_admins WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, user.id)
         if admin: 
@@ -90,7 +93,7 @@ class antinuke(commands.Cog):
     @has_admin()
     @antinuke.command(description='List Anti-Nuke Whitelisted Members', help="", usage="",  brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def whitelisted(self, ctx: commands.Context):
+    async def whitelisted(self, ctx: EvictContext):
         
         whitelisted = await ctx.bot.db.fetch("SELECT * FROM antinuke_whitelist WHERE guild_id = $1", ctx.guild.id)
         if not whitelisted: return await ctx.success("No users are **whitelisted** in this server.")
@@ -110,7 +113,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='List Anti-Nuke Admin', help="", usage="",  brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def admins(self, ctx: commands.Context):
+    async def admins(self, ctx: EvictContext):
         
         admins = await ctx.bot.db.fetch("SELECT * FROM antinuke_admins WHERE guild_id = $1", ctx.guild.id)
         if not admins: return await ctx.success("No users are **Anti-Nuke Admins** in this server.")
@@ -129,7 +132,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Enable Anti-Nuke', help="", usage="",  brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def enable(self, ctx: commands.Context):
+    async def enable(self, ctx: EvictContext):
         enabled = await ctx.bot.db.fetchrow("SELECT * FROM antinuke WHERE guild_id = $1", ctx.guild.id)
         if enabled: return await ctx.success("AntiNuke is already **enabled** in this server.")
         
@@ -148,7 +151,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Disable Anti-Nuke', help="", usage="",  brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def disable(self, ctx: commands.Context):
+    async def disable(self, ctx: EvictContext):
         await ctx.bot.db.execute("DELETE FROM antinuke WHERE guild_id = $1", ctx.guild.id)
         return await ctx.success("Anti-Nuke has been **disabled** in this server.")
         
@@ -156,7 +159,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Toggle Anti-Nuke', help="[Module]", usage="ban",  brief="Anti-Nuke Admin")
     @Permissions.has_permission(administrator=True)
-    async def toggle(self, ctx: commands.Context, module: str):
+    async def toggle(self, ctx: EvictContext, module: str):
         if module.capitalize() not in self.modules: return await ctx.success(f"The module `{module}` is not a valid **Anti-Nuke module**.")
         
         an_module = await AntiNukeModule.from_database(self.bot.db, ctx.guild.id, module.capitalize())
@@ -170,7 +173,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Anti-Nuke Module Threshold', help="[Module] [Threshold]", usage="ban 1",  brief="Anti-Admin")
     @Permissions.has_permission(administrator=True)
-    async def threshold(self, ctx: commands.Context, module: str, threshold: int):
+    async def threshold(self, ctx: EvictContext, module: str, threshold: int):
         if module.capitalize() not in self.modules: return await ctx.success(f"The module `{module}` is not a valid **Anti-Nuke module**.")
         
         an_module = await AntiNukeModule.from_database(self.bot.db, ctx.guild.id, module.capitalize())
@@ -184,7 +187,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(description='Anti-Nuke Module Action', help="[Module] [Action]", usage="ban kick",  brief="Anti-Admin", aliases=['punishment'])
     @Permissions.has_permission(administrator=True)
-    async def action(self, ctx: commands.Context, module: str, action: str):
+    async def action(self, ctx: EvictContext, module: str, action: str):
         
         if module.capitalize() not in self.modules: return await ctx.success(f"The module `{module}` is not a valid **Anti-Nuke module**.")
         if action.lower() not in ['ban', 'warn', 'kick' ,'strip']: return await ctx.success(f"The action `{action}` is not a valid action. Use `ban`, `warn`, `kick` or 'strip'.")
@@ -343,5 +346,5 @@ class antinuke(commands.Cog):
                 del self.actions[guild_id][pos]
                 return True
                      
-async def setup(bot: commands.AutoShardedBot):
+async def setup(bot: Evict):
     await bot.add_cog(antinuke(bot))
