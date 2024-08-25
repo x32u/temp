@@ -747,18 +747,22 @@ class moderation(commands.Cog):
     )
     @Permissions.has_permission(manage_messages=True)
     async def warnclear(self, ctx: EvictContext, *, member: discord.Member):
+        
         check = await self.bot.db.fetch(
             "SELECT * FROM warns WHERE guild_id = $1 AND user_id = $2",
             ctx.guild.id,
             member.id,
         )
+        
         if len(check) == 0:
-            return await ctx.warning("this user has no warnings".capitalize())
+            return await ctx.warning("This user has no warnings.")
+        
         await self.bot.db.execute(
             "DELETE FROM warns WHERE guild_id = $1 AND user_id = $2",
             ctx.guild.id,
             member.id,
         )
+        
         await ctx.success(f"Removed **{member.name}'s** warns")
 
     @Mod.is_mod_configured()
@@ -770,42 +774,19 @@ class moderation(commands.Cog):
     )
     @Permissions.has_permission(manage_messages=True)
     async def warnlist(self, ctx: EvictContext, *, member: discord.Member):
+        
         check = await self.bot.db.fetch(
             "SELECT * FROM warns WHERE guild_id = $1 AND user_id = $2",
             ctx.guild.id,
             member.id,
         )
-        if len(check) == 0:
-            return await ctx.warning("this user has no warnings".capitalize())
-        i = 0
-        k = 1
-        l = 0
-        mes = ""
-        number = []
-        messages = []
-        for result in check:
-            mes = f"{mes}`{k}` {result['time']} by **{await self.bot.fetch_user(result['author_id'])}** - {result['reason']}\n"
-            k += 1
-            l += 1
-            if l == 10:
-                messages.append(mes)
-                number.append(
-                    discord.Embed(
-                        color=Colors.color,
-                        title=f"warns ({len(check)})",
-                        description=messages[i],
-                    )
-                )
-                i += 1
-                mes = ""
-                l = 0
+        
+        warn_list = [
+            f"``{index + 1}.`` {result['time']} - (``{result['reason']}``)"
+            for index, result in enumerate(check)
+        ]
 
-        messages.append(mes)
-        embed = discord.Embed(
-            color=Colors.color, title=f"warns ({len(check)})", description=messages[i]
-        ).set_footer(text="All times are GMT")
-        number.append(embed)
-        await ctx.paginate(number)
+        await ctx.paginate(warn_list, f"{member.name}'s warn list [{len(check)}]")
 
     @Mod.is_mod_configured()
     @commands.command(

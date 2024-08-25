@@ -1,4 +1,4 @@
-import discord, json
+import discord, json, re
 from discord.ext import commands
 
 from utils.embed import Embed
@@ -77,26 +77,30 @@ class chat(commands.Cog):
     @Permissions.has_permission(manage_guild=True)
     async def add(self, ctx: EvictContext, *, message: str):
 
-        autoresponse = message.split(",", 1)
-        key = await ctx.bot.db.fetch(
+        if re.match(r'^[a-zA-Z0-9 @<>,]+$', message):
+
+            autoresponse = message.split(",", 1)
+            key = await ctx.bot.db.fetch(
             "SELECT * FROM autoresponses WHERE guild_id = $1 AND key = $2",
             ctx.guild.id,
             autoresponse[0],
-        )
-        if key:
-            return await ctx.warning(
+            )
+            if key:
+                return await ctx.warning(
                 f"You **already** have an autoresponse for `{autoresponse[0]}`"
             )
 
-        await ctx.bot.db.execute(
+            await ctx.bot.db.execute(
             "INSERT INTO autoresponses VALUES ($1, $2, $3)",
             ctx.guild.id,
             autoresponse[0],
             autoresponse[1].lstrip(),
         )
-        return await ctx.success(
-            f"I have **added** the autoresponse for `{autoresponse[0].lstrip()}` with response `{autoresponse[1].lstrip()}`"
+            return await ctx.success(
+                f"I have **added** the autoresponse for `{autoresponse[0].lstrip()}` with response `{autoresponse[1].lstrip()}`"
         )
+        else: await ctx.warning("You can only use letters and numbers as the trigger, do not use unicode characters.")
+        
 
     @autoresponder.command(
         name="variables",
