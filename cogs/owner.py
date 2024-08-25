@@ -395,6 +395,16 @@ class owner(commands.Cog):
                           for index, result in enumerate(results)]
           
           await ctx.paginate(gbanned_list, f"globalban list [{len(results)}]")
+
+   @Permissions.staff()
+   @commands.command(description="reset a users reskin", brief="bot owner", usage="[user]")
+   async def reskinreset(self, ctx: EvictContext, user: discord.User):
+       
+    check = await self.bot.db.fetchrow("SELECT * FROM reskin WHERE user_id = $1", user.id)
+    if check is None: return await ctx.warning(f"There is **not** a reskin config for **{user}**.")
+
+    await self.bot.db.execute("DELETE FROM donor WHERE user_id = {}".format(user.id))
+    await ctx.success(f"I have **removed** the reskin for **{user.name}**.")
    
 async def setup(bot: Evict) -> None:
     await bot.add_cog(owner(bot))
