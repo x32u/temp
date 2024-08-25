@@ -85,6 +85,12 @@ class auth(commands.Cog):
         await channel.send(embed=embed)
         await self.bot.db.execute("DELETE FROM authorize WHERE guild_id = $1", id)
         await ctx.success(f"I have **removed** the authorization for **{id}**.")
+        
+        guild = self.bot.get_guild(int(id))
+        if guild == None: return 
+        
+        try: await guild.leave()
+        except: return
 
 async def setup(bot: Evict): 
     await bot.add_cog(auth(bot))    
