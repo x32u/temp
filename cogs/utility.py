@@ -1,21 +1,26 @@
-from discord.ext.commands import Cog, Context, Bot as Bot
-from discord.ext import commands
 import datetime, discord, os, arrow, uwuipy, humanfriendly, asyncio
-from discord import Embed, File, TextChannel, Member, User, Role 
+
+from discord.ext.commands import Cog
+from discord.ext import commands
+from discord import Embed, TextChannel, Member, User, Role 
 from deep_translator import GoogleTranslator
-from patches.lastfm import LastFMHandler as Handler
-from patches.permissions import Permissions
 from aiogtts import aiogTTS
 from typing import Union
 from io import BytesIO
+
+from patches.lastfm import LastFMHandler as Handler
+from patches.permissions import Permissions
 from patches.classes import Timezone, TimeConverter
 from events.tasks import is_there_a_reminder, bday_task, reminder_task
 from patches import functions
 
+from bot.bot import Evict
+from bot.helpers import EvictContext
+
 DISCORD_API_LINK = "https://discord.com/api/invite/"
 
 class utility(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Evict):
         self.bot = bot 
         self.tz = Timezone(self.bot)
         self.lastfmhandler = Handler("43693facbb24d1ac893a7d33846b15cc")
@@ -23,7 +28,7 @@ class utility(commands.Cog):
         self.weather_key = "64581e6f1d7d49ae834142709230804"
         self.a = TimeConverter
     
-    async def bday_send(self, ctx: Context, message: str) -> discord.Message: 
+    async def bday_send(self, ctx: EvictContext, message: str) -> discord.Message: 
       return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.cake} {ctx.author.mention}: {message}"))
     
     async def do_again(self, url: str):
@@ -61,7 +66,7 @@ class utility(commands.Cog):
      return f"{month}/{day}/{year} at {hour}:{minute} {meridian} ({discord.utils.format_dt(date, style='R')})" 
 
     @commands.command(description="show user information", usage="<user>", aliases=["whois", "ui", "user"])
-    async def userinfo(self, ctx: Context, *, member: Union[Member, User]=None):
+    async def userinfo(self, ctx: EvictContext, *, member: Union[Member, User]=None):
      await ctx.typing()
      if member is None: member = ctx.author           
      user = await self.bot.fetch_user(member.id)
@@ -177,7 +182,7 @@ class utility(commands.Cog):
        
     @commands.command(description="clear all snipe data", brief="manage messages", aliases=['cs'])
     @Permissions.has_permission(manage_messages=True)
-    async def clearsnipes(self, ctx: Context): 
+    async def clearsnipes(self, ctx: EvictContext): 
       
       lis = ["snipe", "reactionsnipe", "editsnipe"]
       for l in lis: await self.bot.db.execute(f"DELETE FROM {l} WHERE guild_id = $1", ctx.guild.id)
@@ -215,14 +220,14 @@ class utility(commands.Cog):
          if len(number) > 1: return await ctx.warning( f"no logged usernames for **{member}**".capitalize())
 
     @commands.command(usage="[message]", description="uwify a message", aliases=["uwu"])
-    async def uwuify(self, ctx: Context, *, text: str): 
+    async def uwuify(self, ctx: EvictContext, *, text: str): 
      uwu = uwuipy.uwuipy()
      uwu_message = uwu.uwuify(text)
      await ctx.send(uwu_message)  
 
     @commands.command(description="give someone permission to post pictures in a channel", usage="[member] <channel>", brief="manage roles")
     @Permissions.has_permission(manage_roles=True)
-    async def picperms(self, ctx: Context, member: Member, *, channel: TextChannel=None):
+    async def picperms(self, ctx: EvictContext, member: Member, *, channel: TextChannel=None):
       
       if channel is None: 
         channel = ctx.channel
@@ -246,7 +251,7 @@ class utility(commands.Cog):
         await ctx.reply(embed=Embed(color=self.bot.color, description="{}: **{}** was last seen <t:{}:R>".format(ctx.author.mention, member, ts)))   
 
     @commands.command(description="let everyone know you are away", usage="<reason>")
-    async def afk(self, ctx: Context, *, reason="AFK"):      
+    async def afk(self, ctx: EvictContext, *, reason="AFK"):      
        
        ts = int(datetime.datetime.now().timestamp())   
        result = await self.bot.db.fetchrow("SELECT * FROM afk WHERE guild_id = {} AND user_id = {}".format(ctx.guild.id, ctx.author.id)) 
@@ -258,7 +263,7 @@ class utility(commands.Cog):
 
     @commands.command(name="clearsnipes", aliases=["clearsnipe", "cs"])
     @commands.has_permissions(manage_messages=True)
-    async def clearsnipes(self, ctx: commands.Context):
+    async def clearsnipes(self, ctx: EvictContext):
         """Clear deleted messages from the cache"""
 
         await self.bot.redis.delete(
@@ -269,7 +274,7 @@ class utility(commands.Cog):
         await ctx.success("I have deleted all the snipes in this channel.")
 
     @commands.command(name="editsnipe", usage="<index>", aliases=["esnipe", "es", "eh"])
-    async def editsnipe(self, ctx: commands.Context, index: int = 1):
+    async def editsnipe(self, ctx: EvictContext, index: int = 1):
         """View edited messages"""
 
         embed = []
@@ -311,7 +316,7 @@ class utility(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(name="reactionsnipe", usage="<message>", aliases=["rsnipe", "rs", "rh"])
-    async def reactionsnipe(self, ctx: commands.Context, *, message: discord.Message = None):
+    async def reactionsnipe(self, ctx: EvictContext, *, message: discord.Message = None):
         """View removed reactions"""
 
         reactions = await self.bot.redis.lget(f"removed_reactions:{functions.hash(ctx.channel.id)}")
@@ -342,7 +347,7 @@ class utility(commands.Cog):
             )
 
     @commands.command(name="snipe", usage="<index>", aliases=["sn", "s"])
-    async def snipe(self, ctx: commands.Context, index: int = 1):
+    async def snipe(self, ctx: EvictContext, index: int = 1):
         """View deleted messages"""
 
         messages = await self.bot.redis.lget(f"deleted_messages:{functions.hash(ctx.channel.id)}")
@@ -382,7 +387,7 @@ class utility(commands.Cog):
         await ctx.reply(embed=embed)
     
     @commands.command(aliases=["mc"], description="check member count")
-    async def membercount(self, ctx: Context):
+    async def membercount(self, ctx: EvictContext):
       
       b=len(set(b for b in ctx.guild.members if b.bot))
       h=len(set(b for b in ctx.guild.members if not b.bot))
@@ -397,7 +402,7 @@ class utility(commands.Cog):
       await ctx.reply(embed=embed)
     
     @commands.command(description="get role information", usage="[role]", aliases=["ri"])
-    async def roleinfo(self, ctx: Context, *, role: Union[Role, str]): 
+    async def roleinfo(self, ctx: EvictContext, *, role: Union[Role, str]): 
       if isinstance(role, str): 
         role = ctx.find_role(role)
         if role is None: return await ctx.warning( "This is not a valid role")
@@ -414,7 +419,7 @@ class utility(commands.Cog):
       await ctx.reply(embed=embed)
             
     @commands.command(description="see all members in a role", usage="[role]")
-    async def inrole(self, ctx: Context, *, role: Union[Role, str]):
+    async def inrole(self, ctx: EvictContext, *, role: Union[Role, str]):
       
       if isinstance(role, str): 
               
@@ -431,7 +436,7 @@ class utility(commands.Cog):
       await ctx.index(inrole_list, f"members in {role.name} [{len({b})}]") 
     
     @commands.command(description="see all members joined within 24 hours")
-    async def joins(self, ctx: Context): 
+    async def joins(self, ctx: EvictContext): 
       
       members = [m for m in ctx.guild.members if (datetime.datetime.now() - m.joined_at.replace(tzinfo=None)).total_seconds() < 3600*24]      
       if len(members) == 0: return await ctx.error("no members joined in the last **24** hours")
@@ -444,7 +449,7 @@ class utility(commands.Cog):
       await ctx.index(join_list, f"new members") 
             
     @commands.command(description="see all the muted members in the server")
-    async def muted(self, ctx: Context):
+    async def muted(self, ctx: EvictContext):
       
       m=len(set(m for m in ctx.guild.members if m.is_timed_out()))
       members = [m for m in ctx.guild.members if m.is_timed_out()]
@@ -458,7 +463,7 @@ class utility(commands.Cog):
     
     @Permissions.has_permission(ban_members=True)
     @commands.command(description="see all server bans")
-    async def bans(self, ctx: Context):
+    async def bans(self, ctx: EvictContext):
           
           banned = [ban async for ban in ctx.guild.bans(limit=1000)]
           
@@ -470,7 +475,7 @@ class utility(commands.Cog):
           await ctx.index(ban_list, f"bans [{len(banned)}]")
 
     @commands.command(description="see all server boosters")
-    async def boosters(self, ctx: commands.Context):
+    async def boosters(self, ctx: EvictContext):
       if not ctx.guild.premium_subscriber_role or len(ctx.guild.premium_subscriber_role.members) == 0: 
               return await ctx.warning("this server doesn't have any boosters")
             
@@ -481,7 +486,7 @@ class utility(commands.Cog):
 
     @Permissions.has_permission(manage_roles=True)
     @commands.command(description="see all server roles")
-    async def roles(self, ctx: Context):
+    async def roles(self, ctx: EvictContext):
       
       role_list = [f"{role.mention} - {len(role.members)} member{'s' if len(role.members) != 1 else ''}" 
       
@@ -490,7 +495,7 @@ class utility(commands.Cog):
       await ctx.index(role_list, f"roles [{len(ctx.guild.roles[1:])}]")   
   
     @commands.command(description="see all the bots in the server")
-    async def bots(self, ctx: Context):
+    async def bots(self, ctx: EvictContext):
             
       b=len(set(b for b in ctx.guild.members if b.bot))
             
@@ -504,7 +509,7 @@ class utility(commands.Cog):
       await ctx.index(bot_list, f"bots [{b}]")  
     
     @commands.command(description="check the weather from a location", usage="[country]")
-    async def weather(self, ctx: Context, *, location: str): 
+    async def weather(self, ctx: EvictContext, *, location: str): 
      
      url = "http://api.weatherapi.com/v1/current.json"
      
@@ -537,14 +542,14 @@ class utility(commands.Cog):
      return await ctx.reply(embed=embed)
  
     @commands.command(description="shows the number of invites an user has", usage="<user>")
-    async def invites(self, ctx: commands.Context, *, member: Member=None):
+    async def invites(self, ctx: EvictContext, *, member: Member=None):
       if member is None: 
         member = ctx.author 
       invites = await ctx.guild.invites()
       await ctx.neutral(f"{member} has **{sum(invite.uses for invite in invites if invite.inviter.id == member.id)}** invites")
     
     @commands.command(aliases=["tts", "speech"], description="convert your message to mp3", usage="[message]")     
-    async def texttospeech(self, ctx: Context, *, txt: str): 
+    async def texttospeech(self, ctx: EvictContext, *, txt: str): 
       i=BytesIO()
       aiogtts = aiogTTS()
       await aiogtts.save(txt, 'tts.mp3', lang='en')
@@ -559,13 +564,13 @@ class utility(commands.Cog):
       await ctx.reply(embed=embed)
     
     @commands.command(aliases=["tr"], description="translate a message", usage="[language] [message]")
-    async def translate(self, ctx: Context, lang: str, *, mes: str): 
+    async def translate(self, ctx: EvictContext, lang: str, *, mes: str): 
       translated = GoogleTranslator(source="auto", target=lang).translate(mes)
       embed = Embed(color=self.bot.color, description="```{}```".format(translated), title="translated to {}".format(lang))
       await ctx.reply(embed=embed)
     
     @commands.group(invoke_without_command=True, description="check member's birthday", aliases=['bday'])
-    async def birthday(self, ctx: Context, *, member: Member=None): 
+    async def birthday(self, ctx: EvictContext, *, member: Member=None): 
      if member is None: member = ctx.author 
      lol = "'s"
      date = await self.bot.db.fetchrow("SELECT bday FROM birthday WHERE user_id = $1", member.id)      
@@ -579,7 +584,7 @@ class utility(commands.Cog):
      await self.bday_send(ctx, f"{'Your' if member == ctx.author else '**' + member.name + lol + '**'} birthday is **{date}**")
 
     @birthday.command(name="set", description="set your birthday", usage="[month] [day]\nexample: birthday set January 19")
-    async def bday_set(self, ctx: Context, month: str, day: str): 
+    async def bday_set(self, ctx: EvictContext, month: str, day: str): 
      try:
       if len(month)==1: mn="M"
       elif len(month)==2: mn="MM"
@@ -601,23 +606,23 @@ class utility(commands.Cog):
      except: return await ctx.error(f"usage: `{ctx.clean_prefix}birthday set [month] [day]`") 
     
     @birthday.command(name="unset", description="unset your birthday")
-    async def bday_unset(self, ctx: Context):
+    async def bday_unset(self, ctx: EvictContext):
       check = await self.bot.db.fetchrow("SELECT bday FROM birthday WHERE user_id = $1", ctx.author.id)
       if not check: return await ctx.warning( "Your birthday is not set")
       await self.bot.db.execute("DELETE FROM birthday WHERE user_id = $1", ctx.author.id)
       await ctx.warning( "Unset your birthday")
 
     @commands.group(invoke_without_command=True, description="check member's timezones", aliases=['tz'])
-    async def timezone(self, ctx: Context, *, member: discord.Member=None): 
+    async def timezone(self, ctx: EvictContext, *, member: discord.Member=None): 
      if member is None: member = ctx.author  
      return await self.tz.get_user_timezone(ctx, member)
 
     @timezone.command(name="set", description="set the timezone", usage="[location]\nexample: ;tz set russia")
-    async def tz_set(self, ctx: Context, *, location: str):
+    async def tz_set(self, ctx: EvictContext, *, location: str):
      return await self.tz.tz_set_cmd(ctx, location)
     
     @timezone.command(name="list", description="return a list of server member's timezones")
-    async def tz_list(self, ctx: Context): 
+    async def tz_list(self, ctx: EvictContext): 
      ids = [str(m.id) for m in ctx.guild.members] 
      results = await self.bot.db.fetch(f"SELECT * FROM timezone WHERE user_id IN ({','.join(ids)})") 
      if len(results) == 0: await self.tz.timezone_send(ctx, "Nobody (even you) has their timezone set") 
@@ -645,28 +650,28 @@ class utility(commands.Cog):
      await ctx.paginate(number) 
 
     @timezone.command(name="unset", description="unset the timezone")
-    async def tz_unset(self, ctx: Context):
+    async def tz_unset(self, ctx: EvictContext):
       check = await self.bot.db.fetchrow("SELECT * FROM timezone WHERE user_id = $1", ctx.author.id)
       if not check: return await ctx.warning( "You don't have a **timezone** set")
       await self.bot.db.execute('DELETE * FROM timezone WHERE user_id = $1', ctx.author.id)
       return await ctx.success("Removed the timezone")
     
     @commands.group(invoke_without_command=True)
-    async def reminder(self, ctx: Context): 
+    async def reminder(self, ctx: EvictContext): 
       return await ctx.create_pages()
     
     @reminder.command(name="add", description="make the bot remind you about a task", usage="[time] [reminder]")
-    async def reminder_add(self, ctx: Context, time: str, *, task: str): 
+    async def reminder_add(self, ctx: EvictContext, time: str, *, task: str): 
       return await ctx.invoke(self.bot.get_command('remind'), time=time, task=task)
     
     @reminder.command(name="stop", aliases=['cancel'], description="cancel a reminder from this server")
     @is_there_a_reminder()
-    async def reminder_stop(self, ctx: Context): 
+    async def reminder_stop(self, ctx: EvictContext): 
       await self.bot.db.execute("DELETE FROM reminder WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, ctx.author.id)
       return await ctx.success("Deleted a reminder")
 
     @commands.command(aliases=['remindme'], description="make the bot remind you about a task", usage="[time] [reminder]")
-    async def remind(self, ctx: Context, time: str, *, task: str):
+    async def remind(self, ctx: EvictContext, time: str, *, task: str):
      try: seconds = humanfriendly.parse_timespan(time)
      except humanfriendly.InvalidTimespan: return await ctx.warning(f"**{time}** is not a correct time format")
      await ctx.reply(f"🕰️ {ctx.author.mention}: I'm going to remind you in {humanfriendly.format_timespan(seconds)} about **{task}**")
@@ -678,12 +683,12 @@ class utility(commands.Cog):
       except: return await ctx.warning("You already have a reminder set in this channel. Use `{ctx.clean_prefix}reminder stop` to cancel the reminder")
             
     @commands.command(description="see all the members in the server")
-    async def members(self, ctx: Context):
+    async def members(self, ctx: EvictContext):
           
       member_list = [f"**{member}** joined <t:{int(member.joined_at.timestamp())}:f> (<t:{int(member.joined_at.timestamp())}:R>)"
                            for member in ctx.guild.members if not member.bot] 
           
       await ctx.index(member_list, f"members [{len(ctx.guild.members[1:])}]") 
 
-async def setup(bot):
+async def setup(bot: Evict):
     await bot.add_cog(utility(bot))

@@ -1,14 +1,17 @@
 import discord, random, string, asyncio, aiohttp
+
 from discord.ext import commands 
+
 from patches.permissions import Permissions
 from patches.classes import Mod
 from utils.utils import EmbedScript
 from bot.helpers import EvictContext
 from patches.classes import ValidWebhookCode
 from bot.headers import Session
+from bot.bot import Evict
 
 def is_detention(): 
- async def predicate(ctx: commands.Context): 
+ async def predicate(ctx: EvictContext): 
   
   check = await ctx.bot.db.fetchrow("SELECT * FROM naughtycorner WHERE guild_id = $1", ctx.guild.id)
   if not check: await ctx.warning("Naughty corner is not configured")
@@ -17,7 +20,7 @@ def is_detention():
  return commands.check(predicate)
  
 class misc(commands.Cog):
-  def __init__(self, bot: commands.Bot): 
+  def __init__(self, bot: Evict): 
     self.bot = bot   
     self.headers = {
       "Content-Type": "application/json"
@@ -44,12 +47,12 @@ class misc(commands.Cog):
       if after.channel.id != channel.id: await member.move_to(channel=channel, reason=f"moved to the naughty corner")
 
   @commands.group(aliases=['detention', 'nc'], invoke_without_command=True)
-  async def naughtycorner(self, ctx: commands.Context): 
+  async def naughtycorner(self, ctx: EvictContext): 
     await ctx.create_pages()
     
   @naughtycorner.command( aliases=['configure', 'set'], brief="manage server", usage="[voice channel]", name="setup", description="configure naughty corner voice channel")
   @Permissions.has_permission(manage_guild=True)
-  async def nc_setup(self, ctx: commands.Context, *, channel: discord.VoiceChannel): 
+  async def nc_setup(self, ctx: EvictContext, *, channel: discord.VoiceChannel): 
    
    check = await self.bot.db.fetchrow("SELECT * FROM naughtycorner WHERE guild_id = $1", ctx.guild.id)
    if check: await self.bot.db.execute("UPDATE naughtycorner SET channel_id = $1 WHERE guild_id = $2", channel.id, ctx.guild.id) 
@@ -60,7 +63,7 @@ class misc(commands.Cog):
   @naughtycorner.command( name="unsetup", brief="manage server", description="disable naughty corner feature in the server") 
   @Permissions.has_permission(manage_guild=True)
   @is_detention()
-  async def nc_unsetup(self, ctx: commands.Context): 
+  async def nc_unsetup(self, ctx: EvictContext): 
    
    await self.bot.db.execute('DELETE FROM naughtycorner WHERE guild_id = $1', ctx.guild.id)
    return await ctx.success("Naughty corner is now disabled")
@@ -68,7 +71,7 @@ class misc(commands.Cog):
   @naughtycorner.command( name="add", brief="timeout members", description="add a member to the naughty corner", usage="[member]")
   @Permissions.has_permission(moderate_members=True)
   @is_detention()
-  async def nc_add(self, ctx: commands.Context, *, member: discord.Member): 
+  async def nc_add(self, ctx: EvictContext, *, member: discord.Member): 
    
    if await Mod.check_hieracy(ctx, member): 
     
@@ -86,7 +89,7 @@ class misc(commands.Cog):
   @naughtycorner.command( name="remove", brief="timeout emmbers", description="remove a member from the naughty corner", usage="[member]")
   @Permissions.has_permission(manage_guild=True)
   @is_detention()
-  async def nc_remove(self, ctx: commands.Context, *, member: discord.Member): 
+  async def nc_remove(self, ctx: EvictContext, *, member: discord.Member): 
    
    if await Mod.check_hieracy(ctx, member): 
     check = await self.bot.db.fetchrow("SELECT * FROM naughtycorner_members WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)
@@ -98,7 +101,7 @@ class misc(commands.Cog):
    
   @naughtycorner.command(name="members", aliases=['list'], description="returns members from the naughty corner")      
   @is_detention()
-  async def nc_list(self, ctx: commands.Context):
+  async def nc_list(self, ctx: EvictContext):
       
       results = await self.bot.db.fetch("SELECT user_id FROM naughtycorner_members WHERE guild_id = $1", ctx.guild.id)
       if len(results) == 0: return await ctx.warning("no **whitelisted** members found")
@@ -116,7 +119,7 @@ class misc(commands.Cog):
 
   @webhook_edit.command(name="name", description="edit a webhook's name",  usage="[code] [name]", brief="manage server") 
   @Permissions.has_permission(manage_guild=True)
-  async def webhook_name(self, ctx: commands.Context, code: str, *, name: str): 
+  async def webhook_name(self, ctx: EvictContext, code: str, *, name: str): 
    
    check = await self.bot.db.fetchrow("SELECT * FROM webhook WHERE code = $1 AND guild_id = $2", code, ctx.guild.id)
    if not check: return ctx.error("No **webhook** associated with this code")
@@ -132,7 +135,7 @@ class misc(commands.Cog):
 
   @webhook_edit.command(name="avatar", aliases=["icon"],  description="edit a webhook's avatar", usage="[code] [image url / attachment]", brief="manage server")
   @Permissions.has_permission(manage_guild=True)
-  async def webhook_avatar(self, ctx: commands.Context, code: str, link: str=None): 
+  async def webhook_avatar(self, ctx: EvictContext, code: str, link: str=None): 
    
    check = await self.bot.db.fetchrow("SELECT * FROM webhook WHERE code = $1 AND guild_id = $2", code, ctx.guild.id)
    if not check: return ctx.error("There is no **webhook** associated with this code.")
@@ -154,7 +157,7 @@ class misc(commands.Cog):
 
   @webhook.command(name="create", aliases=['add'],  description="create a webhook in a channel", usage="[channel] <name>", brief="manage server")
   @Permissions.has_permission(manage_guild=True)
-  async def webhook_create(self, ctx: commands.Context, channel: discord.TextChannel, *, name: str="evict"): 
+  async def webhook_create(self, ctx: EvictContext, channel: discord.TextChannel, *, name: str="evict"): 
    
    webhook = await channel.create_webhook(name=name, reason=f"webhook created by {ctx.author}") 
    code = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(5)) 
@@ -164,7 +167,7 @@ class misc(commands.Cog):
   
   @webhook.command(name="delete", aliases=['remove'], brief="manage server", description="delete a webhook from a channel", usage="[code]")
   @Permissions.has_permission(manage_guild=True)
-  async def webhook_delete(self, ctx: commands.Context, code: str): 
+  async def webhook_delete(self, ctx: EvictContext, code: str): 
    
    check = await self.bot.db.fetchrow("SELECT * FROM webhook WHERE code = $1 AND guild_id = $2", code, ctx.guild.id)
    if not check: return ctx.error("No **webhook** associated with this code")   
@@ -201,7 +204,7 @@ class misc(commands.Cog):
    
   @webhook.command(name="list", brief="manage guild", description="shows a list of available webhooks in the server", aliases=['view']) 
   @Permissions.has_permission(manage_guild=True) 
-  async def webhook_list(self, ctx: commands.Context): 
+  async def webhook_list(self, ctx: EvictContext): 
       
       results = await self.bot.db.fetch("SELECT * FROM webhook WHERE guild_id = $1", ctx.guild.id)
       
@@ -235,7 +238,7 @@ class misc(commands.Cog):
             
   @commands.command(description='pin a message by replying to it', brief='manage messages', usage='[message id]')
   @Permissions.has_permission(manage_messages=True)
-  async def pin(self, ctx: commands.Context, message_id: int = None):
+  async def pin(self, ctx: EvictContext, message_id: int = None):
         
         if ctx.message.reference:
             message_id = ctx.message.reference.message_id
@@ -251,7 +254,7 @@ class misc(commands.Cog):
         
   @commands.command(description='unpin a message by replying to it', brief='manage messages', usage='[message id]')
   @Permissions.has_permission(manage_messages=True)
-  async def unpin(self, ctx: commands.Context, message_id: int = None):
+  async def unpin(self, ctx: EvictContext, message_id: int = None):
         
         if ctx.message.reference:
             message_id = ctx.message.reference.message_id
@@ -265,5 +268,5 @@ class misc(commands.Cog):
         await message.unpin()
         await ctx.success(f"unpinned message.")
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Evict) -> None:
   await bot.add_cog(misc(bot))       

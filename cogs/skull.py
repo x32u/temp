@@ -1,12 +1,14 @@
-from discord.ext.commands import Context, Bot as Bot, group
+import discord
+from typing import Union
+from discord.ext.commands import group
 from discord.ext import commands
 from discord import Embed, TextChannel, PartialEmoji
 from patches.permissions import Permissions
-from typing import Union
-import discord
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 class skull(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Evict):
         self.bot = bot 
 
     @group(invoke_without_command=True)
@@ -15,7 +17,7 @@ class skull(commands.Cog):
 
     @skull.command(description="modify the skullboard count", brief="manage guild", usage="[count]", aliases=["amount"])
     @Permissions.has_permission(manage_guild=True)
-    async def count(self, ctx: Context, count: int): 
+    async def count(self, ctx: EvictContext, count: int): 
       if count < 1: return await ctx.warning("Count can't be **less** than 1")
       check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
       if check is None: await self.bot.db.execute("INSERT INTO skullboard (guild_id, count) VALUES ($1, $2)", ctx.guild.id, count)
@@ -24,7 +26,7 @@ class skull(commands.Cog):
 
     @skull.command(name="channel", description="configure the skullboard channel", brief="manage guild", usage="[channel]")
     @Permissions.has_permission(manage_guild=True)
-    async def skull_channel(self, ctx: Context, *, channel: TextChannel): 
+    async def skull_channel(self, ctx: EvictContext, *, channel: TextChannel): 
       check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
       if check is None: await self.bot.db.execute("INSERT INTO skullboard (guild_id, channel_id) VALUES ($1, $2)", ctx.guild.id, channel.id)
       else: await self.bot.db.execute("UPDATE skullboard SET channel_id = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
@@ -32,7 +34,7 @@ class skull(commands.Cog):
 
     @skull.command(name="remove", description="remove skullboard", brief="manage guild", aliases=["disable"])
     @Permissions.has_permission(manage_guild=True)
-    async def skull_remove(self, ctx: Context): 
+    async def skull_remove(self, ctx: EvictContext): 
      check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("skullboard is not **enabled**") 
      await self.bot.db.execute("DELETE FROM skullboard WHERE guild_id = $1", ctx.guild.id)
@@ -41,7 +43,7 @@ class skull(commands.Cog):
 
     @skull.command(name='stats', description="check skullboard stats", aliases=["settings", "status"])
     @Permissions.has_permission(manage_guild=True)
-    async def skull_stats(self, ctx: Context): 
+    async def skull_stats(self, ctx: EvictContext): 
      check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("skullboard is not **enabled**") 
      embed = Embed(color=self.bot.color, title="skullboard settings")
@@ -51,7 +53,7 @@ class skull(commands.Cog):
      await ctx.reply(embed=embed)
 
     @skull.command(name="emoji", description="configure the skullboard emoji", brief="manage guild", usage="[emoji]")
-    async def skull_emoji(self, ctx: Context, emoji: Union[PartialEmoji, str]): 
+    async def skull_emoji(self, ctx: EvictContext, emoji: Union[PartialEmoji, str]): 
      check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
      emoji_id = emoji.id if isinstance(emoji, PartialEmoji) else ord(str(emoji)) 
      if check is None: await self.bot.db.execute("INSERT INTO skullboard (guild_id, emoji_id, emoji_text) VALUES ($1,$2,$3)", ctx.guild.id, emoji_id, str(emoji)) 
@@ -139,5 +141,5 @@ class skull(commands.Cog):
      except Exception as er:
         print(er) 
 
-async def setup(bot):
+async def setup(bot: Evict):
     await bot.add_cog(skull(bot))  

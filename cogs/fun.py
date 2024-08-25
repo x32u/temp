@@ -1,22 +1,24 @@
 import discord, random, json, asyncio, aiohttp
 from discord.ext import commands
-from patches.fun import Pack
 from random import randrange
 from io import BytesIO
+
 from patches.permissions import Permissions
 from kureAPI import API
 from bot.headers import Session
-from patches.fun import RockPaperScissors, BlackTea, TicTacToe
+from patches.fun import RockPaperScissors, BlackTea, TicTacToe, Pack
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 api = API("0cfD&erb1KAjSj7UcGk0")
 
 class fun(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Evict):
         self.bot = bot
         self.session = Session()
 
     @commands.command(name="choose", description="choose between options", usage="[choices separated by a command]")
-    async def choose_cmd(self, ctx: commands.Context, *, choice: str): 
+    async def choose_cmd(self, ctx: EvictContext, *, choice: str): 
      choices = choice.split(", ")
      if len(choices) == 1: return await ctx.reply("please put a `,` between your choices")
      final = random.choice(choices)
@@ -24,17 +26,17 @@ class fun(commands.Cog):
 
     @Permissions.has_permission(manage_messages=True)
     @commands.command(name="poll", description="start a quick poll", help="fun", brief="manage messages")
-    async def poll(self, ctx: commands.Context, *, question: str): 
+    async def poll(self, ctx: EvictContext, *, question: str): 
       message = await ctx.send(embed=discord.Embed(color=self.bot.color, description=question).set_author(name=f"{ctx.author} asked"))
       await message.add_reaction("👍")
       await message.add_reaction("👎")
 
     @commands.command(description="flip a coin", help="fun")
-    async def coinflip(self, ctx: commands.Context): 
+    async def coinflip(self, ctx: EvictContext): 
      await ctx.reply(random.choice(["heads", "tails"]))  
     
     @commands.command(aliases=["rps"], description="play rock paper scissors with the bot", help="fun")
-    async def rockpaperscisssors(self, ctx: commands.Context): 
+    async def rockpaperscisssors(self, ctx: EvictContext): 
       view = RockPaperScissors(ctx)
       embed = discord.Embed(color=self.bot.color, title="Rock Paper Scissors!", description="Click a button to play!")
       view.message = await ctx.reply(embed=embed, view=view)    
@@ -44,11 +46,11 @@ class fun(commands.Cog):
       return await ctx.create_pages()
     
     @clock.command(name="in", help="fun", description="clock in")
-    async def clock_in(self, ctx: commands.Context): 
+    async def clock_in(self, ctx: EvictContext): 
       return await ctx.reply(f"🕰️ {ctx.author.mention}: clocks in...")
     
     @clock.command(name="out", help="fun", description="clock out")
-    async def clock_out(self, ctx: commands.Context): 
+    async def clock_out(self, ctx: EvictContext): 
       return await ctx.reply(f"🕰️ {ctx.author.mention}: clocks out...")
     
     @commands.command(description="retard rate an user", help="fun", usage="<member>")
@@ -77,7 +79,7 @@ class fun(commands.Cog):
      else: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="hot r8", description=f"{member.mention} is `{randrange(100)}%` hot 🥵"))     
     
     @commands.command()
-    async def pp(self, ctx:commands.Context, *, member: discord.Member=commands.Author):
+    async def pp(self, ctx:EvictContext, *, member: discord.Member=commands.Author):
       lol = "===================="
       embed = discord.Embed(color=self.bot.color, description=f"{member.name}'s penis\n\n8{lol[random.randint(1, 20):]}D")
       if member.id in self.bot.owner_ids:
@@ -85,7 +87,7 @@ class fun(commands.Cog):
       await ctx.reply(embed=embed)  
     
     @commands.command(description="check how many bitches an user has", help="fun", usage="<member>")
-    async def bitches(self, ctx: commands.Context, *, user: discord.Member=commands.Author):
+    async def bitches(self, ctx: EvictContext, *, user: discord.Member=commands.Author):
       choices = ["regular", "still regular", "lol", "xd", "id", "zero", "infinite"]
       if random.choice(choices) == "infinite": result = "∞" 
       elif random.choice(choices) == "zero": result = "0"
@@ -121,7 +123,7 @@ class fun(commands.Cog):
       await ctx.reply(data) 
 
     @commands.command(description='screenshot a website', usage='[url]', help='fun', aliases=['ss', 'screen'])
-    async def screenshot(self, ctx: commands.Context, url: str):
+    async def screenshot(self, ctx: EvictContext, url: str):
         async with ctx.typing():
           if not url.startswith(("https://", "http://")):
             url = f"https://{url}"
@@ -133,7 +135,7 @@ class fun(commands.Cog):
         except Exception: return await ctx.warning(f"This site **does not** appear to be valid.")
 
     @commands.command(description='grab info on a snapchat profile', usage='[username]', help='fun')
-    async def snapchat(self, ctx: commands.Context, *, username: str):
+    async def snapchat(self, ctx: EvictContext, *, username: str):
       try:
         results = await self.bot.session.json("https://kure.pl/snapstory", headers=self.bot.resent_api, params={"username": username})
         if results.get('detail'):
@@ -142,7 +144,7 @@ class fun(commands.Cog):
       except Exception: return await ctx.warning(f"{username} **does not** appear to be valid.")
 
     @commands.command(description='get a random TikTok video', aliases=["foryou", "foryoupage"])
-    async def fyp(self, ctx: commands.Context):
+    async def fyp(self, ctx: EvictContext):
 
         async with ctx.typing():
             recommended = await self.session.get_json(url="https://www.tiktok.com/api/recommend/item_list/?WebIdLastTime=1709562791&aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Win32&browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F124.0.0.0%20Safari%2F537.36&channel=tiktok_web&clientABVersions=70508271%2C72097972%2C72118536%2C72139452%2C72142433%2C72147654%2C72156694%2C72157773%2C72174908%2C72183344%2C72191581%2C72191933%2C72203590%2C72211002%2C70405643%2C71057832%2C71200802%2C71957976&cookie_enabled=true&count=9&coverFormat=2&device_id=7342516164603889184&device_platform=web_pc&device_type=web_h264&focus_state=true&from_page=fyp&history_len=3&isNonPersonalized=false&is_fullscreen=false&is_page_visible=true&language=en&odinId=7342800074206741537&os=windows&priority_region=&pullType=1&referer=&region=BA&screen_height=1440&screen_width=2560&showAboutThisAd=true&showAds=false&tz_name=Europe%2FLondon&watchLiveLastTime=1713523355360&webcast_language=en&msToken=W3zoVLSFi9M0BsPE6uC63GCdeoVC7hmjRNelZIe-7FP7x-1LRee6WYHYfpWXg3NYPoreJf_dMxfRWTZprVN8UU70_IaHnBMNirtZIRNp2QuR1nBivJgnetgiM-XTh7_KGbNswVs=&X-Bogus=DFSzswVOmtvANegtt2bDG-OckgSu&_signature=_02B4Z6wo00001BozSvQAAIDBhqj5OL8769AaM05AAGCne")
@@ -167,7 +169,7 @@ class fun(commands.Cog):
             except: pass
 
     @commands.command(description='grab info on a roblox profile', usage='[username]', help='fun')
-    async def roblox(self, ctx: commands.Context, profile: str):
+    async def roblox(self, ctx: EvictContext, profile: str):
       try:
         data = await api.get_roblox_user(f"{profile}")
         url = data.url
@@ -181,7 +183,7 @@ class fun(commands.Cog):
       except Exception: return await ctx.warning(f"{profile} **does not** appear to be valid.")  
 
     @commands.command(description='grab info on a snapchat profile', usage='[username]', help='fun')
-    async def snapchatuser(self, ctx: commands.Context, profile: str):
+    async def snapchatuser(self, ctx: EvictContext, profile: str):
       try:  
         data = await api.get_snapchat_user(f"{profile}")
         embed = discord.Embed(color=self.bot.color, description=f'{data.bio}')
@@ -193,7 +195,7 @@ class fun(commands.Cog):
       except Exception: return await ctx.warning(f"{profile} **does not** appear to be valid.")  
 
     @commands.command(description='grab info on a tiktok profile', usage='[username]', help='fun')
-    async def tiktok(self, ctx: commands.Context, profile: str):
+    async def tiktok(self, ctx: EvictContext, profile: str):
       try:
         data = await api.get_tiktok_user(f"{profile}")
         url = data.url
@@ -211,7 +213,7 @@ class fun(commands.Cog):
       except Exception: return await ctx.warning(f"{profile} **does not** appear to be valid.")  
 
     @commands.command(description='grab info on a instagram profile', usage='[username]', help='fun')
-    async def instagram(self, ctx: commands.Context, profile: str):
+    async def instagram(self, ctx: EvictContext, profile: str):
       try:  
         data = await api.get_instagram_user(f"{profile}")
         url = data.url
@@ -227,7 +229,7 @@ class fun(commands.Cog):
       except Exception: return await ctx.warning(f"{profile} **does not** appear to be valid.")  
 
     @commands.command(description='ask chatgpt a question', usage='text', help='fun')
-    async def chatgpt(self, ctx: commands.Context, *, text: str):
+    async def chatgpt(self, ctx: EvictContext, *, text: str):
         data = await api.ask_chatgpt(f"{text}")
         await ctx.reply(data)
       # except Exception: return await ctx.warning(f"API is either down or I have no ChatGPT credits. Please join https://discord.gg/evict and report this.")  
@@ -237,7 +239,7 @@ class fun(commands.Cog):
      return await ctx.reply(f"**{ctx.author.name}** 💞 **{member.name}** = **{randrange(101)}%**")
 
     @commands.command(description="sends a random advice", help="fun")
-    async def advice(self, ctx: commands.Context):
+    async def advice(self, ctx: EvictContext):
      byte = await self.bot.session.read("https://api.adviceslip.com/advice")
      data = str(byte, 'utf-8')
      data = data.replace("[", "").replace("]", "")
@@ -245,19 +247,19 @@ class fun(commands.Cog):
      return await ctx.reply(js['slip']['advice'])                              
     
     @commands.command(description="pack someone", help="fun", usage="[user]")
-    async def pack(self, ctx: commands.Context, *, member: discord.Member): 
+    async def pack(self, ctx: EvictContext, *, member: discord.Member): 
      if member == ctx.author: return await ctx.warning("You **cannot** pack yourself. I don't know why you would want to either.")
      await ctx.send(f"{member.mention} {random.choice(Pack.scripts)}") 
 
     @commands.command(aliases=["ttt"], description="play tictactoe with your friends", help="fun", usage="[member]")
-    async def tictactoe(self, ctx: commands.Context, *, member: discord.Member):
+    async def tictactoe(self, ctx: EvictContext, *, member: discord.Member):
       if member is ctx.author: return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.warning} {ctx.author.mention}: You can't play with yourself. It's ridiculous"))
       if member.bot: return await ctx.reply("bots can't play")      
       vi = TicTacToe(ctx.author, member)
       vi.message = await ctx.send(content=f'{member.mention}\n**{member.name}** vs **{ctx.author.name}**\n\nTic Tac Toe: **{ctx.author.name}** Is First', embed=None, view=vi, allowed_mentions=discord.AllowedMentions(users=[member]))  
 
     @commands.command(description="play blacktea with your friends", help="fun")
-    async def blacktea(self, ctx: commands.Context): 
+    async def blacktea(self, ctx: EvictContext): 
      try:
       if BlackTea.MatchStart[ctx.guild.id] is True: 
        return await ctx.reply("somebody in this server is already playing blacktea")
@@ -336,13 +338,13 @@ class fun(commands.Cog):
      BlackTea.MatchStart[ctx.guild.id] = False 
 
     @commands.command(name="8ball", description="answers to your question", usage="[question]", help="fun")
-    async def mtball(self, ctx: commands.Context, *, arg):      
+    async def mtball(self, ctx: EvictContext, *, arg):      
      rand = ['**Yes**', '**No**', '**definitely yes**', '**Of course not**', '**Maybe**', '**Never**', '**Yes, dummy**', '**No wtf**']
      e = discord.Embed(color=self.bot.color, description=f"You asked: {arg}\nAnswer: {random.choice(rand)}")
      await ctx.reply(embed=e)
 
     @commands.command(name='search', description='search for something on google', usage='[query]', aliases=['google'])
-    async def search(self, ctx: commands.Context, *, query: str):
+    async def search(self, ctx: EvictContext, *, query: str):
         async with aiohttp.ClientSession() as session:
             async with session.post("https://vile.bot/api/browser/search", data=query) as response:
                 response = await response.json()
@@ -358,5 +360,5 @@ class fun(commands.Cog):
 
         return await ctx.paginate(embeds=embeds)
 
-async def setup(bot) -> None:
+async def setup(bot: Evict) -> None:
     await bot.add_cog(fun(bot))     

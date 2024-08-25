@@ -1,22 +1,26 @@
 import discord, datetime, asyncio, random
+
 from discord.ext import commands 
 from discord.ui import Button, View
+
 from patches.permissions import Permissions
 from patches.fun import MarryView, DiaryModal, Joint
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 class roleplay(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Evict):
         self.bot = bot 
         self.joint_emoji = "🍃"
         self.smoke = "🌬️" 
         self.joint_color = 0x57D657
         self.book = "📖" 
     
-    async def joint_send(self, ctx: commands.Context, message: str) -> discord.Message:
+    async def joint_send(self, ctx: EvictContext, message: str) -> discord.Message:
       embed = discord.Embed(color=self.joint_color, description=f"{self.joint_emoji} {ctx.author.mention}: {message}") 
       return await ctx.reply(embed=embed)
     
-    async def smoke_send(self, ctx: commands.Context, message: str) -> discord.Message: 
+    async def smoke_send(self, ctx: EvictContext, message: str) -> discord.Message: 
       embed = discord.Embed(color=self.bot.color, description=f"{self.smoke} {ctx.author.mention}: {message}")
       return await ctx.reply(embed=embed)
 
@@ -26,7 +30,7 @@ class roleplay(commands.Cog):
 
     @jointcmd.command(name="toggle", description="toggle the server joint", brief="manage guild")
     @Permissions.has_permission(manage_guild=True)
-    async def joint_toggle(self, ctx: commands.Context): 
+    async def joint_toggle(self, ctx: EvictContext): 
      check = await self.bot.db.fetchrow("SELECT * FROM joint WHERE guild_id = {}".format(ctx.guild.id)) 
      if not check: 
       await self.bot.db.execute("INSERT INTO joint VALUES ($1,$2,$3)", ctx.guild.id, 0, ctx.author.id)
@@ -36,7 +40,7 @@ class roleplay(commands.Cog):
     
     @jointcmd.command(name="stats", description="check joint stats", aliases=["status", "settings"])
     @Joint.check_joint()
-    async def joint_stats(self, ctx: commands.Context):      
+    async def joint_stats(self, ctx: EvictContext):      
       check = await self.bot.db.fetchrow("SELECT * FROM joint WHERE guild_id = $1", ctx.guild.id)
       embed = discord.Embed(color=self.joint_color, description=f"{self.smoke} hits: **{check['hits']}**\n{self.joint_emoji} Holder: <@{check['holder']}>")      
       embed.set_author(icon_url=ctx.guild.icon, name=f"{ctx.guild.name}'s joint")
@@ -45,7 +49,7 @@ class roleplay(commands.Cog):
     @jointcmd.command(name="hit", description="hit the server joint")
     @Joint.check_joint()
     @Joint.joint_owner()
-    async def joint_hit(self, ctx: commands.Context):
+    async def joint_hit(self, ctx: EvictContext):
       check = await self.bot.db.fetchrow("SELECT * FROM joint WHERE guild_id = $1", ctx.guild.id)
       newhits = int(check["hits"]+1) 
       mes = await self.joint_send(ctx, "Hitting the **joint**.....")
@@ -55,13 +59,13 @@ class roleplay(commands.Cog):
       await self.bot.db.execute("UPDATE joint SET hits = $1 WHERE guild_id = $2", newhits, ctx.guild.id)
     
     @joint_hit.error 
-    async def on_error(self, ctx: commands.Context, error: Exception): 
+    async def on_error(self, ctx: EvictContext, error: Exception): 
      if isinstance(error, commands.CommandOnCooldown): return await self.joint_send(ctx, "You are getting too high! Please wait until you can hit again") 
 
     @jointcmd.command(name="pass", description="pass the joint to someone else", usage="[member]")
     @Joint.check_joint()
     @Joint.joint_owner()
-    async def joint_pass(self, ctx: commands.Context, *, member: discord.Member):
+    async def joint_pass(self, ctx: EvictContext, *, member: discord.Member):
      if member.id == self.bot.user.id: return await ctx.reply("Thank you, but i do not smoke")
      elif member.bot: return await ctx.warning("Bots do not smoke")
      elif member.id == ctx.author.id: return await ctx.warning("You already have the **joint**")
@@ -70,7 +74,7 @@ class roleplay(commands.Cog):
     
     @jointcmd.command(name="steal", description="steal the server's joint")
     @Joint.check_joint()
-    async def joint_steal(self, ctx: commands.Context): 
+    async def joint_steal(self, ctx: EvictContext): 
      check = await self.bot.db.fetchrow("SELECT * FROM joint WHERE guild_id = $1", ctx.guild.id)
      if check["holder"] == ctx.author.id: return await self.joint_send(ctx, "You already have the **joint**")
      chances = ["yes", "yes", "yes", "no", "no"]
@@ -79,7 +83,7 @@ class roleplay(commands.Cog):
      return await self.joint_send(ctx, "You got the server **joint**")
 
     @commands.command(description='cuddle a user', usage='[user]')
-    async def cuddle(self, ctx: commands.Context, user: discord.Member):
+    async def cuddle(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/cuddle', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just cuddled **{user.mention}**!")
@@ -88,7 +92,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='poke a user', usage='[user]')
-    async def poke(self, ctx: commands.Context, user: discord.Member):
+    async def poke(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/poke', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just poked **{user.mention}**!")
@@ -97,7 +101,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='kiss a user', usage='[user]')
-    async def kiss(self, ctx: commands.Context, user: discord.Member):
+    async def kiss(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/kiss', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just kissed **{user.mention}**!")
@@ -106,7 +110,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='hug a user', usage='[user]')
-    async def hug(self, ctx: commands.Context, user: discord.Member):
+    async def hug(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/hug', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just hugged **{user.mention}**!")
@@ -115,7 +119,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='pat a user', usage='[user]')
-    async def pat(self, ctx: commands.Context, user: discord.Member):
+    async def pat(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/pat', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just patted **{user.mention}**!")
@@ -124,7 +128,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='tickle a user', usage='[user]')
-    async def tickle(self, ctx: commands.Context, user: discord.Member):
+    async def tickle(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/tickle', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just tickled **{user.mention}**!")
@@ -132,7 +136,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='lick a user', usage='[user]')
-    async def lick(self, ctx: commands.Context, user: discord.Member):
+    async def lick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/lick', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just licked **{user.mention}**!")
@@ -141,7 +145,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='slap a user', usage='[user]')
-    async def slap(self, ctx: commands.Context, user: discord.Member):
+    async def slap(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/slap', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just slapped **{user.mention}**!")
@@ -150,7 +154,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='spank a user', usage='[user]')
-    async def spank(self, ctx: commands.Context, user: discord.Member):
+    async def spank(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/spank', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just spanked **{user.mention}**!")
@@ -159,7 +163,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='feed a user', usage='[user]')
-    async def feed(self, ctx: commands.Context, user: discord.Member):
+    async def feed(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/feed', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fed **{user.mention}**!")
@@ -168,7 +172,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='punch a user', usage='[user]')
-    async def punch(self, ctx: commands.Context, user: discord.Member):
+    async def punch(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/punch', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just punched **{user.mention}**!")
@@ -177,7 +181,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='highfive a user', usage='[user]')
-    async def highfive(self, ctx: commands.Context, user: discord.Member):
+    async def highfive(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/lick', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just highfived **{user.mention}**!")
@@ -186,7 +190,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
     
     @commands.command(description='kill a user', usage='[user]')
-    async def kill(self, ctx: commands.Context, user: discord.Member):
+    async def kill(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/kill', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just killed **{user.mention}**!")
@@ -195,7 +199,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
             
     @commands.command(description='bite a user', usage='[user]')
-    async def bite(self, ctx: commands.Context, user: discord.Member):
+    async def bite(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/bite', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just bit **{user.mention}**!")
@@ -204,7 +208,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='yeet a user', usage='[user]')
-    async def lick(self, ctx: commands.Context, user: discord.Member):
+    async def lick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/yeet', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just yeeted **{user.mention}**!")
@@ -213,7 +217,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='nutkick a user', usage='[user]')
-    async def nutkick(self, ctx: commands.Context, user: discord.Member):
+    async def nutkick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/nutkick', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just nutkicked **{user.mention}**!")
@@ -222,7 +226,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='fuck a user', usage='[user]')
-    async def fuck(self, ctx: commands.Context, user: discord.Member):
+    async def fuck(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/fuck', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fucked **{user.mention}**!")
@@ -231,7 +235,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='have a threesome', usage='[user]')
-    async def threesome(self, ctx: commands.Context, user: discord.Member, user1: discord.Member):
+    async def threesome(self, ctx: EvictContext, user: discord.Member, user1: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/threesome', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fucked {str(user.mention)} and {f'{str(user1.mention)}' if user else 'themselves'}!")
@@ -240,7 +244,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description='hump a user', usage='[user]')
-    async def hump(self, ctx: commands.Context, user: discord.Member):
+    async def hump(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/hump', headers=headers)
             embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just humped **{user.mention}**!")
@@ -249,7 +253,7 @@ class roleplay(commands.Cog):
             await ctx.reply(embed=embed)
 
     @commands.command(description="marry an user", usage="[user]")
-    async def marry(self, ctx: commands.Context, *, member: discord.Member):
+    async def marry(self, ctx: EvictContext, *, member: discord.Member):
      if member == ctx.author: return await ctx.error("You can't **marry** yourself")
      elif member.bot: return await ctx.error("robots can't consent marriage".capitalize())  
      else: 
@@ -270,7 +274,7 @@ class roleplay(commands.Cog):
              view.message = await ctx.reply(content=member.mention, embed=embed, view=view)
     
     @commands.command(description="check an user's marriage", usage="<member>")
-    async def marriage(self, ctx: commands.Context, *, member: discord.User=None):
+    async def marriage(self, ctx: EvictContext, *, member: discord.User=None):
       if member is None: member = ctx.author
       check = await self.bot.db.fetchrow("SELECT * FROM marry WHERE author = $1", member.id)       
       if check is None:
@@ -284,7 +288,7 @@ class roleplay(commands.Cog):
          return await ctx.reply(embed=embed)   
 
     @commands.command(description="divorce with an user")
-    async def divorce(self, ctx: commands.Context):       
+    async def divorce(self, ctx: EvictContext):       
         check = await self.bot.db.fetchrow("SELECT * FROM marry WHERE author = $1", ctx.author.id)
         if check is None:
            check2 = await self.bot.db.fetchrow("SELECT * FROM marry WHERE soulmate = $1", ctx.author.id)
@@ -314,11 +318,11 @@ class roleplay(commands.Cog):
         await ctx.reply(embed=embed, view=marry)      
    
     @commands.group(invoke_without_command=True)
-    async def diary(self, ctx):
+    async def diary(self, ctx: EvictContext):
      return await ctx.create_pages() 
     
     @diary.command(name="create", aliases=['add'], description="create a diary for today")
-    async def diary_create(self, ctx: commands.Context): 
+    async def diary_create(self, ctx: EvictContext): 
       now = datetime.datetime.now()
       date = f"{now.month}/{now.day}/{str(now.year)[2:]}"   
       check = await ctx.bot.db.fetchrow("SELECT * FROM diary WHERE user_id = $1 AND date = $2", ctx.author.id, date)
@@ -338,7 +342,7 @@ class roleplay(commands.Cog):
       return await ctx.reply(embed=embed, view=view) 
     
     @diary.command(name="view", description="view your diary book")
-    async def diary_view(self, ctx: commands.Context): 
+    async def diary_view(self, ctx: EvictContext): 
       results = await self.bot.db.fetch("SELECT * FROM diary WHERE user_id = $1", ctx.author.id)
       if len(results) == 0: return await ctx.warning("You don't have any diary page created")
       embeds = []
@@ -346,7 +350,7 @@ class roleplay(commands.Cog):
       return await ctx.paginator(embeds)
     
     @diary.command(name="delete", description="delete a diary page")
-    async def diary_delete(self, ctx: commands.Context): 
+    async def diary_delete(self, ctx: EvictContext): 
      options = []
      results = await self.bot.db.fetch("SELECT * FROM diary WHERE user_id = $1", ctx.author.id)
      if len(results) == 0: return await ctx.warning("You don't have any diary page created")  
@@ -365,5 +369,5 @@ class roleplay(commands.Cog):
      view.add_item(select)
      return await ctx.reply(embed=embed, view=view)
     
-async def setup(bot) -> None:
+async def setup(bot: Evict) -> None:
     await bot.add_cog(roleplay(bot))        

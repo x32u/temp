@@ -1,14 +1,19 @@
 import discord, datetime 
+
 from discord.ext import commands
+
 from utils.utils import EmbedBuilder 
 from patches.permissions import Permissions
+
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 messages = {}
 max_messages = 15 
 cooldown = 3*60
 
 class joindm(commands.Cog): 
-  def __init__(self, bot: commands.Bot): 
+  def __init__(self, bot: Evict): 
     self.bot = bot 
   
   @commands.Cog.listener()
@@ -33,12 +38,12 @@ class joindm(commands.Cog):
         except: pass 
 
   @commands.group(invoke_without_command=True, description="manage dm's on member join")
-  async def joindm(self, ctx): 
+  async def joindm(self, ctx: EvictContext): 
     return await ctx.create_pages()
   
   @joindm.command(name="add", description="add a message that will be sent to any new member that will join the server", brief="manage guild", usage="[message | --embed embed name]")
   @Permissions.has_permission(manage_guild=True) 
-  async def joindm_add(self, ctx: commands.Context, *, message: str): 
+  async def joindm_add(self, ctx: EvictContext, *, message: str): 
    check = await self.bot.db.fetchrow("SELECT * FROM joindm WHERE guild_id = $1", ctx.guild.id)
    if check: await self.bot.db.execute("UPDATE joindm SET message = $1 WHERE guild_id = $2", message, ctx.guild.id)
    else: await self.bot.db.execute("INSERT INTO joindm VALUES ($1,$2)", ctx.guild.id, message)
@@ -46,7 +51,7 @@ class joindm(commands.Cog):
   
   @joindm.command(name="remove", description="remove the joindm message", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def joindm_remove(self, ctx: commands.Context):
+  async def joindm_remove(self, ctx: EvictContext):
     check = await self.bot.db.fetchrow("SELECT * FROM joindm WHERE guild_id = $1", ctx.guild.id)
     if not check: return await ctx.warning("Joindm not enabled")
     await self.bot.db.execute("DELETE FROM joindm WHERE guild_id = $1", ctx.guild.id)
@@ -54,7 +59,7 @@ class joindm(commands.Cog):
   
   @joindm.command(name="test", description="test the joindm message", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def joindm_test(self, ctx: commands.Context): 
+  async def joindm_test(self, ctx: EvictContext): 
     check = await self.bot.db.fetchrow("SELECT message FROM joindm WHERE guild_id = $1", ctx.guild.id)
     if not check: return await ctx.warning("Joindm not enabled")
     member = ctx.author
@@ -70,5 +75,5 @@ class joindm(commands.Cog):
       except: pass 
     return await ctx.success( "Check dm's if you received one")
 
-async def setup(bot: commands.Bot) -> None: 
+async def setup(bot: Evict) -> None: 
   await bot.add_cog(joindm(bot))   

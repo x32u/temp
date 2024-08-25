@@ -3,8 +3,11 @@ from discord.ext import commands
 from patches.permissions import Permissions
 from typing import Union 
 
+from bot.bot import Evict
+from bot.helpers import EvictContext
+
 class reactionroles(commands.Cog): 
-  def __init__(self, bot: commands.Bot): 
+  def __init__(self, bot: Evict): 
     self.bot = bot 
   
   async def removerr(self, channel: discord.TextChannel): 
@@ -16,7 +19,7 @@ class reactionroles(commands.Cog):
   
   @reactionrole.command(name="add", description="add a reactionrole to a message", brief="manage roles", usage="[message id] [channel] [emoji] [role]")
   @Permissions.has_permission(manage_roles=True)
-  async def rr_add(self, ctx: commands.Context, messageid: int, channel: discord.TextChannel, emoji: Union[discord.Emoji, str], *, role: Union[discord.Role, str]): 
+  async def rr_add(self, ctx: EvictContext, messageid: int, channel: discord.TextChannel, emoji: Union[discord.Emoji, str], *, role: Union[discord.Role, str]): 
    try: message = await channel.fetch_message(messageid)
    except discord.NotFound: return await ctx.warning("Message not found")
    if isinstance(role, str): 
@@ -34,7 +37,7 @@ class reactionroles(commands.Cog):
 
   @reactionrole.command(name="remove", description="remove a reactionrole from a message", brief="manage roles", usage="[message id] [channel] [emoji]")
   @Permissions.has_permission(manage_roles=True)
-  async def rr_remove(self, ctx: commands.Context, messageid: int, channel: discord.TextChannel, emoji: Union[discord.Emoji, str]): 
+  async def rr_remove(self, ctx: EvictContext, messageid: int, channel: discord.TextChannel, emoji: Union[discord.Emoji, str]): 
    check = await self.bot.db.fetchrow("SELECT * FROM reactionrole WHERE guild_id = $1 AND message_id = $2 AND channel_id = $3 AND emoji_id = $4", ctx.guild.id, messageid, channel.id, emoji.id if isinstance(emoji, discord.Emoji) else ord(str(emoji)))
    if not check: return await ctx.warning("Couldn't find a reactionrole with the given arguments")
    await self.bot.db.execute("DELETE FROM reactionrole WHERE guild_id = $1 AND message_id = $2 AND channel_id = $3 AND emoji_id = $4", ctx.guild.id, messageid, channel.id, emoji.id if isinstance(emoji, discord.Emoji) else ord(str(emoji))) 
@@ -42,7 +45,7 @@ class reactionroles(commands.Cog):
   
   @reactionrole.command(name="removeall", description="remove all reaction roles from the server", brief="manage roles", usage="<channel>")
   @Permissions.has_permission(manage_roles=True)
-  async def rr_removeall(self, ctx: commands.Context, *, channel: discord.TextChannel=None): 
+  async def rr_removeall(self, ctx: EvictContext, *, channel: discord.TextChannel=None): 
     results = await self.bot.db.fetch("SELECT * FROM reactionrole WHERE guild_id = $1", ctx.guild.id)
     if len(results) == 0: return await ctx.warning("No **reactionroles** found")
     if channel: 
@@ -52,7 +55,7 @@ class reactionroles(commands.Cog):
     return await ctx.success("Removed reactionrole for **all** channels")  
 
   @reactionrole.command(name="list", description="list all the reaction roles from the server") 
-  async def rr_list(self, ctx: commands.Context):
+  async def rr_list(self, ctx: EvictContext):
    results = await self.bot.db.fetch("SELECT * FROM reactionrole WHERE guild_id = $1", ctx.guild.id)
    if len(results) == 0: return await ctx.warning("No **reactionroles** found")
    i=0
@@ -76,5 +79,5 @@ class reactionroles(commands.Cog):
    number.append(discord.Embed(color=self.bot.color, title=f"reaction roles ({len(results)})", description=messages[i]))
    await ctx.paginate(number)   
 
-async def setup(bot: commands.Bot) -> None: 
+async def setup(bot: Evict) -> None: 
   await bot.add_cog(reactionroles(bot))      

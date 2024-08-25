@@ -1,15 +1,20 @@
 import discord, datetime
+
 from discord.ext import commands
 from typing import Union
+
 from patches.permissions import Permissions
 
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 class auth(commands.Cog): 
-    def __init__(self, bot: commands.Bot): 
+    def __init__(self, bot: Evict): 
         self.bot = bot
 
     @commands.command()
     @Permissions.staff()
-    async def authorize(self, ctx: commands.Context, guild: int, buyer: Union[discord.Member, discord.User]): 
+    async def authorize(self, ctx: EvictContext, guild: int, buyer: Union[discord.Member, discord.User]): 
      
      channel = self.bot.get_channel(1268645258288435346)
      
@@ -38,7 +43,7 @@ class auth(commands.Cog):
      
     @commands.command()
     @commands.is_owner()
-    async def authorizeall(self, ctx: commands.Context): 
+    async def authorizeall(self, ctx: EvictContext): 
         
         for g in self.bot.guilds:
             await self.bot.db.execute("INSERT INTO authorize values ($1, $2) ON CONFLICT (guild_id) DO NOTHING", g.id, g.owner.id)
@@ -50,7 +55,7 @@ class auth(commands.Cog):
      
     @commands.command()
     @Permissions.staff()
-    async def getauth(self, ctx: commands.Context, *, member: discord.User): 
+    async def getauth(self, ctx: EvictContext, *, member: discord.User): 
      
      results = await self.bot.db.fetch("SELECT * FROM authorize WHERE buyer = $1", member.id)
      if len(results) == 0: return await ctx.warning("There is no server authorized for **{}**.".format(member))
@@ -61,7 +66,7 @@ class auth(commands.Cog):
 
     @commands.command()
     @Permissions.staff()
-    async def unauthorize(self, ctx: commands.Context, id:int=None, *, reason: str='No Reason Provided'): 
+    async def unauthorize(self, ctx: EvictContext, id:int=None, *, reason: str='No Reason Provided'): 
 
         channel = self.bot.get_channel(1268645258288435346)
         
@@ -80,5 +85,5 @@ class auth(commands.Cog):
         await self.bot.db.execute("DELETE FROM authorize WHERE guild_id = $1", id)
         await ctx.success(f"I have **removed** the authorization for **{id}**.")
 
-async def setup(bot): 
+async def setup(bot: Evict): 
     await bot.add_cog(auth(bot))    

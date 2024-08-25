@@ -1,6 +1,9 @@
 import discord, math
 from discord.ext import commands
+
 from patches.permissions import Permissions
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 def get_progress(xp, level):
   corner_black_left = "<:blue_left_rounded:1263743883569926224>"
@@ -81,12 +84,12 @@ def get_progress(xp, level):
   return "N/A"  
 
 class leveling(commands.Cog): 
-  def __init__(self, bot: commands.Bot): 
+  def __init__(self, bot: Evict): 
    self.bot = bot 
    self._cd = commands.CooldownMapping.from_cooldown(3, 5, commands.BucketType.member) 
 
   @commands.command(description="check any members rank", usage="[member]")
-  async def rank(self, ctx, member: discord.Member=None): 
+  async def rank(self, ctx: EvictContext, member: discord.Member=None): 
     if member is None: member = ctx.author
     check = await self.bot.db.fetchrow("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id)) 
     if check is None: return await ctx.error("Levels **aren't** enabled in this server.")
@@ -99,16 +102,16 @@ class leveling(commands.Cog):
     return await ctx.reply(embed=discord.Embed(color=self.bot.color, title=f"{member.name}'s rank").set_author(name=member, icon_url=member.display_avatar.url).add_field(name="xp", value="**{}**".format(str(xp))).add_field(name="level", value="**{}**".format(str(level))).add_field(name="progress ({}%)".format(percentage), value=get_progress(xp, level), inline=False))               
   
   @commands.group(invoke_without_command=True)
-  async def level(self, ctx): 
+  async def level(self, ctx: EvictContext): 
      await ctx.create_pages()
 
   @level.group(invoke_without_command=True, description="manage the rewards for each level")
-  async def rewards(self, ctx: commands.Context): 
+  async def rewards(self, ctx: EvictContext): 
     await ctx.create_pages()
 
   @rewards.command(description="add a level reward", usage="[level] [role]", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def add(self, ctx: commands.Context, level: int, *, role: discord.Role): 
+  async def add(self, ctx: EvictContext, level: int, *, role: discord.Role): 
     if self.bot.ext.is_dangerous(role): return await ctx.warning('You **cannot** make a level role a role with dangerous permissions.')
     check = await self.bot.db.fetchrow("SELECT level FROM levelroles WHERE guild_id = {} AND level = {}".format(ctx.guild.id, level))
     if check is not None: return await ctx.warning(f"A role has been **already** assigned for level **{level}**.") 
@@ -117,7 +120,7 @@ class leveling(commands.Cog):
 
   @rewards.command(description="remove a level reward", usage="[level]", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def remove(self, ctx: commands.Context, level: int=None): 
+  async def remove(self, ctx: EvictContext, level: int=None): 
     check = await self.bot.db.fetchrow("SELECT level FROM levelroles WHERE guild_id = {} AND level = {}".format(ctx.guild.id, level))
     if check is None: return await ctx.warning(f"There is **no** role assigned for level **{level}**.")
     await self.bot.db.execute("DELETE FROM levelroles WHERE guild_id = $1 AND level = $2", (ctx.guild.id, level))  
@@ -125,14 +128,14 @@ class leveling(commands.Cog):
   
   @rewards.command(name="reset", description="reset all level rewards", brief="administrator")
   @Permissions.has_permission(administrator=True) 
-  async def rewards_reset(self, ctx: commands.Context): 
+  async def rewards_reset(self, ctx: EvictContext): 
    results = await self.bot.db.fetch("SELECT * FROM levelroles WHERE guild_id = {}".format(ctx.guild.id))
    if len(results) == 0: return await ctx.error("There are **no** role rewards in this server.")
    await self.bot.db.execute("DELETE FROM levelroles WHERE guild_id = $1", ctx.guild.id)
    return await ctx.success("I have reset **all** level rewards.") 
 
   @rewards.command(description="return a list of role rewards")
-  async def list(self, ctx: commands.Context): 
+  async def list(self, ctx: EvictContext): 
       results = await self.bot.db.fetch("SELECT * FROM levelroles WHERE guild_id = {}".format(ctx.guild.id))
       if len(results) == 0: return await ctx.error("There are **no** role rewards in this server.")
       def sortkey(e): 
@@ -167,7 +170,7 @@ class leveling(commands.Cog):
 
   @level.command(name="reset", description="reset levels for a member, leave blank for everyone", brief="administrator", usage="<member>")
   @Permissions.has_permission(administrator=True) 
-  async def level_reset(self, ctx: commands.Context, *, member: discord.Member=None):
+  async def level_reset(self, ctx: EvictContext, *, member: discord.Member=None):
     check = await self.bot.db.fetchrow("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id))        
     if check is None: return await ctx.warning("Levels are not configured.")
     if not member:
@@ -178,7 +181,7 @@ class leveling(commands.Cog):
      return await ctx.success(f"I have reset levels for **{member}**.") 
 
   @level.command(aliases=["lb"], description="check level leaderboard")
-  async def leaderboard(self, ctx: commands.Context):
+  async def leaderboard(self, ctx: EvictContext):
     await ctx.channel.typing() 
     results = await self.bot.db.fetch("SELECT * FROM levels WHERE guild_id = {}".format(ctx.guild.id))
     if len(results) == 0: return await ctx.error("nobody is on the **level leaderboard**")
@@ -208,7 +211,7 @@ class leveling(commands.Cog):
          
   @level.command(description="enable leveling system, or disable it", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def toggle(self, ctx: commands.Context): 
+  async def toggle(self, ctx: EvictContext): 
       check = await self.bot.db.fetchrow("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id))        
       if check is None:
        await self.bot.db.execute("INSERT INTO levelsetup (guild_id) VALUES ($1)", ctx.guild.id)
@@ -219,7 +222,7 @@ class leveling(commands.Cog):
   
   @level.command(description="set where the level up message should be sent", usage="[destination]\ndestinations: channel, dms, off", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def levelup(self, ctx: commands.Context, destination: str): 
+  async def levelup(self, ctx: EvictContext, destination: str): 
       if not destination in ["dms", "channel", "off"]: return await ctx.warning("You passed an **invalid** destination.")
       check = await self.bot.db.execute("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id))  
       if check is None: return await ctx.reply("The leveling system is **not** enabled,", mention_author=False) 
@@ -228,7 +231,7 @@ class leveling(commands.Cog):
       
   @level.command(description="set a channel to send level up messages", usage="[channel]", brief="manage guild")
   @Permissions.has_permission(manage_guild=True) 
-  async def channel(self, ctx: commands.Context, *, channel: discord.TextChannel): 
+  async def channel(self, ctx: EvictContext, *, channel: discord.TextChannel): 
       check = await self.bot.db.fetch("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id))  
       if check is None: return await ctx.warning("The leveling system is **not** enabled.")
       if channel is None: 
@@ -238,5 +241,5 @@ class leveling(commands.Cog):
        await self.bot.db.execute("UPDATE levelsetup SET channel_id = {} WHERE guild_id = {}".format(channel.id, ctx.guild.id))
        await ctx.success(f"I have set the channel for level up messages to {channel.mention}.")   
 
-async def setup(bot): 
+async def setup(bot: Evict): 
  await bot.add_cog(leveling(bot))  

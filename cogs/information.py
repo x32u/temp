@@ -1,15 +1,19 @@
+import discord, datetime, dateutil.parser
+
 from discord.ext.commands import Context, Bot as Bot
 from discord.ext import commands
-import discord, datetime, dateutil.parser, sys
 from discord import Embed, TextChannel 
 from discord.ui import Button, View
+
 from patches.classes import Time, TimeConverter
-from patches import functions
+from bot.bot import Evict
+from bot.helpers import EvictContext
+
 
 DISCORD_API_LINK = "https://discord.com/api/invite/"
 
 class information(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: Evict):
         self.bot = bot
         self.TimeConverter = TimeConverter
 
@@ -31,7 +35,7 @@ class information(commands.Cog):
      return f"{month}/{day}/{year} at {hour}:{minute} {meridian} ({discord.utils.format_dt(date, style='R')})" 
 
     @commands.command(aliases=["si"], description="show information about the server")
-    async def serverinfo(self, ctx: Context):
+    async def serverinfo(self, ctx: EvictContext):
         guild = ctx.guild        
         icon= f"[icon]({guild.icon.url})" if guild.icon is not None else "N/A"
         splash=f"[splash]({guild.splash.url})" if guild.splash is not None else "N/A"
@@ -50,7 +54,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["banner", "ubanner", "ub"], description="see someone's banner", usage="<user>")
-    async def userbanner(self, ctx: commands.Context, *, member: discord.User=commands.Author):
+    async def userbanner(self, ctx: EvictContext, *, member: discord.User=commands.Author):
      user = await self.bot.fetch_user(member.id)
      if not user.banner: return await ctx.warning(f"**{user}** doesn't have a banner") 
      embed = discord.Embed(color=self.bot.color, title=f"{user.name}'s banner", url=user.banner.url)
@@ -58,7 +62,7 @@ class information(commands.Cog):
      return await ctx.reply(embed=embed) 
 
     @commands.command(aliases=["pfp", "uav", "avatar", "av"], description="see user's avatar", usage="<user>")
-    async def useravatar(self, ctx: commands.Context, *, member: discord.User = None):
+    async def useravatar(self, ctx: EvictContext, *, member: discord.User = None):
       if member is None: member = ctx.author
       member = await self.bot.fetch_user(member.id)
       embed = Embed(color=self.bot.color, title=f"{member.name}'s avatar", url=member.display_avatar.url)
@@ -66,7 +70,7 @@ class information(commands.Cog):
       await ctx.reply(embed=embed)
 
     @commands.command(aliases=["sav", "savatar", "spfp"], description="see user's server avatar", usage="<user>")
-    async def serveravatar(self, ctx: commands.Context, *, member: discord.Member = None):
+    async def serveravatar(self, ctx: EvictContext, *, member: discord.Member = None):
       if member is None: member = ctx.author
       if member.guild_avatar is None: return await ctx.warning(f'**{member}** doesnt have a server avatar set.')
       embed = Embed(color=self.bot.color, title=f"{member.name}'s server avatar", url=member.display_avatar.url)
@@ -74,7 +78,7 @@ class information(commands.Cog):
       await ctx.reply(embed=embed)
 
     @commands.command(aliases=["sbanner"], description="get the server's banner")
-    async def serverbanner(self, ctx: commands.Context): 
+    async def serverbanner(self, ctx: EvictContext): 
         guild = ctx.guild
         if not guild.banner: return await ctx.warning( "this server has no banner".capitalize())
         embed = Embed(color=self.bot.color, title=f"{guild.name}'s banner", url=guild.banner.url)   
@@ -82,7 +86,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["sicon", "icon"], description="get the server's icon")
-    async def servericon(self, ctx: Context, *, id: int=None): 
+    async def servericon(self, ctx: EvictContext, *, id: int=None): 
         guild = ctx.guild
         if not guild.icon: return await ctx.warning( "this server has no icon".capitalize())
         embed = Embed(color=self.bot.color, title=f"{guild.name}'s icon", url=guild.icon.url)   
@@ -90,7 +94,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)   
 
     @commands.command(aliases=["splash", "ssplash"], description="get the server's invite background image")
-    async def serversplash(self, ctx: Context): 
+    async def serversplash(self, ctx: EvictContext): 
         guild = ctx.guild
         if not guild.splash: return await ctx.warning( "this server has no splash".capitalize())
         embed = Embed(color=self.bot.color, title=f"{guild.name}'s invite background", url=guild.splash.url)   
@@ -98,7 +102,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["gbanner"], description="gets the banner from a server based by invite code", usage="[invite code]")
-    async def guildbanner(self, ctx, *, link: str):
+    async def guildbanner(self, ctx: EvictContext, *, link: str):
      invite_code = link
      data = await self.bot.session.get_json(DISCORD_API_LINK + invite_code)
      format = ".gif" if "a_" in data["guild"]["banner"] else ".png"
@@ -107,7 +111,7 @@ class information(commands.Cog):
      await ctx.reply(embed=embed)
 
     @commands.command(aliases=["gsplash"],description="gets the splash from a server based by invite code", usage="[invite code]")
-    async def guildsplash(self, ctx, *, link: str):
+    async def guildsplash(self, ctx: EvictContext, *, link: str):
       invite_code = link
       data = await self.bot.session.get_json(DISCORD_API_LINK + invite_code)
       embed = Embed(color=self.bot.color, title=data["guild"]["name"] + "'s splash")
@@ -116,7 +120,7 @@ class information(commands.Cog):
       else: await ctx.reply(embed=embed)
     
     @commands.command(aliases=["gicon"], description="gets the icon from a server based by invite code", usage="[invite code]")
-    async def guildicon(self, ctx, *, link: str):
+    async def guildicon(self, ctx: EvictContext, *, link: str):
       invite_code = link
       data = await self.bot.session.get_json(DISCORD_API_LINK + invite_code)
       format = ".gif" if "a_" in data["guild"]["icon"] else ".png"
@@ -125,7 +129,7 @@ class information(commands.Cog):
       await ctx.reply(embed=embed)
 
     @commands.command(description="sends a definition of a word", usage="[word]")
-    async def urban(self, ctx, *, word):
+    async def urban(self, ctx: EvictContext, *, word):
       embeds = []
       try:
        data = await self.bot.session.get_json("http://api.urbandictionary.com/v0/define", params={"term": word})
@@ -140,7 +144,7 @@ class information(commands.Cog):
       except Exception as e: await ctx.reply("no definition found for **{}**".format(word))
 
     @commands.command(description="gets information about a github user", aliases=["gh"], usage="[user]")
-    async def github(self, ctx, *, user: str):
+    async def github(self, ctx: EvictContext, *, user: str):
         res = await self.bot.session.get_json(f'https://api.github.com/users/{user}') 
         name=res['login']
         avatar_url=res['avatar_url']
@@ -166,7 +170,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(aliases=["firstmsg"], description="get the first message", usage="<channel>")
-    async def firstmessage(self, ctx: Context, *, channel: TextChannel=None):
+    async def firstmessage(self, ctx: EvictContext, *, channel: TextChannel=None):
      channel = channel or ctx.channel 
      messages = [mes async for mes in channel.history(oldest_first=True, limit=1)]
      message = messages[0]
@@ -177,7 +181,7 @@ class information(commands.Cog):
      await ctx.reply(embed=embed, view=view) 
 
     @commands.command(name="inviteinfo", aliases=["ii"], description="get information about an invite", usage="invite code")
-    async def inviteinfo(self, ctx, code: str):
+    async def inviteinfo(self, ctx: EvictContext, code: str):
         if "/" in code:
             code = code.split("/", -1)[-1].replace(" ", "")
 
@@ -204,7 +208,7 @@ class information(commands.Cog):
 
     @commands.command(aliases=["sp"], name="spotify", description="send what you or another person is listening to on Spotify", usage="member")
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def spotify(self, ctx, user: discord.Member = None):
+    async def spotify(self, ctx: EvictContext, user: discord.Member = None):
         try:
             if user == None:
                 user = ctx.author
@@ -235,7 +239,7 @@ class information(commands.Cog):
             print(e)
 
     @commands.command(name="devices", description="send what device you or another person is using", usage="member")
-    async def devices(self, ctx, *, member: discord.Member=None):
+    async def devices(self, ctx: EvictContext, *, member: discord.Member=None):
         if member is None:
             member = ctx.author
         d = str(member.desktop_status)
@@ -261,12 +265,12 @@ class information(commands.Cog):
         await ctx.reply(embed=embed, mention_author=False)
     
     @commands.command(description="check how long the bot has been online for")
-    async def uptime(self, ctx: commands.Context):
+    async def uptime(self, ctx: EvictContext):
      e = discord.Embed(color=self.bot.color, description=f"⏰ **{self.bot.user.name}'s** uptime: **{self.bot.ext.uptime}**")
      await ctx.reply(embed=e)
     
     @commands.command(description="check bot connection")
-    async def ping(self, ctx):
+    async def ping(self, ctx: EvictContext):
       await ctx.reply(f"....pong 🏓 `{self.bot.ext.ping}ms`")
 
     @commands.command(description="invite the bot", aliases=["support", "inv"])
@@ -275,7 +279,7 @@ class information(commands.Cog):
       await ctx.reply(embed=embed)
     
     @commands.command(aliases=["pos"], description='check member join position', usage="[member]")
-    async def position(self, ctx, *, member: discord.Member=None):
+    async def position(self, ctx: EvictContext, *, member: discord.Member=None):
         if member is None:
             member = ctx.author
         pos = sum(m.joined_at < member.joined_at for m in ctx.guild.members if m.joined_at is not None)
@@ -283,7 +287,7 @@ class information(commands.Cog):
         await ctx.reply(embed=embed)
         
     @commands.command(description='shows bot information', help='information', aliases=['info', 'bi'])
-    async def botinfo(self, ctx: commands.Context):
+    async def botinfo(self, ctx: EvictContext):
         embed = discord.Embed(title=f"{ctx.author.name}", description= 'Developers: [sin](https://discordapp.com/users/598125772754124823)', color=self.bot.color)
         embed.add_field(name='Created', value=f'<t:{int(self.bot.user.created_at.timestamp())}:R>', inline=True)
         embed.add_field(name='Servers', value=f"`{len(self.bot.guilds)}`", inline=True)
@@ -294,58 +298,6 @@ class information(commands.Cog):
         embed.set_author(name=f"{ctx.author.display_name}", icon_url=ctx.author.display_avatar)
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         return await ctx.reply(embed=embed)
-    
-    @commands.command(description='shows avatar history', aliases=['avh'])
-    async def avatarhistory(self, ctx: commands.Context, *, user: discord.Member | discord.User = None):
-        """View a user's avatar history"""
 
-        user = user or ctx.author
-
-        avatars = await self.bot.db.fetch(
-            "SELECT avatar, timestamp FROM avatars WHERE user_id = $1 ORDER BY timestamp DESC",
-            user.id,
-        )
-        if not avatars:
-            return await ctx.warning(
-                "You don't have any **avatars** in the database" if user == ctx.author else f"**{user}** doesn't have any **avatars** in the database"
-            )
-
-        async with ctx.typing():
-            image = await functions.collage([row.get("avatar") for row in avatars[:35]])
-            if not image or sys.getsizeof(image.fp) > ctx.guild.filesize_limit:
-                await ctx.neutral(
-                    (
-                        f"Click [**here**](https://evict.cc/avatars/{user.id}) to view"
-                        f" {functions.plural(avatars, bold=True):of your avatar}"
-                        if user == ctx.author
-                        else (
-                            f"Click [**here**](https://evict.cc/avatars/{user.id}) to view"
-                            f" {functions.plural(avatars, bold=True):avatar} of **{user}**"
-                        )
-                    ),
-                    emoji="🖼️",
-                )
-            else:
-                embed = discord.Embed(
-                    title="Avatar History",
-                    color=self.bot.color,
-                    description=(
-                        f"Showing `{len(avatars[:35])}` of up to `{len(avatars)}` {'changes' if len(avatars) != 1 else 'change'}\n> For the full list"
-                        f" including GIFs click [**HERE**](https://evict.cc/avatars/{user.id})"
-                    ),
-                )
-                embed.set_author(
-                    name=f"{user} ({user.id})",
-                    icon_url=user.display_avatar.url,
-                )
-
-                embed.set_image(
-                    url="attachment://collage.png",
-                )
-                await ctx.reply(
-                    embed=embed,
-                    file=image,
-                )
-
-async def setup(bot):
+async def setup(bot: Evict):
     await bot.add_cog(information(bot))

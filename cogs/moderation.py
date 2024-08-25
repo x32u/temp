@@ -5,7 +5,9 @@ from typing import Union
 from cogs.config import InvokeClass
 from patches.permissions import Permissions, GoodRole
 from patches.classes import Mod
+
 from bot.helpers import EvictContext
+from bot.bot import Evict
 
 class ValidTime(commands.Converter):
   async def convert(self, ctx: EvictContext, argument: int):
@@ -17,7 +19,7 @@ class ValidTime(commands.Converter):
    return time
 
 class ClearMod(discord.ui.View): 
-  def __init__(self, ctx: commands.Context): 
+  def __init__(self, ctx: EvictContext): 
    super().__init__()
    self.ctx = ctx
    self.status = False
@@ -76,7 +78,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="disable the moderation features in your server", brief="administrator", help="moderation")
   @Permissions.has_permission(administrator=True)
-  async def unsetmod(self, ctx: commands.Context): 
+  async def unsetmod(self, ctx: EvictContext): 
    check = await self.bot.db.fetchrow("SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id)
    if not check: return await ctx.warning( "Moderation is **not** enabled in this server") 
    view = ClearMod(ctx)
@@ -84,7 +86,7 @@ class moderation(commands.Cog):
 
   @commands.command(description="enable the moderation features in your server", brief="administrator", help="moderation")
   @Permissions.has_permission(administrator=True)
-  async def setmod(self, ctx: commands.Context): 
+  async def setmod(self, ctx: EvictContext): 
    check = await self.bot.db.fetchrow("SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id)
    if check: return await ctx.warning( "Moderation is **already** enabled in this server")
    await ctx.typing()
@@ -103,7 +105,7 @@ class moderation(commands.Cog):
   @commands.command(description="clone a channel", brief="manage channels")
   @Permissions.has_permission(manage_channels=True)
   @commands.cooldown(1, 30, commands.BucketType.guild)
-  async def nuke(self, ctx: commands.Context, channel: discord.TextChannel = None): 
+  async def nuke(self, ctx: EvictContext, channel: discord.TextChannel = None): 
    
    embed = discord.Embed(color=self.bot.color, description=f"Do you want to **nuke** this channel?")
    
@@ -148,7 +150,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="restore member's roles", brief="manage roles", usage="[member]", help="moderation")
   @Permissions.has_permission(manage_roles=True)
-  async def restore(self, ctx: commands.Context, *, member: discord.Member, reason: str='No Reason Provided'):    
+  async def restore(self, ctx: EvictContext, *, member: discord.Member, reason: str='No Reason Provided'):    
     async with ctx.message.channel.typing():
       result = await self.bot.db.fetchrow(f"SELECT * FROM restore WHERE user_id = {member.id} AND guild_id = {ctx.guild.id}")         
       if result is None: return await ctx.warning(f"Unable to find saved roles for **{member}**")
@@ -168,7 +170,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(aliases=["setnick", "nick"], description="change an user's nickname", usage="[member] <nickname>", help="moderation")
   @Permissions.has_permission(manage_nicknames=True)
-  async def nickname(self, ctx: commands.Context, target: discord.Member, *, nick: str = None):
+  async def nickname(self, ctx: EvictContext, target: discord.Member, *, nick: str = None):
     if not Permissions.check_hierarchy(self.bot, ctx.author, target): return await ctx.warning(f"You cannot edit*{target.mention}")
     if nick == None: return await ctx.success(f"Cleared **{target.name}'s** nickname")
     await target.edit(nick=nick)
@@ -178,7 +180,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(alises=["nicknameclear"], description="clear everyone's nickname", brief="administrator")
   @Permissions.has_permission(administrator=True)
-  async def nickclear(self, ctx: commands.Context):
+  async def nickclear(self, ctx: EvictContext):
     embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} **removing** everyone's nickname.")
     message = await ctx.reply(embed=embed)
     for members in ctx.guild.members:
@@ -190,7 +192,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(aliases=['uta'], description='untimeout all users', help='moderation')
   @Permissions.has_permission(moderate_members=True)
-  async def untimeoutall(self, ctx: commands.Context):
+  async def untimeoutall(self, ctx: EvictContext):
     for member in ctx.guild.members:
       if member.is_timed_out():
         await member.timeout(None, reason='Untimeout All')
@@ -199,7 +201,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="kick members from your server", brief="kick members", usage="[member] <reason>")
   @Permissions.has_permission(kick_members=True)
-  async def kick(self, ctx: commands.Context, target: discord.Member, *, reason: str='No Reason Provided'):
+  async def kick(self, ctx: EvictContext, target: discord.Member, *, reason: str='No Reason Provided'):
     if not Permissions.check_hierarchy(self.bot, ctx.author, target): return await ctx.warning(f"You cannot kick*{target.mention}")
     await ctx.guild.kick(user=target, reason=reason + " | {}".format(ctx.author))
     await ModConfig.sendlogs(self.bot, "kick", ctx.author, target, reason + " | " + str(ctx.author))
@@ -208,7 +210,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="ban members from your server", brief="ban members", usage="[member] <reason>")
   @Permissions.has_permission(ban_members=True)
-  async def ban(self, ctx: commands.Context, target: Union[discord.Member, discord.User], *, reason: str='No Reason Provided'):
+  async def ban(self, ctx: EvictContext, target: Union[discord.Member, discord.User], *, reason: str='No Reason Provided'):
       check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", target.id) 
       if check is not None: return await ctx.warning(f"{target.mention} is globalbanned, they cannot be unbanned.")
       if isinstance(target, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, target): return await ctx.warning(f"You cannot ban*{target.mention}")
@@ -219,7 +221,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="timeout members from your server", brief="moderate members", usage="[member] <reason>")
   @commands.has_permissions(moderate_members=True)
-  async def mute(self, ctx: commands.Context, member: discord.Member, time: ValidTime=int, *, reason: str="No reason provided"): 
+  async def mute(self, ctx: EvictContext, member: discord.Member, time: ValidTime=int, *, reason: str="No reason provided"): 
       if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot mute*{member.mention}")
       if member.is_timed_out(): return await ctx.error(f"{member.mention} is **already** muted")
       if member.guild_permissions.administrator: return await ctx.warning("You **cannot** mute an administrator")
@@ -230,7 +232,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="unban an user", usage="[member] [reason]")
   @Permissions.has_permission(ban_members=True)
-  async def unban(self, ctx: commands.Context, member: discord.User, *, reason: str="No reason provided"):
+  async def unban(self, ctx: EvictContext, member: discord.User, *, reason: str="No reason provided"):
     check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
     if check is not None: return await ctx.warning(f"{member.mention} is globalbanned, they cannot be unbanned.")
     try:
@@ -242,7 +244,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="ban an user then immediately unban them", usage="[member] [reason]")
   @Permissions.has_permission(ban_members=True)
-  async def softban(self, ctx: commands.Context, member: discord.Member, *, reason: str="No reason provided"): 
+  async def softban(self, ctx: EvictContext, member: discord.Member, *, reason: str="No reason provided"): 
     if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot softban*{member.mention}")
     await member.ban(delete_message_days=7, reason=reason + f" | banned by {ctx.author}")
     await ModConfig.sendlogs(self.bot, "softban", ctx.author, member, reason + " | " + str(ctx.author))
@@ -252,7 +254,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="unmute a member in your server", brief="moderate members", usage="[member] <reason>", aliases=["untimeout"])
   @Permissions.has_permission(moderate_members=True)
-  async def unmute(self, ctx: commands.Context, member: discord.Member, * , reason: str="No reason provided"): 
+  async def unmute(self, ctx: EvictContext, member: discord.Member, * , reason: str="No reason provided"): 
     if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot unmute*{member.mention}")
     if not member.is_timed_out(): return await ctx.warning( f"**{member}** is not muted")
     await member.edit(timed_out_until=None, reason=reason + " | {}".format(ctx.author))
@@ -262,7 +264,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(aliases=['vcmute'], description="mute a member in a voice channel", brief="moderate members", usage="[member]", help="moderation")
   @Permissions.has_permission(moderate_members=True)
-  async def voicemute(self, ctx: commands.Context, *, member: discord.Member): 
+  async def voicemute(self, ctx: EvictContext, *, member: discord.Member): 
       if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot voicemute*{member.mention}")
       if not member.voice.channel: return await ctx.warning( f"**{member}** is **not** in a voice channel")
       if member.voice.self_mute: return await ctx.warning( f"**{member}** is **already** voice muted")
@@ -273,7 +275,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(aliases=['vcunmute'], description="unmute a member in a voice channel", brief="moderate members", usage="[member]", help="moderation")
   @Permissions.has_permission(moderate_members=True)
-  async def voiceunmute(self, ctx: commands.Context, *, member: discord.Member): 
+  async def voiceunmute(self, ctx: EvictContext, *, member: discord.Member): 
       if not member.voice.channel: return await ctx.warning( f"**{member}** is **not** in a voice channel")
       if not member.voice.self_mute: return await ctx.warning( f"**{member}** is **not** voice muted")
       await member.edit(mute=True, reason=f"Voice muted by {ctx.author}")
@@ -288,7 +290,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.cooldown(1, 3, commands.BucketType.guild)
   @mata_clear.command(description="clear messages that contain a certain word", usage="[word]", brief="manage messages")
-  async def contains(self, ctx: commands.Context, *, word: str): 
+  async def contains(self, ctx: EvictContext, *, word: str): 
    messages = [message async for message in ctx.channel.history(limit=300) if word in message.content]
    if len(messages) == 0: return await ctx.warning(f"No messages containing **{word}** in this channel")
    await ctx.channel.delete_messages(messages)
@@ -297,7 +299,7 @@ class moderation(commands.Cog):
   @commands.cooldown(1, 3, commands.BucketType.guild)
   @commands.command(aliases=['p'], description="bulk delete messages", brief="manage messages", usage="[messages]")  
   @Permissions.has_permission(manage_messages=True) 
-  async def purge(self, ctx: commands.Context, amount: int, *, member: discord.Member=None):
+  async def purge(self, ctx: EvictContext, amount: int, *, member: discord.Member=None):
    if member is None: 
     await ctx.channel.purge(limit=amount+1, bulk=True, reason=f"purge invoked by {ctx.author}")
    messages = []
@@ -311,7 +313,7 @@ class moderation(commands.Cog):
   @commands.cooldown(1, 3, commands.BucketType.guild)
   @commands.command(description="bulk delete messages sent by bots", brief="manage messages", usage="[amount]", aliases=["bc", "botclear"])
   @Permissions.has_permission(manage_messages=True) 
-  async def botpurge(self, ctx: commands.Context, amount: int=100):    
+  async def botpurge(self, ctx: EvictContext, amount: int=100):    
      mes = [] 
      async for message in ctx.channel.history(): 
        if len(mes) == amount: break 
@@ -323,7 +325,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(help="removes all staff roles from a member", description="moderation", brief="administrator", usage="[member] [reason]")
   @Permissions.has_permission(administrator=True)
-  async def strip(self, ctx: commands.Context, member: discord.Member, *, reason: str='No reason provided'):
+  async def strip(self, ctx: EvictContext, member: discord.Member, *, reason: str='No reason provided'):
      if ctx.author.top_role <= member.top_role and ctx.author.id not in self.bot.owner_ids:
             return await ctx.warning("You can't **strip** someone above you or someone with the same role as you.")
      await ctx.channel.typing()  
@@ -334,7 +336,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(name='warn', help="warn a member", brief="manage messages", usage="[member] [reason]")
   @Permissions.has_permission(manage_messages=True) 
-  async def warn(self, ctx: commands.Context, member: discord.Member, *, reason: str="No reason provided"):
+  async def warn(self, ctx: EvictContext, member: discord.Member, *, reason: str="No reason provided"):
        if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): 
           return await ctx.warning(f"You cannot warn*{member.mention}")
        date = datetime.datetime.now()
@@ -345,7 +347,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(name='warnclear', description="clear all warns from an user", usage="[member]", brief="manage messages")
   @Permissions.has_permission(manage_messages=True) 
-  async def warnclear(self, ctx: commands.Context, *, member: discord.Member): 
+  async def warnclear(self, ctx: EvictContext, *, member: discord.Member): 
       check = await self.bot.db.fetch("SELECT * FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)   
       if len(check) == 0: return await ctx.warning( "this user has no warnings".capitalize())
       await self.bot.db.execute("DELETE FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)
@@ -354,7 +356,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(name='warnlist', aliases=['warns'], description="shows all warns of an user", usage="[member]")
   @Permissions.has_permission(manage_messages=True) 
-  async def warnlist(self, ctx: commands.Context, *, member: discord.Member): 
+  async def warnlist(self, ctx: EvictContext, *, member: discord.Member): 
       check = await self.bot.db.fetch("SELECT * FROM warns WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)  
       if len(check) == 0: return await ctx.warning( "this user has no warnings".capitalize())
       i=0
@@ -382,7 +384,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="jail a member", usage="[member]", brief="manage channels")
   @Permissions.has_permission(manage_channels=True) 
-  async def jail(self, ctx: commands.Context, member: discord.Member, *, reason: str="No reason provided"):
+  async def jail(self, ctx: EvictContext, member: discord.Member, *, reason: str="No reason provided"):
       if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot jail*{member.mention}")
       check = await self.bot.db.fetchrow("SELECT * FROM jail WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)      
       if check: return await ctx.warning( f"**{member}** is already jailed")     
@@ -406,7 +408,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.command(description="unjail a member", usage="[member] [reason]", brief="manage channels")
   @Permissions.has_permission(manage_channels=True) 
-  async def unjail(self, ctx: commands.Context, member: discord.Member, *, reason: str="No reason provided"):   
+  async def unjail(self, ctx: EvictContext, member: discord.Member, *, reason: str="No reason provided"):   
       check = await self.bot.db.fetchrow("SELECT * FROM jail WHERE guild_id = $1 AND user_id = $2", ctx.guild.id, member.id)      
       if not check: return await ctx.warning( f"**{member}** is not jailed")
       chec = await self.bot.db.fetchrow("SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id)   
@@ -423,7 +425,7 @@ class moderation(commands.Cog):
   
   @commands.command(aliases=["sm"], description="add slowmode to a channel", usage="[seconds] <channel>", brief="manage channelss")  
   @Permissions.has_permission(manage_channels=True) 
-  async def slowmode(self, ctx: commands.Context, seconds: str, channel: discord.TextChannel=None):
+  async def slowmode(self, ctx: EvictContext, seconds: str, channel: discord.TextChannel=None):
     chan = channel or ctx.channel
     tim = humanfriendly.parse_timespan(seconds)
     await chan.edit(slowmode_delay=tim, reason="slowmode invoked by {}".format(ctx.author))
@@ -432,7 +434,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.group(invoke_without_command=True)
   @Permissions.has_permission(manage_channels=True) 
-  async def lock(self, ctx: commands.Context, channel: discord.TextChannel=None):
+  async def lock(self, ctx: EvictContext, channel: discord.TextChannel=None):
       channel = channel or ctx.channel
       overwrite = channel.overwrites_for(ctx.guild.default_role)
       overwrite.send_messages = False
@@ -443,7 +445,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @lock.command(aliases=['viewlockall'], description="viewlock all channels", brief="manage channels")
-  async def viewall(self, ctx: commands.Context):
+  async def viewall(self, ctx: EvictContext):
     for c in ctx.guild.channels:
       overwrite = c.overwrites_for(ctx.guild.default_role)
       overwrite.view_channel = False
@@ -453,7 +455,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @lock.command(description="lock all channels", brief="manage channels")
-  async def all(self, ctx: commands.Context):
+  async def all(self, ctx: EvictContext):
     for c in ctx.guild.channels:
       overwrite = c.overwrites_for(ctx.guild.default_role)
       overwrite.send_messages = False
@@ -463,7 +465,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.group(invoke_without_command=True, name='unlock')
   @Permissions.has_permission(manage_channels=True) 
-  async def unlock(self, ctx: commands.Context, channel: discord.TextChannel=None):
+  async def unlock(self, ctx: EvictContext, channel: discord.TextChannel=None):
     channel = channel or ctx.channel
     overwrite = channel.overwrites_for(ctx.guild.default_role)
     overwrite.send_messages = True
@@ -474,7 +476,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @unlock.command(description="unlock all channels", brief="manage channels")
-  async def all(self, ctx: commands.Context):
+  async def all(self, ctx: EvictContext):
     for c in ctx.guild.channels:
       overwrite = c.overwrites_for(ctx.guild.default_role)
       overwrite.send_messages = True
@@ -484,7 +486,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @unlock.command(aliases=['unviewlockall'], description="unviewlock all channels", brief="manage channels")
-  async def viewall(self, ctx: commands.Context):
+  async def viewall(self, ctx: EvictContext):
     for c in ctx.guild.channels:
       overwrite = c.overwrites_for(ctx.guild.default_role)
       overwrite.view_channel = True
@@ -494,7 +496,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)  
   @commands.command(name='imute', description='remove image permissions from a member', usage='[member] [channel]', brief="manage channels")
-  async def imute(self, ctx: commands.Context, member: discord.Member, channel : discord.TextChannel=None):
+  async def imute(self, ctx: EvictContext, member: discord.Member, channel : discord.TextChannel=None):
     channel = channel or ctx.channel
     overwrite = channel.overwrites_for(member)
     overwrite.attach_files = False
@@ -505,7 +507,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @commands.command(name='iunmute', description='restore image permissions to a member', usage='[member] [channel]', brief="manage channels")
-  async def iunmute(self, ctx: commands.Context, member: discord.Member, channel : discord.TextChannel=None):
+  async def iunmute(self, ctx: EvictContext, member: discord.Member, channel : discord.TextChannel=None):
     channel = channel or ctx.channel
     overwrite = channel.overwrites_for(member)
     overwrite.attach_files = True
@@ -516,7 +518,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @commands.command(name='rmute', description='remove reaction permissions from a member', usage='[member] [channel]', brief="manage channels")
-  async def rmute(self, ctx: commands.Context, member: discord.Member, channel : discord.TextChannel=None):
+  async def rmute(self, ctx: EvictContext, member: discord.Member, channel : discord.TextChannel=None):
     channel = channel or ctx.channel
     overwrite = channel.overwrites_for(member)
     overwrite.add_reactions = False
@@ -526,7 +528,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_channels=True)
   @commands.command(name='runmute', description='restore reaction permissions to a member', usage='[member] [channel]', brief="manage channels")
-  async def runmute(self, ctx: commands.Context, member: discord.Member, channel : discord.TextChannel=None):
+  async def runmute(self, ctx: EvictContext, member: discord.Member, channel : discord.TextChannel=None):
     channel = channel or ctx.channel
     overwrite = channel.overwrites_for(member)
     overwrite.add_reactions = True
@@ -536,7 +538,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @commands.group(invoke_without_command=True, description="manage roles in your server", aliases=['r'])
   @Permissions.has_permission(manage_roles=True) 
-  async def role(self, ctx: commands.Context, user: discord.Member=None, *, role : GoodRole=None):
+  async def role(self, ctx: EvictContext, user: discord.Member=None, *, role : GoodRole=None):
     if role == None or user == None: return await ctx.create_pages()
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
     if role in user.roles:
@@ -549,7 +551,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @role.command(description="add a role to an user", usage="[user] [role]", name="add", brief="manage roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def role_add(self, ctx: commands.Context, user: discord.Member, *, role: GoodRole):
+  async def role_add(self, ctx: EvictContext, user: discord.Member, *, role: GoodRole):
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
     if role in user.roles: return await ctx.error( f"**{user}** has this role already") 
     await user.add_roles(role, reason=f"{ctx.author} added role to {user.name}")
@@ -558,7 +560,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @role.command(name="remove", brief="manage roles", description="remove a role from a member")
   @Permissions.has_permission(manage_roles=True) 
-  async def role_remove(self, ctx: commands.Context, user: discord.Member, *, role: GoodRole):
+  async def role_remove(self, ctx: EvictContext, user: discord.Member, *, role: GoodRole):
     if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from users.')
     if not role in user.roles: return await ctx.error( f"**{user}** doesn't this role")
     await user.remove_roles(role, reason=f"{ctx.author} removed role from {user.name}")
@@ -567,25 +569,25 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @role.command(description="create a role", usage="[name]", brief="manage roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def create(self, ctx: commands.Context, *, name: str): 
+  async def create(self, ctx: EvictContext, *, name: str): 
     role = await ctx.guild.create_role(name=name, reason=f"created by {ctx.author}")
     return await ctx.success(f"**created** role {role.mention}") 
    
   @Mod.is_mod_configured()
   @role.command(description="delete a role", usage="[role]", brief="manage roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def delete(self, ctx: commands.Context, *, role: GoodRole): 
+  async def delete(self, ctx: EvictContext, *, role: GoodRole): 
       await role.delete(reason=f'deleted by {ctx.author}')
       return await ctx.success(f"**deleted** the role {role.name}") 
   
   @role.group(invoke_without_command=True, name="humans", description="mass add or remove roles from members", help="moderation")  
-  async def rolehumans(self, ctx: commands.Context):
+  async def rolehumans(self, ctx: EvictContext):
     return await ctx.create_pages()
   
   @Mod.is_mod_configured()
   @rolehumans.command(name="remove", description="remove a role from all members in this server", usage='[role]', brief="manage_roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def rolehumansremove(self, ctx: commands.Context, *, role: GoodRole):
+  async def rolehumansremove(self, ctx: EvictContext, *, role: GoodRole):
       if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from users that have dangerous permissions.')
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from users.')
       embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all humans.")
@@ -601,7 +603,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @rolehumans.command(name="add", description="add a role to all humans in this server", usage='[role]', brief="manage_roles")  
   @Permissions.has_permission(manage_roles=True) 
-  async def rolehumansadd(self, ctx: commands.Context, *, role: GoodRole):  
+  async def rolehumansadd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant assign roles to users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
     embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all humans.")
@@ -615,13 +617,13 @@ class moderation(commands.Cog):
     except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to add {role.mention} to all humans")) 
 
   @role.group(invoke_without_command=True, name="bots", description="mass add or remove roles from members", help="moderation")  
-  async def rolebots(self, ctx: commands.Context):
+  async def rolebots(self, ctx: EvictContext):
     return await ctx.create_pages()
   
   @Mod.is_mod_configured()
   @rolebots.command(name="remove", description="remove a role from all bots in this server", usage='[role]', brief="manage_roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def rolebotsremove(self, ctx: commands.Context, *, role: GoodRole):
+  async def rolebotsremove(self, ctx: EvictContext, *, role: GoodRole):
       if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from bots that have dangerous permissions.')
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from bots.')
       embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all bots.")
@@ -637,7 +639,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @rolebots.command(name="add", description="add a role to all bots in this server", usage='[role]', brief="manage_roles")  
   @Permissions.has_permission(manage_roles=True) 
-  async def rolebotsadd(self, ctx: commands.Context, *, role: GoodRole):  
+  async def rolebotsadd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to bots.')
     embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all bots.")
@@ -651,13 +653,13 @@ class moderation(commands.Cog):
     except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to add {role.mention} to all bots"))    
 
   @role.group(invoke_without_command=True, name="all", description="mass add or remove roles from members", help="moderation")  
-  async def roleall(self, ctx: commands.Context):
+  async def roleall(self, ctx: EvictContext):
     return await ctx.create_pages()
   
   @Mod.is_mod_configured()
   @roleall.command(name="remove", description="remove a role from all members in this server", usage='[role]', brief="manage_roles")
   @Permissions.has_permission(manage_roles=True) 
-  async def roleallremove(self, ctx: commands.Context, *, role: GoodRole):
+  async def roleallremove(self, ctx: EvictContext, *, role: GoodRole):
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from users.')
       embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all members.")
       message = await ctx.reply(embed=embed)
@@ -672,7 +674,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @roleall.command(name="add", description="add a role to all members in this server", usage='[role]', brief="manage_roles")  
   @Permissions.has_permission(manage_roles=True) 
-  async def rolealladd(self, ctx: commands.Context, *, role: GoodRole):  
+  async def rolealladd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant assign roles to users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
     embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all members.")
@@ -692,7 +694,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @autokick.command(name='add', description='add a user to be automatically kicked', brief="manage guild", usage="[user]")
   @Permissions.has_permission(manage_guild=True)
-  async def autokick_add(self, ctx: commands.Context, *, member: Union[discord.Member, discord.User]): 
+  async def autokick_add(self, ctx: EvictContext, *, member: Union[discord.Member, discord.User]): 
       if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot autokick*{member.mention}")
       check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
       if check is not None: return await ctx.warning(f"{member.mention} is globalbanned, they cannot be autokicked.")
@@ -705,7 +707,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @autokick.command(name='remove', description='remove a user from being automatically kicked', brief="manage guild", usage="[user]")
   @Permissions.has_permission(manage_guild=True)
-  async def autokick_remove(self, ctx: commands.Context, *, member: discord.User): 
+  async def autokick_remove(self, ctx: EvictContext, *, member: discord.User): 
     check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
     if check is not None: return await ctx.warning(f"{member.mention} is globalbanned, they cannot be removed from autokick list.")    
     che = await self.bot.db.fetchrow("SELECT * FROM autokick WHERE guild_id = {} AND autokick_users = {}".format(ctx.guild.id, member.id))      
@@ -716,7 +718,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_guild=True)
   @autokick.command(name='list', description="check autokick list", brief='manage guild')
-  async def autokick_list(self, ctx: commands.Context): 
+  async def autokick_list(self, ctx: EvictContext): 
           i=0
           k=1
           l=0
@@ -747,7 +749,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @private.command(name='unwhitelist', description='unwhitelist a user from not being affected by private', brief="manage guild", usage="[user]")
   @Permissions.has_permission(manage_guild=True)
-  async def private_unwhitelist(self, ctx: commands.Context, *, member: discord.User): 
+  async def private_unwhitelist(self, ctx: EvictContext, *, member: discord.User): 
       check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
       if check is not None: return await ctx.warning(f"{member.mention} is globalbanned, they cannot be private unwhitelisted.")    
       che = await self.bot.db.fetchrow("SELECT * FROM private WHERE guild_id = {} AND private_users = {}".format(ctx.guild.id, member.id))      
@@ -758,7 +760,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @private.command(name='whitelist', description='whitelist a user from being affected by private', brief="manage guild", usage="[user]")
   @Permissions.has_permission(manage_guild=True)
-  async def private_whitelist(self, ctx: commands.Context, *, member: Union[discord.Member, discord.User]): 
+  async def private_whitelist(self, ctx: EvictContext, *, member: Union[discord.Member, discord.User]): 
       check = await self.bot.db.fetchrow("SELECT * FROM globalban WHERE banned = $1", member.id) 
       if check is not None: return await ctx.warning(f"{member.mention} is globalbanned, they cannot be private whitelisted.")
       che = await self.bot.db.fetchrow("SELECT * FROM private WHERE guild_id = {} AND private_users = {}".format(ctx.guild.id, member.id))
@@ -768,7 +770,7 @@ class moderation(commands.Cog):
 
   @private.command(name='enable', description="enable the private module", brief="manage guild")
   @Permissions.has_permission(manage_guild=True)
-  async def private_enable(self, ctx: commands.Context):
+  async def private_enable(self, ctx: EvictContext):
       private = await self.bot.db.fetchrow("SELECT * FROM private WHERE guild_id = $1", ctx.guild.id)
       if private is not None: return await ctx.warning(f"server has already been set to private")
       await self.bot.db.execute("INSERT INTO private VALUES ($1)", ctx.guild.id)
@@ -776,7 +778,7 @@ class moderation(commands.Cog):
 
   @private.command(name='disable', description="disable the private module", brief="manage guild")
   @Permissions.has_permission(manage_guild=True)
-  async def private_disable(self, ctx: commands.Context):
+  async def private_disable(self, ctx: EvictContext):
       private = await self.bot.db.fetchrow("SELECT * FROM private WHERE guild_id = $1", ctx.guild.id)
       if private is None: return await ctx.warning(f"server is not set to private")
       await self.bot.db.execute("DELETE FROM private WHERE guild_id = $1", ctx.guild.id)
@@ -785,7 +787,7 @@ class moderation(commands.Cog):
   @Mod.is_mod_configured()
   @Permissions.has_permission(manage_guild=True)
   @private.command(name='list', description="check private whitelist", brief='manage guild')
-  async def private_list(self, ctx: commands.Context): 
+  async def private_list(self, ctx: EvictContext): 
           i=0
           k=1
           l=0
@@ -809,5 +811,5 @@ class moderation(commands.Cog):
           number.append(discord.Embed(color=self.bot.color, title=f"private whitelist [{len(results)}]", description=messages[i]))
           await ctx.paginate(number)
         
-async def setup(bot: commands.Bot): 
+async def setup(bot: Evict): 
   await bot.add_cog(moderation(bot))      

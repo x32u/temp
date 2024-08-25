@@ -1,10 +1,14 @@
 import discord, json
-from utils.embed import Embed
 from discord.ext import commands 
+
+from utils.embed import Embed
 from patches.permissions import Permissions
 
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 class chat(commands.Cog): 
-  def __init__(self, bot: commands.Bot): 
+  def __init__(self, bot: Evict): 
     self.bot = bot 
     self._cd = commands.CooldownMapping.from_cooldown(3, 6, commands.BucketType.guild) 
 
@@ -17,7 +21,7 @@ class chat(commands.Cog):
     await ctx.create_pages()
 
   @autoresponder.command(name="list")
-  async def ar_list(self, ctx: commands.Context): 
+  async def ar_list(self, ctx: EvictContext): 
         
         results = await self.bot.db.fetch("SELECT * FROM autoresponses WHERE guild_id = $1", ctx.guild.id)
         
@@ -26,7 +30,7 @@ class chat(commands.Cog):
 
   @autoresponder.command(name='delete', description='delete an autoresponder', brief="manage guild", aliases=['del', 'remove', 'rm'], usage="trigger")
   @Permissions.has_permission(manage_guild=True) 
-  async def delete(self, ctx: commands.Context, *, toggle: str):
+  async def delete(self, ctx: EvictContext, *, toggle: str):
         
         key = await ctx.bot.db.fetch("SELECT * FROM autoresponses WHERE guild_id = $1 AND key = $2", ctx.guild.id, toggle.lstrip())
         if not key: return await ctx.warning(f"You don't have an autoresponse for `{toggle}`")
@@ -36,7 +40,7 @@ class chat(commands.Cog):
     
   @autoresponder.command(name='add', description='create an autoresponder', brief="manage guild", aliases=['set'], usage="[trigger], [response]")
   @Permissions.has_permission(manage_guild=True) 
-  async def add(self, ctx: commands.Context, *, message: str):
+  async def add(self, ctx: EvictContext, *, message: str):
         
         autoresponse = message.split(',', 1)
         key = await ctx.bot.db.fetch("SELECT * FROM autoresponses WHERE guild_id = $1 AND key = $2", ctx.guild.id, autoresponse[0])
@@ -46,7 +50,7 @@ class chat(commands.Cog):
         return await ctx.success(f'I have **added** the autoresponse for `{autoresponse[0].lstrip()}` with response `{autoresponse[1].lstrip()}`')
 
   @autoresponder.command(name="variables", help="config", description="returns variables for autoresponder")
-  async def ar_variables(self, ctx: commands.Context): 
+  async def ar_variables(self, ctx: EvictContext): 
     await ctx.invoke(self.bot.get_command('embed variables'))
 
   @commands.group(invoke_without_command=True)
@@ -55,7 +59,7 @@ class chat(commands.Cog):
 
   @autoreact.command(name="add", description="make the bot react with emojis on your message", brief="manage guild", usage="[content], [emojis]")     
   @Permissions.has_permission(manage_guild=True) 
-  async def autoreact_add(self, ctx: commands.Context, *, content: str):
+  async def autoreact_add(self, ctx: EvictContext, *, content: str):
     
     con = content.split(",")
     if len(con) == 1: return await self.bot.help_command.send_command_help(ctx.command)
@@ -73,7 +77,7 @@ class chat(commands.Cog):
   
   @autoreact.command(name="remove", help="config", description="remove auto reactions from a content", brief="manage guild", usage='[content]')
   @Permissions.has_permission(manage_guild=True) 
-  async def autoreact_remove(self, ctx: commands.Context, *, content: str): 
+  async def autoreact_remove(self, ctx: EvictContext, *, content: str): 
     
     check = await self.bot.db.fetchrow("SELECT * FROM autoreact WHERE guild_id = $1 AND trigger = $2", ctx.guild.id, content)
     if not check: return await ctx.success(f"No autoreaction found with the content **{content}**")
@@ -82,7 +86,7 @@ class chat(commands.Cog):
     return await ctx.success(f"Deleted autoreaction with the content **{content}**")
 
   @autoreact.command(name="list", description="return a list of autoreactions in this server")
-  async def autoreact_list(self, ctx: commands.Context): 
+  async def autoreact_list(self, ctx: EvictContext): 
       check = await self.bot.db.fetch("SELECT * FROM autoreact WHERE guild_id = $1", ctx.guild.id)  
       if len(check) == 0: return await ctx.warning("this server has no **autoreactions**")
       
@@ -155,5 +159,5 @@ class chat(commands.Cog):
               except: 
                   continue
 
-async def setup(bot: commands.Bot) -> None: 
+async def setup(bot: Evict) -> None: 
     await bot.add_cog(chat(bot))

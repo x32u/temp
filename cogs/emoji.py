@@ -1,10 +1,15 @@
 import discord, asyncio, io, re, aiohttp
+
 from discord.ext import commands
 from typing import Union, Optional, List
 from io import BytesIO
 from patches.permissions import Permissions
 from itertools import zip_longest
 from dataclasses import dataclass
+
+from bot.bot import Evict
+from bot.helpers import EvictContext
+
 
 IMAGE_TYPES = (".png", ".jpg", ".jpeg", ".gif", ".webp")
 STICKER_KB = 512
@@ -43,7 +48,7 @@ class StolenEmoji:
         return isinstance(other, StolenEmoji) and self.id == other.id
 
 class emoji(commands.Cog):
-   def __init__(self, bot: commands.Bot):
+   def __init__(self, bot: Evict):
       self.bot = bot
 
    @staticmethod
@@ -56,7 +61,7 @@ class emoji(commands.Cog):
         current_emojis = len([em for em in guild.emojis if em.animated == animated])
         return guild.emoji_limit - current_emojis
 
-   async def steal_ctx(self, ctx: commands.Context) -> Optional[List[Union[StolenEmoji, discord.StickerItem]]]:
+   async def steal_ctx(self, ctx: EvictContext) -> Optional[List[Union[StolenEmoji, discord.StickerItem]]]:
         reference = ctx.message.reference
         if not reference:
             await ctx.warning("Reply to a message with this command to steal an emoji, or run ``addemoji``.")
@@ -74,14 +79,14 @@ class emoji(commands.Cog):
 
    @commands.command(description="delete an emoji", usage="[emoji]", brief="manage emojis", aliases=["delemoji"])
    @Permissions.has_permission(manage_expressions=True) 
-   async def deleteemoji(self, ctx: commands.Context, emoji: discord.Emoji): 
+   async def deleteemoji(self, ctx: EvictContext, emoji: discord.Emoji): 
     
     await emoji.delete()
     await ctx.success(f"deleted the emoji {emoji.name}.")  
 
    @commands.command(description="add an emoji", usage="[emoji] <name>", brief="manage emojis")
    @Permissions.has_permission(manage_expressions=True) 
-   async def addemoji(self, ctx: commands.Context, emoji: Union[discord.Emoji, discord.PartialEmoji], *, name: str=None):
+   async def addemoji(self, ctx: EvictContext, emoji: Union[discord.Emoji, discord.PartialEmoji], *, name: str=None):
     
     if not name: name = emoji.name 
     try:
@@ -93,7 +98,7 @@ class emoji(commands.Cog):
 
    @commands.command(description="add multiple emojis", usage="[emojis]", aliases=["am"], brief="manage emojis")
    @Permissions.has_permission(manage_expressions=True) 
-   async def addmultiple(self, ctx: commands.Context, *emoji: Union[discord.Emoji, discord.PartialEmoji]): 
+   async def addmultiple(self, ctx: EvictContext, *emoji: Union[discord.Emoji, discord.PartialEmoji]): 
     
     if len(emoji) == 0: return await ctx.warning("Please provide some emojis to add")       
     emojis = []
@@ -112,16 +117,16 @@ class emoji(commands.Cog):
     return await ctx.reply(embed=embed)
    
    @commands.group(invoke_without_command=True, description="manage server's stickers")
-   async def sticker(self, ctx: commands.Context): 
+   async def sticker(self, ctx: EvictContext): 
     return await ctx.create_pages()
 
    @sticker.command(name="steal", description="add a sticker", aliases=['add'], usage="[attach sticker]", brief="manage emojis")
    @Permissions.has_permission(manage_expressions=True) 
-   async def sticker_steal(self, ctx: commands.Context): 
+   async def sticker_steal(self, ctx: EvictContext): 
     return await ctx.invoke(self.bot.get_command('stealsticker'))  
    
    @sticker.command(name="enlarge", aliases=['e', 'jumbo'], description="returns a sticker as a file", usage="[attach sticker]")
-   async def sticker_enlarge(self, ctx: commands.Context): 
+   async def sticker_enlarge(self, ctx: EvictContext): 
     
     if ctx.message.stickers: stick = ctx.message.stickers[0]
     
@@ -135,7 +140,7 @@ class emoji(commands.Cog):
 
    @Permissions.has_permission(manage_expressions=True) 
    @sticker.command(name="tag", aliases=['t'], brief="manage expressions", description="puts your vanity code in the stickers")
-   async def sticker_tag(self, ctx: commands.Context): 
+   async def sticker_tag(self, ctx: EvictContext): 
        
     if ctx.guild.vanity_url_code == None: return await ctx.warning("You **must** have a vanity set to run this command.")
     
@@ -152,7 +157,7 @@ class emoji(commands.Cog):
     await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: I have **tagged** all the guilds stickers."))
     
    @sticker.command(name='list', description="returns a list of server's stickers", aliases=["l"])
-   async def sticker_list(self, ctx: commands.Context):
+   async def sticker_list(self, ctx: EvictContext):
        
         if len(ctx.guild.stickers) == 0:
             return await ctx.warning("There are **no** stickers in this server.")
@@ -164,7 +169,7 @@ class emoji(commands.Cog):
 
    @sticker.command(name="delete", description="delete a sticker", usage="[attach sticker]", brief="manage emojis")
    @Permissions.has_permission(manage_expressions=True) 
-   async def sticker_delete(self, ctx: commands.Context): 
+   async def sticker_delete(self, ctx: EvictContext): 
     
     if ctx.message.stickers: 
      sticker = ctx.message.stickers[0]
@@ -206,7 +211,7 @@ class emoji(commands.Cog):
          
    @commands.command(description="add a sticker", usage="[attach sticker]", brief="manage expressions", aliases=["stickersteal", "addsticker", "stickeradd"])
    @Permissions.has_permission(manage_expressions=True) 
-   async def stealsticker(self, ctx: commands.Context):
+   async def stealsticker(self, ctx: EvictContext):
      
      if ctx.message.stickers:
       try:
@@ -281,7 +286,7 @@ class emoji(commands.Cog):
      return await ctx.error("No sticker found")
             
    @commands.command(name='emojilist', description="returns a list of server's emojis", aliases=["emojis"])
-   async def emojilist(self, ctx: commands.Context):
+   async def emojilist(self, ctx: EvictContext):
        
         if len(ctx.guild.emojis) == 0:
             return await ctx.warning("There are **no** emojis in this server.")
@@ -292,12 +297,12 @@ class emoji(commands.Cog):
         await ctx.paginate(emoji_list, f"server emojis [{len(ctx.guild.emojis)}]")  
 
    @commands.command(aliases=["downloademoji", "e", 'jumbo'], description="gets an image version of your emoji", usage="[emoji]")
-   async def enlarge(self, ctx: commands.Context, emoj: Union[discord.PartialEmoji, str]): 
+   async def enlarge(self, ctx: EvictContext, emoj: Union[discord.PartialEmoji, str]): 
     if isinstance(emoj, discord.PartialEmoji): return await ctx.reply(file=await emoj.to_file(filename=f"{emoj.name}{'.gif' if emoj.animated else '.png'}"))
     elif isinstance(emoj, str): return await ctx.reply(file=discord.File(fp=await self.bot.getbyte(f"https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/{ord(emoj):x}.png"), filename="emoji.png"))
    
    @commands.command(aliases=['ei'], description="show emoji info", usage="[emoji]")
-   async def emojiinfo(self, ctx: commands.Context, *, emoji: Union[discord.Emoji, discord.PartialEmoji]): 
+   async def emojiinfo(self, ctx: EvictContext, *, emoji: Union[discord.Emoji, discord.PartialEmoji]): 
     
     embed = discord.Embed(color=self.bot.color, title=emoji.name, timestamp=emoji.created_at).set_footer(text=f"id: {emoji.id}")
     embed.set_thumbnail(url=emoji.url)
@@ -317,7 +322,7 @@ class emoji(commands.Cog):
    
    @commands.command(name='steal', description="reply to a message to steal an emoji or sticker", usage="[emojis]", brief="manage expressions")
    @commands.has_permissions(manage_expressions=True)
-   async def steal(self, ctx: commands.Context, *names: str):
+   async def steal(self, ctx: EvictContext, *names: str):
         
         if not (emojis := await self.steal_ctx(ctx)):
             return
@@ -361,7 +366,7 @@ class emoji(commands.Cog):
    # @commands.cooldown(rate=1, per=15)
    @commands.command(name="fromimage", description="add an emoji from an image", brief="manage expressions")
    @commands.has_permissions(manage_expressions=True)
-   async def _add_from_image(self, ctx: commands.Context, name: str = None):
+   async def _add_from_image(self, ctx: EvictContext, name: str = None):
 
         async with ctx.typing():
             if len(ctx.message.attachments) > 1:
@@ -388,5 +393,5 @@ class emoji(commands.Cog):
 
         return await ctx.success(f"{new} has been added to the server.")
 
-async def setup(bot) -> None:
+async def setup(bot: Evict) -> None:
     await bot.add_cog(emoji(bot))   

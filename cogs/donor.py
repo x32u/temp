@@ -1,15 +1,19 @@
 import discord
 from discord.ext import commands
 from typing import Union
+
 from patches.permissions import Permissions
 
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 class donor(commands.Cog):
-  def __init__(self, bot: commands.Bot):
+  def __init__(self, bot: Evict):
       self.bot = bot
   
   @commands.command(description="revoke the hardban from an user", usage="[user]", brief="donor & administrator")
   @Permissions.has_permission(administrator=True)
-  async def hardunban(self, ctx: commands.Context, *, member: discord.User):     
+  async def hardunban(self, ctx: EvictContext, *, member: discord.User):     
     
     che = await self.bot.db.fetchrow("SELECT * FROM hardban WHERE guild_id = {} AND banned = {}".format(ctx.guild.id, member.id))      
     if che is None: return await ctx.warning(f"{member} is **not** hardbanned.") 
@@ -21,7 +25,7 @@ class donor(commands.Cog):
 
   @commands.command(description="hardban a user from the server", usage="[user]", brief="donor & administrator")
   @Permissions.has_permission(administrator=True)
-  async def hardban(self, ctx: commands.Context, member: Union[discord.Member, discord.User], reason: str='No Reason Provided'):
+  async def hardban(self, ctx: EvictContext, member: Union[discord.Member, discord.User], reason: str='No Reason Provided'):
       
       if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot hardban*{member.mention}")
       
@@ -36,7 +40,7 @@ class donor(commands.Cog):
     
   @Permissions.has_permission(administrator=True)
   @commands.command(aliases=["hardbanlist"], description="check hardban list", brief='donor & administrator')
-  async def hardbanned(self, ctx: commands.Context): 
+  async def hardbanned(self, ctx: EvictContext): 
           
           results = await self.bot.db.fetch("SELECT * FROM hardban WHERE guild_id = $1", ctx.guild.id)
           
@@ -49,7 +53,7 @@ class donor(commands.Cog):
         
   @commands.command(description="uwuify a person's messages", usage="[member]", brief="donor & manage messages")
   @Permissions.has_permission(manage_messages=True)
-  async def uwulock(self, ctx: commands.Context, *, member: discord.Member):
+  async def uwulock(self, ctx: EvictContext, *, member: discord.Member):
     
     if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You **cannot** uwulock*{member.mention}.")
     
@@ -62,11 +66,11 @@ class donor(commands.Cog):
     if check is None: await self.bot.db.execute("INSERT INTO uwulock VALUES ($1,$2)", ctx.guild.id, member.id)
     
     else: await self.bot.db.execute("DELETE FROM uwulock WHERE user_id = {} AND guild_id = {}".format(member.id, ctx.guild.id))    
-    return await ctx.message.add_reaction("<:approve:1263726951613464627>")
+    return await ctx.check()
   
   @Permissions.has_permission(manage_messages=True)
   @commands.command(aliases=["uwulocklist"], description="check uwulock list", brief='donor & manage messages')
-  async def uwulocked(self, ctx: commands.Context): 
+  async def uwulocked(self, ctx: EvictContext): 
           
           results = await self.bot.db.fetch("SELECT * FROM uwulock WHERE guild_id = $1", ctx.guild.id)
           
@@ -79,7 +83,7 @@ class donor(commands.Cog):
   
   @Permissions.server_owner()
   @commands.command(description="remove everyone from uwulock", brief="donor & server owner")
-  async def uwulockreset(self, ctx:commands.Context):
+  async def uwulockreset(self, ctx:EvictContext):
     
     check = await self.bot.db.fetchrow("SELECT guild_id FROM uwulock WHERE guild_id = {}".format(ctx.guild.id))
     if check is None: return await ctx.warning("There is **no one** in uwulock.")
@@ -89,7 +93,7 @@ class donor(commands.Cog):
   
   @Permissions.server_owner()
   @commands.command(description="remove everyone from hardban", brief="donor & server owner")
-  async def hardbanreset(self, ctx:commands.Context):
+  async def hardbanreset(self, ctx:EvictContext):
     
     check = await self.bot.db.fetchrow("SELECT guild_id FROM hardban WHERE guild_id = {}".format(ctx.guild.id))
     if check is None: return await ctx.warning("There is **no one** in hardban.")
@@ -99,7 +103,7 @@ class donor(commands.Cog):
 
   @commands.command(aliases=['stfu'], description="delete a person's messages", usage="[member]", brief="donor & manage messages")
   @Permissions.has_permission(manage_messages=True)
-  async def shutup(self, ctx: commands.Context, *, member: discord.Member):
+  async def shutup(self, ctx: EvictContext, *, member: discord.Member):
     
     if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You cannot shutup*{member.mention}")
     if member.id == ctx.bot.user.id: return await ctx.warning("Do not shutup me.")
@@ -108,11 +112,11 @@ class donor(commands.Cog):
     if check is None: await self.bot.db.execute("INSERT INTO shutup VALUES ($1,$2)", ctx.guild.id, member.id)
     
     else: await self.bot.db.execute("DELETE FROM shutup WHERE user_id = {} AND guild_id = {}".format(member.id, ctx.guild.id))    
-    return await ctx.message.add_reaction("<:approve:1263726951613464627>")
+    return await ctx.check()
   
   @Permissions.server_owner()
   @commands.command(aliases=["stfureset"], description="remove everyone from uwulock", brief="donor & server owner")
-  async def shutupreset(self, ctx:commands.Context):
+  async def shutupreset(self, ctx:EvictContext):
     
     check = await self.bot.db.fetchrow("SELECT guild_id FROM shutup WHERE guild_id = {}".format(ctx.guild.id))
     if check is None: return await ctx.warning("There is **no one** in uwulock.")
@@ -122,7 +126,7 @@ class donor(commands.Cog):
     
   @Permissions.has_permission(manage_messages=True)
   @commands.command(aliases=["stfulist"], description="check shutup list", brief="donor & manage messages")
-  async def shutuplist(self, ctx: commands.Context): 
+  async def shutuplist(self, ctx: EvictContext): 
        
        results = await self.bot.db.fetch("SELECT * FROM shutup WHERE guild_id = $1", ctx.guild.id)
           
@@ -135,7 +139,7 @@ class donor(commands.Cog):
 
   @commands.command(description="force nickname a user", usage="[member] [nickname]", aliases=["locknick", "fn"], brief="manage nicknames & donor")
   @Permissions.has_permission(manage_nicknames=True)
-  async def forcenick(self, ctx: commands.Context, member: discord.Member, *, nick: str=None): 
+  async def forcenick(self, ctx: EvictContext, member: discord.Member, *, nick: str=None): 
     
     if isinstance(member, discord.Member) and not Permissions.check_hierarchy(self.bot, ctx.author, member): return await ctx.warning(f"You **cannot** forcenick*{member.mention}.")
     
@@ -161,13 +165,13 @@ class donor(commands.Cog):
   @commands.cooldown(1, 60, commands.BucketType.guild)
   @commands.command(aliases=["fnclear"], description="clear everyone's forcenickname", brief="donor & administrator")
   @Permissions.has_permission(administrator=True)
-  async def forcenickclear(self, ctx: commands.Context):
+  async def forcenickclear(self, ctx: EvictContext):
     
     await self.bot.db.execute("DELETE FROM forcenick WHERE guild_id = {}".format(ctx.guild.id))
     await ctx.success("I have **cleared** everyone from forcenick.")
 
   @commands.command(description="purges an amount of messages sent by you", usage="[amount]", brief="donor")
-  async def selfpurge(self, ctx: commands.Context, amount: int):
+  async def selfpurge(self, ctx: EvictContext, amount: int):
     
     mes = [] 
     
@@ -179,11 +183,11 @@ class donor(commands.Cog):
     await ctx.channel.delete_messages(mes)   
 
   @commands.group(invoke_without_command=True, name="reskin", description="customize evicts output embeds")    
-  async def reskin(self, ctx: commands.Context):
+  async def reskin(self, ctx: EvictContext):
     return await ctx.create_pages()
   
   @reskin.command(name="enable", description="customize evicts output embeds", aliases=['on'], brief="donor")
-  async def reskin_enable(self, ctx: commands.Context):
+  async def reskin_enable(self, ctx: EvictContext):
     
     reskin = await self.bot.db.fetchrow("SELECT * FROM reskin WHERE user_id = $1 AND toggled = $2", ctx.author.id, False)
     
@@ -200,7 +204,7 @@ class donor(commands.Cog):
     return await ctx.warning("**Reskin** is already **enabled**.")
   
   @reskin.command(name="disable", description="disable the customization output messages", aliases=['off'], brief="donor")
-  async def reskin_disable(self, ctx: commands.Context):
+  async def reskin_disable(self, ctx: EvictContext):
     reskin = await self.bot.db.fetchrow("SELECT * FROM reskin WHERE user_id = $1 AND toggled = $2", ctx.author.id, True)
     
     if reskin != None and reskin['toggled'] == True:   
@@ -212,7 +216,7 @@ class donor(commands.Cog):
     return await ctx.warning("**Reskin** is already **disabled**.")
   
   @reskin.command(name="name", description="change the name used on evicts output embeds", brief="donor")
-  async def reskin_name(self, ctx: commands.Context, *, name: str=None):
+  async def reskin_name(self, ctx: EvictContext, *, name: str=None):
     
     reskin = await self.bot.db.fetchrow("SELECT * FROM reskin WHERE user_id = $1", ctx.author.id)
     
@@ -228,7 +232,7 @@ class donor(commands.Cog):
     return await ctx.success(f"I have set **reskin** name to `{name}`.")
 
   @reskin.command(name="avatar", description="change the icon used on evicts output embeds", aliases=['av'], brief="donor")
-  async def reskin_avatar(self, ctx: commands.Context, url: str = None):
+  async def reskin_avatar(self, ctx: EvictContext, url: str = None):
     
     if url == None and len(ctx.message.attachments) == 0:
       return await ctx.warning("you **need** to provide an avatar, either as a **file** or **url**")
@@ -249,7 +253,7 @@ class donor(commands.Cog):
   @commands.cooldown(1, 3, commands.BucketType.guild)
   @Permissions.has_permission(manage_webhooks=True)
   @commands.command(name='impersonate', aliases=['mock'], description='send a message as another user', brief='manage webhooks', usage='[user] [message]')
-  async def impersonate(self, ctx, member: discord.Member, *, content):
+  async def impersonate(self, ctx: EvictContext, member: discord.Member, *, content):
       
       if member.id in self.bot.owner_ids: return await ctx.warning("you **cannot** mock a bot owner.")
       if member.id == ctx.bot.user.id: return await ctx.warning("you **cannot** mock me.")
@@ -265,5 +269,5 @@ class donor(commands.Cog):
       except discord.HTTPException as e:
         await ctx.warning(f"an error occurred:\n {e}")
 
-async def setup(bot) -> None:
+async def setup(bot: Evict) -> None:
     await bot.add_cog(donor(bot))               

@@ -1,26 +1,30 @@
 import discord, datetime
+
 from discord.ext import commands
+
 from patches.permissions import Permissions
 from reposter.reposter import Reposter
 from bot.dynamicrolebutton import DynamicRoleButton
+from bot.bot import Evict
+from bot.helpers import EvictContext
 
 class settings(commands.Cog):
-    def __init__(self, bot: commands.AutoShardedBot):
+    def __init__(self, bot: Evict):
         self.bot = bot
         
     @commands.group(invoke_without_command=True, description='server settings', brief='manage guild', aliases=['config'])
     @Permissions.has_permission(manage_guild=True)
-    async def settings(self, ctx: commands.Context):
+    async def settings(self, ctx: EvictContext):
         await ctx.create_pages()
     
     @settings.group(invoke_without_command=True, description='repost social media links as embeds', brief='manage server', aliases=['socialmedia'])
     @Permissions.has_permission(manage_guild=True)
-    async def reposter(self, ctx: commands.Context):
+    async def reposter(self, ctx: EvictContext):
         await ctx.create_pages()
         
     @reposter.command(description='enable reposter', brief='manage server', aliases=['true', 'on'])
     @Permissions.has_permission(manage_guild=True)
-    async def enable(self, ctx: commands.Context):
+    async def enable(self, ctx: EvictContext):
         social = await ctx.bot.db.fetchrow('SELECT * FROM settings_social WHERE guild_id = $1', ctx.guild.id)
         if social is not None and social['toggled']: return await ctx.warning('**Social Media** Reposting is already **enabled**.')
         await ctx.bot.db.execute("INSERT INTO settings_social VALUES ($1, $2, $3) ON CONFLICT (guild_id) DO UPDATE SET toggled = $2 WHERE settings_social.guild_id = $1", ctx.guild.id, True, 'evict')
@@ -28,7 +32,7 @@ class settings(commands.Cog):
     
     @reposter.command(description="disable reposter", brief='manage server', aliases=['false', 'off'])
     @Permissions.has_permission(manage_guild=True)
-    async def disable(self, ctx: commands.Context):
+    async def disable(self, ctx: EvictContext):
         social = await ctx.bot.db.fetchrow('SELECT * FROM settings_social WHERE guild_id = $1', ctx.guild.id)
         if not social or not social['toggled']: return await ctx.warning('**Social Media** Reposting is already **disabled**.')
         await ctx.bot.db.execute("INSERT INTO settings_social VALUES ($1, $2, $3) ON CONFLICT (guild_id) DO UPDATE SET toggled = $2 WHERE settings_social.guild_id = $1", ctx.guild.id, False, 'evict')
@@ -36,7 +40,7 @@ class settings(commands.Cog):
     
     @reposter.command(description="set reposter prefix (set to 'none' to have no prefix)", usage='[prefix]', brief='manage server', help='')
     @Permissions.has_permission(manage_guild=True)
-    async def prefix(self, ctx: commands.Context, prefix: str=None):
+    async def prefix(self, ctx: EvictContext, prefix: str=None):
         social = await ctx.bot.db.fetchrow('SELECT * FROM settings_social WHERE guild_id = $1', ctx.guild.id)
         if not social: return await ctx.warning('Social Media Reposting is not enabled.')
         if not prefix: return await ctx.success(f'Current prefix: {social["prefix"]}')
@@ -45,12 +49,12 @@ class settings(commands.Cog):
     
     @settings.group(invoke_without_command=True, description='server logs', brief='manage guild')
     @Permissions.has_permission(manage_guild=True)
-    async def logs(self, ctx: commands.Context):
+    async def logs(self, ctx: EvictContext):
         await ctx.create_pages()
     
     @logs.command(description="toggle voice logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def voice(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def voice(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         voice = await self.bot.db.fetchrow("SELECT * FROM voice_logs WHERE guild_id = $1", ctx.guild.id)
         
         if status:
@@ -65,7 +69,7 @@ class settings(commands.Cog):
         
     @logs.command(description="toggle message logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def message(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def message(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         message = await self.bot.db.fetchrow("SELECT * FROM message_logs WHERE guild_id = $1", ctx.guild.id)
         if status:
             if message: return await ctx.warning('Message logs are already enabled')
@@ -79,7 +83,7 @@ class settings(commands.Cog):
     
     @logs.command(description="toggle member logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def member(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def member(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         member = await self.bot.db.fetchrow("SELECT * FROM member_logs WHERE guild_id = $1", ctx.guild.id)
         if status:
             if member: return await ctx.warning('member logs are already **enabled**')
@@ -93,7 +97,7 @@ class settings(commands.Cog):
         
     @logs.command(description="toggle role logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def role(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def role(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         role = await self.bot.db.fetchrow("SELECT * FROM role_logs WHERE guild_id = $1", ctx.guild.id)
         if status:
             if role: return await ctx.warning('role logs are already **enabled**')
@@ -107,7 +111,7 @@ class settings(commands.Cog):
         
     @logs.command(description="toggle server logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def server(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def server(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         server = await self.bot.db.fetchrow("SELECT * FROM server_logs WHERE guild_id = $1", ctx.guild.id)
         if status:
             if server: return await ctx.warning('server logs are already enabled')
@@ -121,7 +125,7 @@ class settings(commands.Cog):
         
     @logs.command(description="toggle channel logging", brief="manage guild", usage="[toggle] <channel>")
     @Permissions.has_permission(manage_guild=True)
-    async def channel(self, ctx: commands.Context, status: bool, channel: discord.TextChannel=None):
+    async def channel(self, ctx: EvictContext, status: bool, channel: discord.TextChannel=None):
         channelCheck = await self.bot.db.fetchrow("SELECT * FROM channel_logs WHERE guild_id = $1", ctx.guild.id)
         
         if status:
@@ -136,11 +140,11 @@ class settings(commands.Cog):
     
     @settings.group(invoke_without_command=True, description='place role buttons on messages', brief='manage guild')
     @Permissions.has_permission(manage_roles=True)
-    async def rolebutton(self, ctx: commands.Context):
+    async def rolebutton(self, ctx: EvictContext):
         await ctx.create_pages()
 
     @rolebutton.command(name="add", description="add a role button", brief="manage roles", usage="[message] [emoji] [role]") 
-    async def rolebutton_add(self, ctx: commands.Context, message: discord.Message, emoji: discord.Emoji, role: discord.Role):
+    async def rolebutton_add(self, ctx: EvictContext, message: discord.Message, emoji: discord.Emoji, role: discord.Role):
         prefix = await self.bot.get_prefix(ctx.message)
         if message.author.id != self.bot.user.id: return await ctx.warning(f"I can only add role **buttons** to my own **messages**. You can create an **embed** using `{prefix}createembed (code)` and add the **button** there.")
         if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant assign roles to users that have dangerous permissions.')
@@ -157,7 +161,7 @@ class settings(commands.Cog):
         return await ctx.success(f"added **role** {role.mention} to [**message**]({message.jump_url})")
     
     @rolebutton.command(name="remove", description="remove a role button", brief="manage roles", usage="[message] [role]") 
-    async def rolebutton_remove(self, ctx: commands.Context, message: discord.Message, role: discord.Role):
+    async def rolebutton_remove(self, ctx: EvictContext, message: discord.Message, role: discord.Role):
         prefix = await self.bot.get_prefix(ctx.message)
         if message.author.id != self.bot.user.id: return await ctx.warning(f"I can only remove role **buttons** to my own **messages**. You can create an **embed** using `{prefix}createembed (code)` and add the **button** there.")
         view = discord.ui.View()
@@ -595,5 +599,5 @@ class settings(commands.Cog):
         if prefix.lower() == 'none': return await Reposter().repost(self.bot, message, args[0])
         if args[0] == prefix and args[1] is not None: return await Reposter().repost(self.bot, message, args[1])
     
-async def setup(bot):
+async def setup(bot: Evict):
     await bot.add_cog(settings(bot))

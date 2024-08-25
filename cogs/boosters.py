@@ -1,11 +1,16 @@
 import discord
+
 from discord.ext import commands
-from patches.permissions import Permissions
 from typing import Union
 from patches.classes import Modals
 
+from patches.permissions import Permissions
+
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 def has_booster_role(): 
- async def predicate(ctx: commands.Context): 
+ async def predicate(ctx: EvictContext): 
   che = await ctx.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))
   if che is None:
     await ctx.warning("Booster role module is not configured")
@@ -18,7 +23,7 @@ def has_booster_role():
  return commands.check(predicate)
 
 class boosters(commands.Cog): 
-    def __init__(self, bot: commands.Bot): 
+    def __init__(self, bot: Evict): 
       self.bot = bot    
     
     @commands.Cog.listener()
@@ -50,12 +55,12 @@ class boosters(commands.Cog):
           await role.delete()
 
     @commands.group(invoke_without_command=True, aliases=["br"])
-    async def boosterrole(self, ctx: commands.Context): 
+    async def boosterrole(self, ctx: EvictContext): 
       await ctx.create_pages()
 
     @boosterrole.command(name="setup", description="set the boosterrole module", brief="manage guild") 
     @Permissions.has_permission(manage_guild=True) 
-    async def br_setup(self, ctx: commands.Context):      
+    async def br_setup(self, ctx: EvictContext):      
         
         check = await self.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))
         if check is not None: return await ctx.warning("booster role module is **already** configured".capitalize())
@@ -65,7 +70,7 @@ class boosters(commands.Cog):
 
     @boosterrole.command(help="config", description="unset the boosterrole module", brief="manage guild") 
     @Permissions.has_permission(manage_guild=True) 
-    async def unset(self, ctx: commands.Context): 
+    async def unset(self, ctx: EvictContext): 
         check = await self.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))        
         if check is None: return await ctx.warning("booster role module is **not** configured".capitalize())
         
@@ -97,7 +102,7 @@ class boosters(commands.Cog):
 
     @boosterrole.command(description="set a base role for boosterrole module", brief="manage guild")
     @Permissions.has_permission(manage_guild=True) 
-    async def base(self, ctx: commands.Context, *, role: discord.Role=None):
+    async def base(self, ctx: EvictContext, *, role: discord.Role=None):
       check = await self.bot.db.fetchrow("SELECT base FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))      
       
       if role is None:
@@ -112,7 +117,7 @@ class boosters(commands.Cog):
       return await ctx.success(f"I have set {role.mention} as the base role.")
     
     @boosterrole.command(description="create a booster role", usage="<name>")
-    async def create(self, ctx: commands.Context, name: str=None): 
+    async def create(self, ctx: EvictContext, name: str=None): 
       
       if not ctx.author in ctx.guild.premium_subscribers: return await ctx.warning("You are **not** a booster.")
       che = await self.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))
@@ -132,7 +137,7 @@ class boosters(commands.Cog):
     
     @has_booster_role()
     @boosterrole.command(description="edit the booster role name", usage="[name]")
-    async def name(self, ctx: commands.Context, *, name: str): 
+    async def name(self, ctx: EvictContext, *, name: str): 
       
       check = await self.bot.db.fetchrow("SELECT * FROM booster_roles WHERE guild_id = {} AND user_id = {}".format(ctx.guild.id, ctx.author.id))
       role = ctx.guild.get_role(check['role_id'])
@@ -142,7 +147,7 @@ class boosters(commands.Cog):
     
     @has_booster_role()
     @boosterrole.command(description="edit the role icon", usage="[emoji]")
-    async def icon(self, ctx: commands.Context, *, emoji: Union[discord.PartialEmoji, str]):      
+    async def icon(self, ctx: EvictContext, *, emoji: Union[discord.PartialEmoji, str]):      
       
       check = await self.bot.db.fetchrow("SELECT * FROM booster_roles WHERE guild_id = {} AND user_id = {}".format(ctx.guild.id, ctx.author.id))
       role = ctx.guild.get_role(check['role_id'])
@@ -158,7 +163,7 @@ class boosters(commands.Cog):
         
     @has_booster_role()
     @boosterrole.command(description="change the booster role color", usage="[color]")
-    async def color(self, ctx: commands.Context, color: str): 
+    async def color(self, ctx: EvictContext, color: str): 
      
      check = await self.bot.db.fetchrow("SELECT * FROM booster_roles WHERE guild_id = {} AND user_id = {}".format(ctx.guild.id, ctx.author.id))
      role = ctx.guild.get_role(check['role_id']) 
@@ -171,7 +176,7 @@ class boosters(commands.Cog):
 
     @has_booster_role()
     @boosterrole.command(description="delete the booster role")
-    async def delete(self, ctx: commands.Context): 
+    async def delete(self, ctx: EvictContext): 
       
       check = await self.bot.db.fetchrow("SELECT * FROM booster_roles WHERE guild_id = {} AND user_id = {}".format(ctx.guild.id, ctx.author.id))
       role = ctx.guild.get_role(check['role_id'])  
@@ -181,7 +186,7 @@ class boosters(commands.Cog):
     
     @has_booster_role()
     @boosterrole.command(description="edit a booster role")
-    async def edit(self, ctx: commands.Context): 
+    async def edit(self, ctx: EvictContext): 
         
         che = await self.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))
         if che is None: return await ctx.warning("Booster role module is not configured")
@@ -273,5 +278,5 @@ class boosters(commands.Cog):
         
         await ctx.reply(embed=embed, view=view, mention_author=False)
 
-async def setup(bot): 
+async def setup(bot: Evict): 
     await bot.add_cog(boosters(bot))        

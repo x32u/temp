@@ -1,46 +1,51 @@
 import json, discord, typing
+
 from discord import TextChannel, ChannelType, Embed, Role, SelectOption, Interaction, PartialEmoji, PermissionOverwrite
-from discord.ext.commands import Cog, Context, group, command, Bot as AB
+from discord.ext.commands import Cog, group, command
 from discord.ui import Select, View, Button 
 from typing import Union
-from utils.utils import InvokeClass, EmbedScript
 from discord.ext import commands
+
+from utils.utils import InvokeClass, EmbedScript
 from patches.permissions import Permissions
+
+from bot.helpers import EvictContext
+from bot.bot import Evict
 
 poj_cache = {}
 
 class config(Cog):
-    def __init__(self, bot: AB):
+    def __init__(self, bot: Evict):
         self.bot = bot 
         self.perms = ["administrator", "manage_guild", "manage_roles", "manage_channels", "manage_messages", "manage_nicknames", "manage_expressions", "ban_members", "kick_members", "moderate_members"]
     
     @Permissions.has_permission(manage_messages=True)
     @command(name="createembed", aliases=['ce'], description="create embed", usage="[code]", brief="manage messages")
-    async def createembed(self, ctx: Context,  *, code: EmbedScript):
+    async def createembed(self, ctx: EvictContext,  *, code: EmbedScript):
      await ctx.send(**code)
 
     @group(invoke_without_command=True)
-    async def embed(self, ctx): 
+    async def embed(self, ctx: EvictContext): 
      await ctx.create_pages() 
   
     @embed.command(description="shows variables for the embed")
-    async def variables(self, ctx: Context): 
+    async def variables(self, ctx: EvictContext): 
      
      embed = Embed(color=self.bot.color, description="to view variables visit https://evict.cc/variables")
      await ctx.reply(embed=embed)
 
     @Permissions.has_permission(manage_messages=True)
     @embed.command(description="create an embed", usage="[code]")
-    async def create(self, ctx: Context, *, name: EmbedScript): 
+    async def create(self, ctx: EvictContext, *, name: EmbedScript): 
      return await ctx.send(**name)
 
     @group(invoke_without_command=True)
-    async def mediaonly(self, ctx: Context):
+    async def mediaonly(self, ctx: EvictContext):
      await ctx.create_pages()
 
     @mediaonly.command(name="add", description="delete messages that are not images", usage="[channel]", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def mediaonly_add(self, ctx: Context, *, channel: TextChannel):
+    async def mediaonly_add(self, ctx: EvictContext, *, channel: TextChannel):
         
         check = await self.bot.db.fetchrow("SELECT * FROM mediaonly WHERE guild_id = $1 AND channel_id = $2", ctx.guild.id, channel.id)
         if check is not None: return await ctx.warning(f"The channel {channel.mention} is **already** added as a mediaonly channel.")
@@ -51,7 +56,7 @@ class config(Cog):
 
     @mediaonly.command(name="remove", description="unset media only", usage="[channel]", brief="manage_guild") 
     @commands.has_permissions(manage_guild=True)
-    async def mediaonly_remove(self, ctx: Context, *, channel: TextChannel=None):
+    async def mediaonly_remove(self, ctx: EvictContext, *, channel: TextChannel=None):
      if channel is not None: 
       check = await self.bot.db.fetchrow("SELECT * FROM mediaonly WHERE guild_id = $1 AND channel_id = $2", ctx.guild.id, channel.id)
       if check is None: return await ctx.warning(f"The channel {channel.mention} is not added as a **mediaonly** channel.") 
@@ -66,7 +71,7 @@ class config(Cog):
      return await ctx.success("I have removed **all** channels from mediaonly.") 
 
     @mediaonly.command(name="list", description="return a list of mediaonly channels", help="config")
-    async def mediaonly_list(self, ctx: Context): 
+    async def mediaonly_list(self, ctx: EvictContext): 
           i=0
           k=1
           l=0
@@ -100,12 +105,12 @@ class config(Cog):
           return await ctx.send(embed=number[0])
     
     @commands.group(invoke_without_command=True, aliases=["poj"])
-    async def pingonjoin(self, ctx): 
+    async def pingonjoin(self, ctx: EvictContext): 
       await ctx.create_pages()
 
     @pingonjoin.command(name="add", description="ping new members when they join your server", usage="[channel]", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def poj_add(self, ctx: Context, *, channel: TextChannel): 
+    async def poj_add(self, ctx: EvictContext, *, channel: TextChannel): 
         
         check = await self.bot.db.fetchrow("SELECT * FROM pingonjoin WHERE guild_id = $1 AND channel_id = $2", ctx.guild.id, channel.id)
         if check is not None: return await ctx.warning(f"The channel {channel.mention} is **already** added as a ping on join channel.")
@@ -115,7 +120,7 @@ class config(Cog):
     
     @pingonjoin.command(name="remove", description="remove a pingonjoin channel", usage="<channel>", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def poj_remove(self, ctx: Context, *, channel: TextChannel=None): 
+    async def poj_remove(self, ctx: EvictContext, *, channel: TextChannel=None): 
       
       if channel is not None: 
         
@@ -133,7 +138,7 @@ class config(Cog):
       return await ctx.success("I will **not** ping new members in any channel.") 
           
     @pingonjoin.command(name="list", description="get a list of pingonjoin channels", help="config")
-    async def poj_list(self, ctx: Context): 
+    async def poj_list(self, ctx: EvictContext): 
           
           results = await self.bot.db.fetch("SELECT * FROM pingonjoin WHERE guild_id = {}".format(ctx.guild.id))
           
@@ -145,12 +150,12 @@ class config(Cog):
           await ctx.paginate(poj_list)
     
     @commands.group(invoke_without_command=True)
-    async def starboard(self, ctx): 
+    async def starboard(self, ctx: EvictContext): 
       await ctx.create_pages()
 
     @starboard.command(description="modify the starboard count", brief="manage guild", usage="[count]", aliases=["amount"])
     @commands.has_permissions(manage_guild=True)
-    async def count(self, ctx: Context, count: int): 
+    async def count(self, ctx: EvictContext, count: int): 
       
       if count < 1: return await ctx.warning("The count can't be **less** than 1.")
       check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
@@ -162,7 +167,7 @@ class config(Cog):
     
     @starboard.command(name="channel", description="configure the starboard channel", brief="manage guild", usage="[channel]")
     @commands.has_permissions(manage_guild=True)
-    async def starboard_channel(self, ctx: Context, *, channel: TextChannel): 
+    async def starboard_channel(self, ctx: EvictContext, *, channel: TextChannel): 
       
       check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
       if check is None: await self.bot.db.execute("INSERT INTO starboard (guild_id, channel_id) VALUES ($1, $2)", ctx.guild.id, channel.id)
@@ -172,7 +177,7 @@ class config(Cog):
 
     @starboard.command(name="remove", description="remove starboard", brief="manage guild", aliases=["disable"])
     @commands.has_permissions(manage_guild=True)
-    async def starboard_remove(self, ctx: Context): 
+    async def starboard_remove(self, ctx: EvictContext): 
      
      check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("This server does not have starboard **enabled**.") 
@@ -183,7 +188,7 @@ class config(Cog):
      await ctx.success("I have disabled starboard **succesfully**.")
 
     @starboard.command(description="check starboard stats", aliases=["settings", "status"])
-    async def stats(self, ctx: Context): 
+    async def stats(self, ctx: EvictContext): 
      
      check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("This server does not have starboard **enabled**.") 
@@ -197,7 +202,7 @@ class config(Cog):
      await ctx.reply(embed=embed)
 
     @starboard.command(name="emoji", description="configure the starboard emoji", brief="manage guild", usage="[emoji]")
-    async def starboard_emoji(self, ctx: Context, emoji: Union[PartialEmoji, str]): 
+    async def starboard_emoji(self, ctx: EvictContext, emoji: Union[PartialEmoji, str]): 
      
      check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
      emoji_id = emoji.id if isinstance(emoji, PartialEmoji) else ord(str(emoji)) 
@@ -212,12 +217,12 @@ class config(Cog):
      await ctx.success(f"I have set the starboard **emoji** set to {emoji}.") 
 
     @commands.group(invoke_without_command=True)
-    async def autorole(self, ctx): 
+    async def autorole(self, ctx: EvictContext): 
       await ctx.create_pages()
 
     @autorole.command(name="add", description="give a role to the new members that join the server", usage="[role]", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def autorole_add(self, ctx: Context, *, role: Union[Role, str]): 
+    async def autorole_add(self, ctx: EvictContext, *, role: Union[Role, str]): 
       
       if isinstance(role, str): 
         role = ctx.find_role( role)
@@ -236,7 +241,7 @@ class config(Cog):
     
     @autorole.command(name="remove", description="remove a role from autoroles", usage="<role>", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def autorole_remove(self, ctx: Context, *, role: Union[Role, str]=None): 
+    async def autorole_remove(self, ctx: EvictContext, *, role: Union[Role, str]=None): 
       if isinstance(role, str): 
         role = ctx.find_role( role)
         if role is None: return await ctx.error(f"I couldn't find a role named **{ctx.message.clean_content[-len(ctx.clean_prefix)+14:]}**.")         
@@ -256,7 +261,7 @@ class config(Cog):
       return await ctx.success("I have **removed** all roles from autorole.")
     
     @autorole.command(name="list", description="list of autoroles", help="config")
-    async def autorole_list(self, ctx: Context): 
+    async def autorole_list(self, ctx: EvictContext): 
           
           i=0
           k=1
@@ -294,56 +299,56 @@ class config(Cog):
      await ctx.create_pages()
   
     @invoke.command(name="variables", description="check invoke variables")
-    async def embed_variables(self, ctx: Context): 
+    async def embed_variables(self, ctx: EvictContext): 
      await ctx.invoke(self.bot.get_command('embed variables'))
     
     @invoke.command(name="unban", description='add a custom unban message', brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke unban --embed test\nexample 2: -invoke unban {user.mention} unbanned {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_unban(self, ctx: Context, *, code: str):
+    async def invoke_unban(self, ctx: EvictContext, *, code: str):
       await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code)
 
     @invoke.command(name="ban", description="add a custom ban command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke ban --embed test\nexample 2: -invoke ban {user.mention} banned {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_ban(self, ctx: Context, *, code: str):
+    async def invoke_ban(self, ctx: EvictContext, *, code: str):
       await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code) 
 
     @invoke.command(name="kick", description="add a custom kick command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke kick --embed test\nexample 2: -invoke kick {user.mention} kicked {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_kick(self, ctx: Context, *, code: str):
+    async def invoke_kick(self, ctx: EvictContext, *, code: str):
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code)  
 
     @invoke.command(name="mute", description="add a custom mute command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke mute --embed test\nexample 2: -invoke mute {user.mention} muted {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_mute(self, ctx: Context, *, code: str):
+    async def invoke_mute(self, ctx: EvictContext, *, code: str):
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code)    
   
     @invoke.command(name="unmute", description="add a custom unmute command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke unmute --embed test\nexample 2: -invoke unmute {user.mention} unmuted {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_unmute(self, ctx: Context, *, code: str):
+    async def invoke_unmute(self, ctx: EvictContext, *, code: str):
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code)
   
     @invoke.command(name="warn", description="add a custom warn command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke warn --embed test\nexample 2: -invoke warn {user.mention} warned {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_warn(self, ctx: Context, *, code: str):
+    async def invoke_warn(self, ctx: EvictContext, *, code: str):
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code)
     
     @invoke.command(name="jail", description="add a custom jail command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke jail --embed test\nexample 2: -invoke jail {user.mention} jailed {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_jail(self, ctx: Context, *, code: str): 
+    async def invoke_jail(self, ctx: EvictContext, *, code: str): 
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code) 
     
     @invoke.command(name="unjail", description="add a custom unjail command", brief="manage guild", usage="[--embed embed name | message]\nexample 1: -invoke unjail --embed test\nexample 2: -invoke unjail {user.mention} unjailed {member.mention}")
     @commands.has_permissions(manage_guild=True)
-    async def invoke_unjail(self, ctx: Context, *, code: str): 
+    async def invoke_unjail(self, ctx: EvictContext, *, code: str): 
      await InvokeClass.invoke_cmds(ctx, ctx.guild.me, code) 
 
     @commands.group(invoke_without_command=True)
-    async def bumpreminder(self, ctx): 
+    async def bumpreminder(self, ctx: EvictContext): 
      await ctx.create_pages() 
     
     @bumpreminder.command(name="add", description="reminder to bump your server via disboard", brief="manage guild")
     @commands.has_permissions(manage_guild=True)
-    async def bumpreminder_add(self, ctx: Context):
+    async def bumpreminder_add(self, ctx: EvictContext):
        
        check = await self.bot.db.fetchrow("SELECT * FROM bumps WHERE guild_id = {}".format(ctx.guild.id)) 
        if check is not None: return await ctx.warning("I **already** have bump reminder setup.")
@@ -353,7 +358,7 @@ class config(Cog):
     
     @bumpreminder.command(name="remove", description="remove bump reminder", brief="manage guild")
     @commands.has_permissions(manage_guild=True)
-    async def bumpreminder_remove(self, ctx: Context):  
+    async def bumpreminder_remove(self, ctx: EvictContext):  
        
        check = await self.bot.db.fetchrow("SELECT * FROM bumps WHERE guild_id = {}".format(ctx.guild.id)) 
        if check is None: return await ctx.warning("There is **no** bump reminder set.")
@@ -363,7 +368,7 @@ class config(Cog):
     
     @command(aliases=["disablecmd"], description="disable a command", brief='administrator', usage="[command name]")  
     @commands.has_permissions(administrator=True)       
-    async def disablecommand(self, ctx: Context, *, cmd: str): 
+    async def disablecommand(self, ctx: EvictContext, *, cmd: str): 
      
      found_command = self.bot.get_command(cmd)
      if found_command is None: return await ctx.warning(f"Command **{cmd}** not found")
@@ -377,7 +382,7 @@ class config(Cog):
 
     @commands.command(aliases=["enablecmd"], help="enable a command that was previously disabled in this server", brief='administrator', description="config", usage="[command name]")
     @commands.has_permissions(administrator=True)   
-    async def enablecommand(self, ctx: Context, *, cmd: str): 
+    async def enablecommand(self, ctx: EvictContext, *, cmd: str): 
      
      found_command = self.bot.get_command(cmd)
      if found_command is None: return await ctx.warning(f"The command **{cmd}** was not found.")
@@ -389,12 +394,12 @@ class config(Cog):
      await ctx.success(f"I have **enabled** the command **{found_command.name}**.")
 
     @commands.group(invoke_without_command=True)
-    async def confessions(self, ctx): 
+    async def confessions(self, ctx: EvictContext): 
       await ctx.create_pages()
     
     @confessions.command(name="mute", description="mute a member that send a specific confession", usage="[confession number]", brief="manage messages")
     @commands.has_permissions(manage_messages=True)   
-    async def confessions_mute(self, ctx: Context, *, number: int): 
+    async def confessions_mute(self, ctx: EvictContext, *, number: int): 
      
      check = await self.bot.db.fetchrow("SELECT channel_id FROM confess WHERE guild_id = {}".format(ctx.guild.id)) 
      if check is None: return await ctx.warning("Confessions aren't **enabled** in this server.") 
@@ -412,7 +417,7 @@ class config(Cog):
     
     @confessions.command(name="unmute", description="unmute a member that send a specific confession", usage="[confession count | all (unmutes all members)]", brief="manage messages")
     @commands.has_permissions(manage_messages=True) 
-    async def connfessions_unmute(self, ctx: Context, *, number: str): 
+    async def connfessions_unmute(self, ctx: EvictContext, *, number: str): 
       
       check = await self.bot.db.fetchrow("SELECT channel_id FROM confess WHERE guild_id = {}".format(ctx.guild.id)) 
       if check is None: return await ctx.warning("Confessions aren't **enabled** in this server")  
@@ -435,7 +440,7 @@ class config(Cog):
     
     @confessions.command(name="add", description="set confession channel", usage="[channel]", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def confessions_add(self, ctx: Context, *, channel: TextChannel): 
+    async def confessions_add(self, ctx: EvictContext, *, channel: TextChannel): 
        
        check = await self.bot.db.fetchrow("SELECT * FROM confess WHERE guild_id = {}".format(ctx.guild.id)) 
        if check is not None: await self.bot.db.execute("UPDATE confess SET channel_id = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
@@ -445,7 +450,7 @@ class config(Cog):
     
     @confessions.command(name="remove", description="remove confession channel", brief="manage_guild")
     @commands.has_permissions(manage_guild=True)
-    async def confessions_remove(self, ctx: Context): 
+    async def confessions_remove(self, ctx: EvictContext): 
        
        check = await self.bot.db.fetchrow("SELECT channel_id FROM confess WHERE guild_id = {}".format(ctx.guild.id)) 
        if check is None: return await ctx.warning("Confessions aren't **enabled** in this server.")
@@ -457,7 +462,7 @@ class config(Cog):
        return await ctx.success("I have **disabled** confessions for this server.")
     
     @confessions.command(name="channel", description="get the confessions channel", help="config")
-    async def confessions_channel(self, ctx: Context): 
+    async def confessions_channel(self, ctx: EvictContext): 
        
        check = await self.bot.db.fetchrow("SELECT * FROM confess WHERE guild_id = {}".format(ctx.guild.id)) 
        if check is not None:
@@ -470,7 +475,7 @@ class config(Cog):
     
     @commands.command(description="changes the guild prefix", usage="[prefix]", brief="manage guild")
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx: Context, prefix: str):      
+    async def prefix(self, ctx: EvictContext, prefix: str):      
        
        if len(prefix) > 3: return await ctx.error("Uh oh! The prefix is too long")
        check = await self.bot.db.fetchrow("SELECT * FROM prefixes WHERE guild_id = {}".format(ctx.guild.id)) 
@@ -481,7 +486,7 @@ class config(Cog):
        return await ctx.success(f"I have **changed** your guild prefix changed to `{prefix}`.")
 
     @commands.command(description="set your own prefix", usage="[prefix]", help="config")
-    async def selfprefix(self, ctx: Context, prefix: str):      
+    async def selfprefix(self, ctx: EvictContext, prefix: str):      
       
       if len(prefix) > 3 and prefix.lower() != "none": return await ctx.error("Uh oh! The prefix is too long")
       if prefix.lower() == "none": 
@@ -502,12 +507,12 @@ class config(Cog):
         return await ctx.success(f"I have **set** your self prefix to `{prefix}`.")
   
     @commands.group(invoke_without_command=True, aliases=["fakeperms"])
-    async def fakepermissions(self, ctx):
+    async def fakepermissions(self, ctx: EvictContext):
       await ctx.create_pages()
 
     @fakepermissions.command(description="edit fake permissions for a role", usage="[role]", brief="server owner")
     @Permissions.server_owner()
-    async def edit(self, ctx: Context, *, role: Union[Role, str]=None): 
+    async def edit(self, ctx: EvictContext, *, role: Union[Role, str]=None): 
      
      if isinstance(role, str): 
         
@@ -540,7 +545,7 @@ class config(Cog):
 
     @fakepermissions.command(description='Toggle Anti-Nuke', help="[Module]", usage="ban",  brief="Anti-Nuke Admin")
     @Permissions.server_owner()
-    async def add(self, ctx: commands.Context, permissions: str, role: discord.Role):
+    async def add(self, ctx: EvictContext, permissions: str, role: discord.Role):
       
       if permissions not in self.perms: return await ctx.warning('that is not a valid **fakepermission**.')
       if permissions in self.perms:
@@ -552,7 +557,7 @@ class config(Cog):
       await ctx.success('fakepermissions have been updated.')
 
     @fakepermissions.command(name="list", description="list the permissions of a specific role", usage="[role]")
-    async def fakeperms_list(self, ctx: Context, *, role: Union[Role, str]): 
+    async def fakeperms_list(self, ctx: EvictContext, *, role: Union[Role, str]): 
      if isinstance(role, str): 
         
         role = ctx.find_role(role)
@@ -568,7 +573,7 @@ class config(Cog):
      return await ctx.reply(embed=embed)
 
     @fakepermissions.command(aliases=["perms"], description="list all the available permissions", help="config")
-    async def permissions(self, ctx: Context): 
+    async def permissions(self, ctx: EvictContext): 
       
       perms = ["administrator", "manage_guild", "manage_roles", "manage_channels", "manage_messages", "manage_nicknames", "manage_emojis", "ban_members", "kick_members", "moderate_members"]
       
@@ -577,7 +582,7 @@ class config(Cog):
     
     @command(description="react to a message using the bot", brief="manage messages", usage="[message id / message link] [emoji]")
     @commands.has_permissions(manage_messages=True) 
-    async def react(self, ctx: Context, link: str, reaction: str):
+    async def react(self, ctx: EvictContext, link: str, reaction: str):
      
      try: mes = await ctx.channel.fetch_message(int(link))
      except: mes = None
@@ -612,16 +617,16 @@ class config(Cog):
      except: return await ctx.warning("I am unable to add the reaction to that message.") 
     
     @commands.group(invoke_without_command=True, name="counter", description="create stats counters for your server")
-    async def counter(self, ctx): 
+    async def counter(self, ctx: EvictContext): 
       await ctx.create_pages()
     
     @counter.command(name="types", description="check the counter types and channel types")
-    async def counter_types(self, ctx: Context):
+    async def counter_types(self, ctx: EvictContext):
       embed = Embed(color=self.bot.color, description="to view counters visit https://evict.cc/counters")
       await ctx.reply(embed=embed)
 
     @counter.command(name="list", description="check a list of the active server counters")
-    async def counter_list(self, ctx: Context): 
+    async def counter_list(self, ctx: EvictContext): 
           i=0
           k=1
           l=0
@@ -654,7 +659,7 @@ class config(Cog):
 
     @counter.command(name="remove", description="remove a counter from the server", brief="manage guild", usage="[counter type]")
     @commands.has_permissions(manage_guild=True)
-    async def counter_remove(self, ctx: Context, countertype: str): 
+    async def counter_remove(self, ctx: EvictContext, countertype: str): 
      
      if not countertype in ["members", "voice", "boosters", "humans", "bots"]: return await ctx.warning(f"**{countertype}** is not an **available** counter.") 
      check = await self.bot.db.fetchrow("SELECT * FROM counters WHERE guild_id = $1 AND module = $2", ctx.guild.id, countertype)
@@ -668,12 +673,12 @@ class config(Cog):
      return await ctx.success(f"I have removed the **{countertype}** counter.")
     
     @counter.group(invoke_without_command=True, name="add", description="add a counter to the server", brief="manage guild")
-    async def counter_add(self, ctx): 
+    async def counter_add(self, ctx: EvictContext): 
       await ctx.create_pages()
 
     @counter_add.command(name="members", description="add a counter for member count", brief="manage guild", usage="[channel type] <channel name>\nexample: ;counter add members voice {target} Members")
     @commands.has_permissions(manage_guild=True)
-    async def counter_add_members(self, ctx: Context, channeltype: str, *, message: str="{target}"): 
+    async def counter_add_members(self, ctx: EvictContext, channeltype: str, *, message: str="{target}"): 
      
      if not channeltype in ["voice", "text", "stage"]: return await ctx.warning(f"**{channeltype}** is not a **valid** channel type")     
      if not "{target}" in message: return await ctx.warning("{target} variable is **missing** from the channel name.")
@@ -696,7 +701,7 @@ class config(Cog):
 
     @counter_add.command(name="humans", description="add a counter for humans", brief="manage guild", usage="[channel type] <channel name>\nexample: ;counter add humans voice {target} humans")
     @commands.has_permissions(manage_guild=True)
-    async def counter_add_humans(self, ctx: Context, channeltype: str, *, message: str="{target}"): 
+    async def counter_add_humans(self, ctx: EvictContext, channeltype: str, *, message: str="{target}"): 
      
      if not channeltype in ["voice", "text", "stage"]: return await ctx.warning(f"**{channeltype}** is not a **valid** channel type")     
      if not "{target}" in message: return await ctx.warning("The {target} variable is **missing** from the channel name.")
@@ -719,7 +724,7 @@ class config(Cog):
 
     @counter_add.command(name="bots", description="add a counter for bots", brief="manage guild", usage="[channel type] <channel name>\nexample: ;counter add bots voice {target} bots")
     @commands.has_permissions(manage_guild=True)
-    async def counter_add_bots(self, ctx: Context, channeltype: str, *, message: str="{target}"): 
+    async def counter_add_bots(self, ctx: EvictContext, channeltype: str, *, message: str="{target}"): 
      
      if not channeltype in ["voice", "text", "stage"]: return await ctx.warning(f"**{channeltype}** is not a **valid** channel type.")     
      if not "{target}" in message: return await ctx.warning("The {target} variable is **missing** from the channel name.")
@@ -742,7 +747,7 @@ class config(Cog):
 
     @counter_add.command(name="voice", description="add a counter for voice members", brief="manage guild", usage="[channel type] <channel name>\nexample: ;counter add voice stage {target} in vc")         
     @commands.has_permissions(manage_guild=True)
-    async def counter_add_voice(self, ctx: Context, channeltype: str, *, message: str="{target}"): 
+    async def counter_add_voice(self, ctx: EvictContext, channeltype: str, *, message: str="{target}"): 
      
      if not channeltype in ["voice", "text", "stage"]: return await ctx.warning(f"**{channeltype}** is not a **valid** channel type.")     
      if not "{target}" in message: return await ctx.warning("The {target} variable is **missing** from the channel name.")
@@ -765,7 +770,7 @@ class config(Cog):
 
     @counter_add.command(name="boosters", description="add a counter for boosters", brief="manage guild", usage="[channel type] <channel name>\nexample: ;counter add boosters voice {target} boosters") 
     @commands.has_permissions(manage_guild=True)
-    async def counter_add_boosters(self, ctx: Context, channeltype: str, *, message: str="{target}"): 
+    async def counter_add_boosters(self, ctx: EvictContext, channeltype: str, *, message: str="{target}"): 
      
      if not channeltype in ["voice", "text", "stage"]: return await ctx.warning(f"**{channeltype}** is not a **valid** channel type.")     
      if not "{target}" in message: return await ctx.warning("{target} variable is **missing** from the channel name.")
@@ -787,7 +792,7 @@ class config(Cog):
      await ctx.success(f"I created the **boosters** counter -> {channel.mention}.") 
     
     @commands.group(name="stickymessage", aliases=["stickymsg", "sticky"], invoke_without_command=True)
-    async def stickymessage(self, ctx: commands.Context):
+    async def stickymessage(self, ctx: EvictContext):
         return await ctx.create_pages()
 
     @stickymessage.command(name='add', description='add a sticky message', help="chat", brief="manage guild", aliases=['set'], usage="[channel] [message]")
@@ -818,7 +823,7 @@ class config(Cog):
 
     @stickymessage.command(name="config", brief="manage guild", aliases=["list", "l"])
     @Permissions.has_permission(manage_guild=True)
-    async def stickymessage_config(self, ctx: commands.context):
+    async def stickymessage_config(self, ctx: EvictContext):
         
         results = await self.bot.db.fetch("SELECT * FROM stickym WHERE guild_id = $1", ctx.guild.id)
         if not results:
@@ -831,12 +836,12 @@ class config(Cog):
         await ctx.paginate(embeds)
         
     @commands.group(name="restrictcommand", aliases=["rc"], invoke_without_command=True)
-    async def restrictcommand(self, ctx: commands.Context):
+    async def restrictcommand(self, ctx: EvictContext):
       return await ctx.create_pages()
     
     @restrictcommand.command(name="add", description="restrict a command to a role", brief="server owner", usage="[command] [role]")
     @Permissions.server_owner()
-    async def restrictcommand_add(self, ctx: commands.Context, command: str, *, role: Role): 
+    async def restrictcommand_add(self, ctx: EvictContext, command: str, *, role: Role): 
       
       command = command.replace(".", "")
       _command = self.bot.get_command(command)
@@ -857,7 +862,7 @@ class config(Cog):
       
     @restrictcommand.command(name="delete", description="remove a command from being restricted.", brief="server owner")
     @Permissions.server_owner()
-    async def restrictcommand_delete(self, ctx: commands.Context, command: str, role: Role):
+    async def restrictcommand_delete(self, ctx: EvictContext, command: str, role: Role):
       
       command = command.replace(".", "")
       _command = self.bot.get_command(command)
@@ -871,5 +876,5 @@ class config(Cog):
     
       await ctx.success(f"I am **no longer** allowing members with {role.mention} to use `{_command.qualified_name}`.")
      
-async def setup(bot): 
+async def setup(bot: Evict): 
     await bot.add_cog(config(bot))

@@ -1,17 +1,20 @@
 from discord.ext import commands
 import discord
 
+from bot.helpers import EvictContext
+from bot.bot import Evict
+
 class api(commands.Cog): 
-    def __init__(self, bot: commands.Bot): 
+    def __init__(self, bot: Evict): 
         self.bot = bot
         
     @commands.group(invoke_without_command=True, name="apikey")
-    async def api(self, ctx: commands.Context):
+    async def api(self, ctx: EvictContext):
         await ctx.create_pages()
         
     @api.command(name="add", brief="bot owner", usage="[user] [key] [role]\n[master] [bot_developer] [premium] [pro] [basic]", description="add an api key")
     @commands.is_owner()
-    async def apikey_add(self, ctx: commands.Context, user: discord.User, key: str, role: str):
+    async def apikey_add(self, ctx: EvictContext, user: discord.User, key: str, role: str):
         
         url = "https://kure.pl"
         
@@ -27,7 +30,7 @@ class api(commands.Cog):
         
     @api.command(name="delete", brief="bot owner", usage="[user]", description="delete an api key")
     @commands.is_owner()
-    async def apikey_delete(self, ctx: commands.Context, user: discord.User):
+    async def apikey_delete(self, ctx: EvictContext, user: discord.User):
         
         check = await self.bot.db.fetchrow("SELECT * FROM api_key WHERE user_id = {}".format(user.id))
         if check is None: return await ctx.warning(f"The user **{user.name}** doesn't have a **valid** API key.")
@@ -37,7 +40,7 @@ class api(commands.Cog):
         
     @api.command(name="get", brief="bot owner", usage="[user]", description="get the api key for a user")
     @commands.is_owner()
-    async def apikey_get(self, ctx: commands.Context, user: discord.User):
+    async def apikey_get(self, ctx: EvictContext, user: discord.User):
         
         check = await self.bot.db.fetchrow("SELECT * FROM api_key WHERE user_id = {}".format(user.id))
         if check is None: return await ctx.warning(f"The user **{user.name}** doesn't have a **valid** API key.")
@@ -46,5 +49,5 @@ class api(commands.Cog):
         
         await ctx.author.send(key)
          
-async def setup(bot):
+async def setup(bot: Evict):
 	await bot.add_cog(api(bot))

@@ -48,7 +48,7 @@ class EvictContext(Context):
     return await self.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.warning} {self.author.mention}: {message}") )
   
   async def check(self):
-      return await self.message.add_reaction("✅")
+      return await self.message.add_reaction("<:approve:1271155661451034666>")
   
   async def lastfm_message(self, message: str) -> discord.Message: 
     return await self.reply(embed=discord.Embed(color=0xff0000, description=f"> <:lastfm:1263727050309632031> {self.author.mention}: {message}"))  

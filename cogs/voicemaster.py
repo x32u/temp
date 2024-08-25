@@ -1,7 +1,10 @@
 import discord
+
 from discord.ext import commands
-from discord.ui import Modal, Select, View
+from discord.ui import Modal
+
 from patches.permissions import Permissions
+from bot.helpers import EvictContext
 
 unlockemoji = "<:unlock:1263730907680870435>"
 lockemoji = "<:lock:1263727069095919698>"
@@ -15,13 +18,13 @@ hammeremoji = "<:moderate:1263727075198763101>"
 manemoji = "<:information:1263727043967717428>" 
 trashemoji = "<:trash:1263727144832602164>"
 
-async def check_owner(ctx: commands.Context):
+async def check_owner(ctx: EvictContext):
             check = await ctx.bot.db.fetchrow("SELECT * FROM vcs WHERE voice = $1 AND user_id = $2", ctx.author.voice.channel.id, ctx.author.id)
             if check is None: 
              await ctx.bot.ext.warning(ctx, "You are not the owner of this voice channel")
              return True                
 
-async def check_voice(ctx: commands.Context):
+async def check_voice(ctx: EvictContext):
           check = await ctx.bot.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", ctx.guild.id) 
           if check is not None:     
              channeid = check[1]
@@ -46,7 +49,7 @@ async def check_vc(interaction: discord.Interaction, category: discord.CategoryC
       return True   
 
 def check_vc_owner(): 
-   async def predicate(ctx: commands.Context): 
+   async def predicate(ctx: EvictContext): 
      voice = await check_voice(ctx)
      owner = await check_owner(ctx)
      if voice is True or owner is True: return False 
@@ -226,7 +229,7 @@ class voicemaster(commands.Cog):
    def __init__(self, bot: commands.Bot):
         self.bot = bot
    
-   def create_interface(self, ctx: commands.Context) -> discord.Embed: 
+   def create_interface(self, ctx: EvictContext) -> discord.Embed: 
      em = discord.Embed(color=self.bot.color, title="VoiceMaster Interface", description="Click the buttons below to control the voice channel")    
      em.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
      em.set_thumbnail(url=ctx.guild.icon)
@@ -346,48 +349,48 @@ class voicemaster(commands.Cog):
             await before.channel.delete(reason="no one in the temporary voice channel")    
 
    @commands.group(aliases=["vc"], invoke_without_command=True)
-   async def voice(self, ctx): 
+   async def voice(self, ctx: EvictContext): 
       await ctx.create_pages()
 
    @voice.command(description="lock the voice channel", brief="vc owner")
    @check_vc_owner()
-   async def lock(self, ctx: commands.Context):  
+   async def lock(self, ctx: EvictContext):  
       await ctx.author.voice.channel.set_permissions(ctx.guild.default_role, connect=False)
       return await ctx.success( f"I have **locked** <#{ctx.author.voice.channel.id}>")
 
    @voice.command(description="unlock the voice channel", brief="vc owner")
    @check_vc_owner()
-   async def unlock(self, ctx: commands.Context):  
+   async def unlock(self, ctx: EvictContext):  
       await ctx.author.voice.channel.set_permissions(ctx.guild.default_role, connect=True)
       return await ctx.success( f"I have **unlocked** <#{ctx.author.voice.channel.id}>")
    
    @voice.command(description="rename the voice channel", usage="[name]", brief="vc owner")
    @check_vc_owner()
-   async def rename(self, ctx: commands.Context, *, name: str): 
+   async def rename(self, ctx: EvictContext, *, name: str): 
       await ctx.author.voice.channel.edit(name=name)
       return await ctx.success( f"I have **renamed** voice channel to **{name}**")
 
    @voice.command(description="hide the voice channel", brief="vc owner")
    @check_vc_owner()
-   async def hide(self, ctx: commands.Context): 
+   async def hide(self, ctx: EvictContext): 
       await ctx.author.voice.channel.set_permissions(ctx.guild.default_role, view_channel=False)
       return await ctx.success( f"I have **hid** {ctx.author.voice.channel.mention}.")   
 
    @voice.command(description="reveal the voice channel", brief="vc owner")
    @check_vc_owner()
-   async def reveal(self, ctx: commands.Context): 
+   async def reveal(self, ctx: EvictContext): 
       await ctx.author.voice.channel.set_permissions(ctx.guild.default_role, view_channel=True)
       return await ctx.success( f"I have **revealed** {ctx.author.voice.channel.mention}.")
 
    @voice.command(description="let someone join your locked voice channel", usage="[member]", brief="vc owner")
    @check_vc_owner()
-   async def permit(self, ctx: commands.Context, *, member: discord.Member): 
+   async def permit(self, ctx: EvictContext, *, member: discord.Member): 
       await ctx.author.voice.channel.set_permissions(member, connect=True)
       return await ctx.success( f"**{member}** is allowed to join {ctx.author.voice.channel.mention}.")
    
    @voice.command(description="restrict someone from joining your voice channel", usage="[member]", brief="vc owner")
    @check_vc_owner()
-   async def reject(self, ctx: commands.Context, *, member: discord.Member):  
+   async def reject(self, ctx: EvictContext, *, member: discord.Member):  
       if member.id == ctx.author.id: return await ctx.reply("You **cannot** kick yourself.")  
       if member in ctx.author.voice.channel.members: await member.move_to(channel=None)
       await ctx.author.voice.channel.set_permissions(member, connect=False)
@@ -395,14 +398,14 @@ class voicemaster(commands.Cog):
    
    @voice.command(name="kick", description="kick a member from your voice channel", usasge="[member]", brief="vc owner")
    @check_vc_owner()
-   async def vc_kick(self, ctx: commands.Context, *, member: discord.Member): 
+   async def vc_kick(self, ctx: EvictContext, *, member: discord.Member): 
      if member.id == ctx.author.id: return await ctx.reply("you **cannot** kick yourself")  
      if not member in ctx.author.voice.channel.members: return await ctx.error(f"**{member}** isn't in **your** voice channel") 
      await member.move_to(channel=None, reason=f"{ctx.member} is **not** allowed to join this voice channel.")
      return await ctx.success( f"**{member}** got kicked from {ctx.author.voice.channel.mention}.")
    
    @voice.command(description="claim the voice channel ownership")
-   async def claim(self, ctx: commands.Context): 
+   async def claim(self, ctx: EvictContext): 
     if not ctx.author.voice: return await ctx.warning("You are **not** in a voice channel")  
     check = await self.bot.db.fetchrow("SELECT user_id FROM vcs WHERE voice = $1", ctx.author.voice.channel.id) 
     if not check: return await ctx.warning("You are **not** in a voice channel made by the bot.")
@@ -413,7 +416,7 @@ class voicemaster(commands.Cog):
 
    @voice.command(description="transfer the voice channel ownership to another member", usage="[member]", brief="vc owner")
    @check_vc_owner()
-   async def transfer(self, ctx: commands.Context, *, member: discord.Member): 
+   async def transfer(self, ctx: EvictContext, *, member: discord.Member): 
      if not member in ctx.author.voice.channel.members: return await ctx.warning(f"**{member}** is not in your voice channel")
      if member == ctx.author: return await ctx.warning("You are already the **owner** of this **voice channel**.")
      await self.bot.db.execute("UPDATE vcs SET user_id = $1 WHERE voice = $2", member.id, ctx.author.voice.channel.id) 
@@ -421,7 +424,7 @@ class voicemaster(commands.Cog):
 
    @commands.command(description="sends an updated interface of voicemaster", brief="administrator")
    @Permissions.has_permission(administrator=True)
-   async def interface(self, ctx: commands.Context): 
+   async def interface(self, ctx: EvictContext): 
       check = await self.bot.db.execute("SELECT * FROM voicemaster WHERE guild_id = $1", ctx.guild.id)
       if check is None: return await ctx.warning("The voicemaster **isn't*** configured.")      
       await ctx.send(embed=self.create_interface(ctx), view=vmbuttons())
@@ -433,7 +436,7 @@ class voicemaster(commands.Cog):
 
    @voicemaster.command(description="sets voicemaster module for your server", brief="administrator")
    @Permissions.has_permission(administrator=True)
-   async def setup(self, ctx: commands.Context):
+   async def setup(self, ctx: EvictContext):
       check = await self.bot.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", ctx.guild.id)
       if check is not None: return await ctx.warning("The voicemaster is **already** configured.") 
       elif check is None:                   
@@ -447,7 +450,7 @@ class voicemaster(commands.Cog):
 
    @voicemaster.command(description="remove voicemaster module from your server", aliases=["unset"], brief="administrator")
    @Permissions.has_permission(administrator=True)
-   async def remove(self, ctx: commands.Context):
+   async def remove(self, ctx: EvictContext):
          check = await self.bot.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", ctx.guild.id)
          if check is None: return await ctx.warning("The voicemaster is not configured.") 
          elif check is not None:
