@@ -9,6 +9,7 @@ from typing import Optional, Dict
 
 from bs4 import BeautifulSoup
 
+
 class Requests:
     async def post_request(
         self, url: str, headers: dict, params: Optional[dict] = None
@@ -46,13 +47,14 @@ class Requests:
                 else:
                     return None
 
+
 class Snap:
     def __init__(self):
         self.requests = Requests()
         self.headers = {
             "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
         }
-    
+
     async def get_story(self, user: str):
         result = await self.requests.text(
             f"https://story.snapchat.com/add/{user}", headers=self.headers
@@ -113,7 +115,8 @@ class Snap:
             "url": f"https://story.snapchat.com/add/{username}",
         }
 
-class TikTok():
+
+class TikTok:
     def __init__(self):
         self.cache = Cache()
         self.requests = Requests()
@@ -180,7 +183,8 @@ class TikTok():
         await self.cache.set(f"tiktok-{username}", payload, 3600)
         return payload
 
-class Roblox():
+
+class Roblox:
     def __init__(self):
         self.cache = Cache()
         self.requests = Requests()
@@ -271,183 +275,160 @@ class Roblox():
 
         raise HTTPException(status_code=404, detail="User not found")
 
-class Instagram():
+
+class Instagram:
     def __init__(self):
         self.cache = Cache()
         self.session = Requests()
         self.tls_session = tls_client.Session(
-            client_identifier="chrome_119",
-            random_tls_extension_order=True 
+            client_identifier="chrome_119", random_tls_extension_order=True
         )
         self.headers = None
-    
-    def get_headers(self, session_id: str) -> dict: 
+
+    def get_headers(self, session_id: str) -> dict:
         headers = {
-            "User-Agent": 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 105.0.0.11.118 (iPhone11,8; iOS 12_3_1; en_US; en-US; scale=2.00; 828x1792; 165586599)',
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 12_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 105.0.0.11.118 (iPhone11,8; iOS 12_3_1; en_US; en-US; scale=2.00; 828x1792; 165586599)",
         }
 
         req = self.tls_session.get("https://www.instagram.com", headers=headers)
-        headers['Cookie'] = "; ".join([f"{cookie.name}={cookie.value}" for cookie in req.cookies]) + f"; sessionid={session_id}"
+        headers["Cookie"] = (
+            "; ".join([f"{cookie.name}={cookie.value}" for cookie in req.cookies])
+            + f"; sessionid={session_id}"
+        )
         self.headers = headers
 
     async def get_story(self, username: str):
         if cache := self.cache.get(f"instagram-story-{username}"):
-            return cache 
-        
+            return cache
+
         if not self.headers:
-            self.get_headers("4188696743%3AHogQaUnmya14Sz%3A24%3AAYcc3RNfDmHisGTNxoJ7B5ppYvx_DguRBJXDOlHMxA")
+            self.get_headers(
+                "4188696743%3AHogQaUnmya14Sz%3A24%3AAYcc3RNfDmHisGTNxoJ7B5ppYvx_DguRBJXDOlHMxA"
+            )
 
         user = await self.get_user(username)
-        user_id = user['id']
+        user_id = user["id"]
 
-        params = {
-            'reel_ids': user_id
-        }   
+        params = {"reel_ids": user_id}
 
         data = await self.session.get_json(
             "https://www.instagram.com/api/v1/feed/reels_media",
             headers=self.headers,
-            params=params
+            params=params,
         )
 
-        if len(data['reels_media']) == 0: 
-            await self.cache.set(
-                f"instagram-story-{username}",
-                404, 
-                3600
-            )
+        if len(data["reels_media"]) == 0:
+            await self.cache.set(f"instagram-story-{username}", 404, 3600)
             return 404
-        
-        payload = {
-            'user': user
-        }
+
+        payload = {"user": user}
 
         stories = []
 
-        for story in data['reels_media'][0]['items']:
+        for story in data["reels_media"][0]["items"]:
             type = "video" if story.get("video_versions") else "image"
 
-            if type == "video": 
-                url = story['video_versions'][0]['url']
-            else: 
-                url = story['image_versions2']['candidates'][0]['url']
+            if type == "video":
+                url = story["video_versions"][0]["url"]
+            else:
+                url = story["image_versions2"]["candidates"][0]["url"]
 
             stories.append(
                 {
-                    'expiring_at': story['expiring_at'],
-                    'taken_at': story['taken_at'],
-                    'type': type, 
-                    'url': url
+                    "expiring_at": story["expiring_at"],
+                    "taken_at": story["taken_at"],
+                    "type": type,
+                    "url": url,
                 }
             )
-            
-        payload.update({'stories': stories})
-        await self.cache.set(
-            f"instagram-story-{username}",
-            payload,
-            3600
-        )
+
+        payload.update({"stories": stories})
+        await self.cache.set(f"instagram-story-{username}", payload, 3600)
         return payload
 
     async def get_user(self, username: str):
-        params = {
-            "username": username
-        }
+        params = {"username": username}
 
         if cache := self.cache.get(f"instagram-{username}"):
-            return cache 
+            return cache
 
         if not self.headers:
-            self.get_headers("4188696743%3AHogQaUnmya14Sz%3A24%3AAYcc3RNfDmHisGTNxoJ7B5ppYvx_DguRBJXDOlHMxA")
+            self.get_headers(
+                "4188696743%3AHogQaUnmya14Sz%3A24%3AAYcc3RNfDmHisGTNxoJ7B5ppYvx_DguRBJXDOlHMxA"
+            )
 
         data = await self.session.get_json(
             "https://www.instagram.com/api/v1/users/web_profile_info",
-            headers=self.headers, 
-            params=params
+            headers=self.headers,
+            params=params,
         )
-          
+
         if not data:
-            await self.cache.set(
-                f"instagram-{username}",
-                404
-            ) 
+            await self.cache.set(f"instagram-{username}", 404)
             return 404
 
-        user = data['data']['user']
+        user = data["data"]["user"]
 
         payload = {
-            "username": username, 
-            "full_name": user['full_name'],
-            "bio": user['biography'],
-            "profile_pic": user['profile_pic_url_hd'].replace('\u0026', '&'),
-            "pronouns": user['pronouns'],
-            "highlights": user['highlight_reel_count'],
-            "posts": user['edge_owner_to_timeline_media']['count'],
-            "followers": user['edge_followed_by']['count'],
-            "following": user['edge_follow']['count'],
-            "id": user['id'],
-            "url": f"https://instagram.com/{username}"
-        } 
+            "username": username,
+            "full_name": user["full_name"],
+            "bio": user["biography"],
+            "profile_pic": user["profile_pic_url_hd"].replace("\u0026", "&"),
+            "pronouns": user["pronouns"],
+            "highlights": user["highlight_reel_count"],
+            "posts": user["edge_owner_to_timeline_media"]["count"],
+            "followers": user["edge_followed_by"]["count"],
+            "following": user["edge_follow"]["count"],
+            "id": user["id"],
+            "url": f"https://instagram.com/{username}",
+        }
 
-        await self.cache.set(
-            f"instagram-{username}",
-            payload,
-            3600
-        )
+        await self.cache.set(f"instagram-{username}", payload, 3600)
 
         return payload
 
-class DiscordOauth():
-    def __init__(
-            self, 
-            client_id: str, 
-            client_secret: str,
-            bot_token: str 
-        ):
+
+class DiscordOauth:
+    def __init__(self, client_id: str, client_secret: str, bot_token: str):
         self.api_endpoint = "https://discord.com/api/v10"
-        self.client_id: client_id 
+        self.client_id: client_id
         self.client_secret = client_secret
         self.token = bot_token
-    
+
     async def exchange_code(self, code: str) -> Optional[str]:
         data = {
             "grant_type": "authorization_code",
-            "code": code, 
-            "redirect_uri": "https://api.resent.dev/callback", 
+            "code": code,
+            "redirect_uri": "https://api.resent.dev/callback",
             "client_id": self.client_id,
-            "client_secret": self.client_secret
+            "client_secret": self.client_secret,
         }
 
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        }
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-        async with aiohttp.ClientSession(headers=headers) as cs: 
-            async with cs.post(f"{self.api_endpoint}/oauth2/token", data=data) as r: 
-                return (await r.json())['access_token'] if r.ok else None
-    
-    async def add_roles_for(self, user_id: str, guild_id: str): 
+        async with aiohttp.ClientSession(headers=headers) as cs:
+            async with cs.post(f"{self.api_endpoint}/oauth2/token", data=data) as r:
+                return (await r.json())["access_token"] if r.ok else None
+
+    async def add_roles_for(self, user_id: str, guild_id: str):
         pass
 
     async def get_user(self, access_token: str) -> Optional[dict]:
-        headers = {
-            "Authorization": f"Bearer {access_token}"
-        }
+        headers = {"Authorization": f"Bearer {access_token}"}
 
-        async with aiohttp.ClientSession(headers=headers) as cs: 
-            async with cs.get(f"{self.api_endpoint}/users/@me") as r: 
+        async with aiohttp.ClientSession(headers=headers) as cs:
+            async with cs.get(f"{self.api_endpoint}/users/@me") as r:
                 return await r.json() if r.ok else None
-            
-    async def get_user_guilds(self, access_token: str) -> Optional[dict]: 
-        headers = {
-            "Authorization": f"Bearer {access_token}"
-        }
 
-        async with aiohttp.ClientSession(headers=headers) as cs: 
+    async def get_user_guilds(self, access_token: str) -> Optional[dict]:
+        headers = {"Authorization": f"Bearer {access_token}"}
+
+        async with aiohttp.ClientSession(headers=headers) as cs:
             async with cs.get(f"{self.api_endpoint}/users/@me/guilds") as r:
                 return await r.json() if r.ok else None
 
-class Socials():
+
+class Socials:
     def __init__(self):
         self.tiktok = TikTok()
         self.roblox = Roblox()

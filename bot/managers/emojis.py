@@ -1,6 +1,6 @@
 class Emojis:
-    
     """CTX"""
+
     approve = "<:approve:1271155661451034666>"
     deny = "<:deny:1263727013433184347>"
     filter = "<:filter:1263727034798968893>"
@@ -48,7 +48,8 @@ class Emojis:
     enable = "<:enable:1263758811429343232>"
     disable = "<:disable:1263758691858120766>"
 
+
 class Colors:
     color = 0xCCCCFF
     error_color = 0xFFFFED
-    lastfm = 0xff0000
+    lastfm = 0xFF0000

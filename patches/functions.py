@@ -9,6 +9,7 @@ from redis.asyncio.connection import BlockingConnectionPool
 from redis.backoff import EqualJitterBackoff
 from redis.retry import Retry
 
+
 class Redis(AsyncStrictRedis):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -75,25 +76,29 @@ class Redis(AsyncStrictRedis):
     async def get_lock(self, key: str):
         return await self._lock()
 
+
 @classmethod
 async def from_url(
-        cls,
-    ):  # URL: redis://default:f6sYIi6qucgqHsHJIKeLOsqRv9Oj9BAG@redis-11641.c282.east-us-mz.azure.redns.redis-cloud.com:11641"
-        return await cls(
-            connection_pool=BlockingConnectionPool.from_url(
-                "redis://default:f6sYIi6qucgqHsHJIKeLOsqRv9Oj9BAG@redis-11641.c282.east-us-mz.azure.redns.redis-cloud.com:11641",
-                decode_responses=True,
-                timeout=1,
-                max_connections=7000,
-                retry=Retry(backoff=EqualJitterBackoff(3, 1), retries=100),
-            )
+    cls,
+):  # URL: redis://default:f6sYIi6qucgqHsHJIKeLOsqRv9Oj9BAG@redis-11641.c282.east-us-mz.azure.redns.redis-cloud.com:11641"
+    return await cls(
+        connection_pool=BlockingConnectionPool.from_url(
+            "redis://default:f6sYIi6qucgqHsHJIKeLOsqRv9Oj9BAG@redis-11641.c282.east-us-mz.azure.redns.redis-cloud.com:11641",
+            decode_responses=True,
+            timeout=1,
+            max_connections=7000,
+            retry=Retry(backoff=EqualJitterBackoff(3, 1), retries=100),
         )
+    )
+
 
 def hash(text: str):
     return xxh64_hexdigest(str(text))
 
+
 def unique_id(lenght: int = 6):
     return "".join(random.choices(string.ascii_letters + string.digits, k=lenght))
+
 
 def async_executor():
     def outer(func):
@@ -105,6 +110,7 @@ def async_executor():
         return inner
 
     return outer
+
 
 @async_executor()
 def _collage_open(image: BytesIO):
@@ -180,6 +186,7 @@ async def collage(images: list[str]):
         filename="collage.png",
     )
 
+
 @async_executor()
 def image_hash(image: BytesIO):
     if isinstance(image, bytes):
@@ -190,7 +197,8 @@ def image_hash(image: BytesIO):
         return unique_id(16)
     else:
         return result
-    
+
+
 class plural:
     def __init__(self, value: int, bold: bool = False, code: bool = False):
         self.value: int = value
@@ -215,7 +223,8 @@ class plural:
             return f"{value} {plural}"
 
         return f"{value} {singular}"
-    
+
+
 class plural:
     def __init__(self, value: int, bold: bool = False, code: bool = False):
         self.value: int = value

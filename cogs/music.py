@@ -1,4 +1,3 @@
-
 from contextlib import suppress
 import discord
 from discord.ext import commands
@@ -8,6 +7,7 @@ from typing import Optional, Literal
 from discord.ext.commands import Context
 import pomice
 from bot.managers.emojis import Emojis, Colors
+
 
 class plural:
     def __init__(self, value: int, bold: bool = False, code: bool = False):
@@ -56,8 +56,7 @@ class plural:
 
 def shorten(value: str, length: int = 20):
     if len(value) > length:
-        value = value[: length - 2] + \
-            (".." if len(value) > length else "").strip()
+        value = value[: length - 2] + (".." if len(value) > length else "").strip()
     return value
 
 
@@ -81,6 +80,7 @@ def format_duration(duration: int, ms: bool = True):
     else:
         return "00:00"
 
+
 class Player(pomice.Player):
     """Custom pomice Player class."""
 
@@ -98,7 +98,7 @@ class Player(pomice.Player):
         self.skip_votes = set()
         self.shuffle_votes = set()
         self.stop_votes = set()
-        
+
     async def set_loop(self, state: str):
         self.loop = state
         self._queue = self.queue._queue
@@ -130,14 +130,14 @@ class Player(pomice.Player):
             embed = discord.Embed(
                 title="Now playing",
                 description=f"**LIVE** [{track.title}]({track.uri}) [{track.requester.mention}]",
-                color = Colors.color
+                color=Colors.color,
             )
             self.controller = await self.context.send(embed=embed)
         else:
             embed = discord.Embed(
                 title=f"Now playing",
                 description=f"[{track.title}]({track.uri}) [{track.requester.mention}]",
-                color = Colors.color
+                color=Colors.color,
             )
             self.controller = await self.context.send(embed=embed)
 
@@ -180,7 +180,6 @@ class Music(commands.Cog):
         )
         print(f"Node is ready!")
 
-
     # The following are events from pomice.events
     # We are using these so that if the track either stops or errors,
     # we can just skip to the next track
@@ -200,14 +199,16 @@ class Music(commands.Cog):
         await player.do_next()
 
     @commands.command(aliases=["joi", "j", "summon", "su", "con", "connect"])
-    async def join(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
+    async def join(
+        self, ctx: commands.Context, *, channel: discord.VoiceChannel = None
+    ) -> None:
         if not channel:
             channel = getattr(ctx.author.voice, "channel", None)
             if not channel:
                 return await ctx.warning(
                     "You must be in a voice channel in order to use this command.",
                 )
-                
+
         await ctx.author.voice.channel.connect(cls=Player)
         player: Player = ctx.voice_client
 
@@ -218,7 +219,8 @@ class Music(commands.Cog):
     async def disconnect(self, ctx: commands.Context):
         if not (player := ctx.voice_client):
             return await ctx.warning(
-                "You **must** have the bot in a channel in order to use this command")
+                "You **must** have the bot in a channel in order to use this command"
+            )
 
         await player.destroy()
         await ctx.success("I have **left** the voice channel.")
@@ -226,9 +228,9 @@ class Music(commands.Cog):
     @commands.command()
     async def play(self, ctx: commands.Context, *, search: str) -> None:
         # Checks if the player is in the channel before we play anything
-        if not (player := ctx.voice_client): 
+        if not (player := ctx.voice_client):
             await ctx.author.voice.channel.connect(cls=Player)
-       
+
         player: Player = ctx.voice_client
         await player.set_context(ctx=ctx)
 
@@ -246,17 +248,18 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.do_next()
-            
+
         if player.is_playing:
-            await ctx.success(f"I have **added** [**{track.title}**]({track.uri}) to the queue.")
+            await ctx.success(
+                f"I have **added** [**{track.title}**]({track.uri}) to the queue."
+            )
 
     @commands.command(aliases=["pau", "pa"])
     async def pause(self, ctx: commands.Context):
-        
+
         if not (player := ctx.voice_client):
             return await ctx.warning(
                 "You **must** have the bot in a channel in order to use this command",
-                
             )
 
         await player.set_pause(True)
@@ -268,7 +271,6 @@ class Music(commands.Cog):
         if not (player := ctx.voice_client):
             return await ctx.warning(
                 "You **must** have the bot in a channel in order to use this command",
-                
             )
 
         await player.set_pause(False)
@@ -280,7 +282,6 @@ class Music(commands.Cog):
         if not (player := ctx.voice_client):
             return await ctx.warning(
                 "You **must** have the bot in a channel in order to use this command",
-                
             )
 
         if not player.is_connected:
@@ -295,7 +296,6 @@ class Music(commands.Cog):
         if not (player := ctx.voice_client):
             return await ctx.warning(
                 "You **must** have the bot in a channel in order to use this command",
-                
             )
 
         if not player.is_connected:
@@ -306,25 +306,30 @@ class Music(commands.Cog):
 
     @commands.command(aliases=["mix", "shuf"])
     async def shuffle(self, ctx: commands.Context):
-        
+
         player: Player = ctx.voice_client
 
         if not (player := ctx.voice_client):
             return await ctx.warning(
-                "You **must** have the bot in a channel in order to use this command")
+                "You **must** have the bot in a channel in order to use this command"
+            )
 
         if not player.is_connected:
             return
-        
+
         await player.set_context(ctx=ctx)
 
         if player.queue.size < 3:
-            return await ctx.warning("The queue is **empty**. Add some songs to shuffle the queue.")
-        
+            return await ctx.warning(
+                "The queue is **empty**. Add some songs to shuffle the queue."
+            )
+
         player.queue.shuffle()
         await ctx.success("I have **shuffled** the queue.")
-        
-    @commands.command(name="loop", usage="(track, queue, or off)", aliases=["repeat", "lp"])
+
+    @commands.command(
+        name="loop", usage="(track, queue, or off)", aliases=["repeat", "lp"]
+    )
     async def loop(self, ctx: Context, option: Literal["track", "queue", "off"]):
 
         player: Player = ctx.voice_client
@@ -332,11 +337,11 @@ class Music(commands.Cog):
         if option == "off":
             if not player.loop:
                 return await ctx.warning("There isn't an active **loop**")
-        
+
         elif option == "track":
             if not player.is_playing:
                 return await ctx.warning("There isn't an active **track**")
-        
+
         elif option == "queue":
             if not player.queue._queue:
                 return await ctx.warning("There aren't any **tracks** in the queue")
@@ -349,11 +354,12 @@ class Music(commands.Cog):
     @commands.command(aliases=["v", "vol"])
     async def volume(self, ctx: commands.Context, *, vol: int):
         """Change the players volume, between 1 and 100."""
-        
+
         if not (player := ctx.voice_client):
             return await ctx.warning(
-                "You **must** have the bot in a channel in order to use this command")
-            
+                "You **must** have the bot in a channel in order to use this command"
+            )
+
         if not player.is_connected:
             return
 
@@ -362,46 +368,53 @@ class Music(commands.Cog):
 
         await player.set_volume(vol)
         await ctx.success(f"Set the **volume** to **{vol}**%")
-        
-    @commands.command(descirption='check the queue', aliases=['q'])
+
+    @commands.command(descirption="check the queue", aliases=["q"])
     async def queue(self, ctx: commands.Context):
-        
+
         if not (player := ctx.voice_client):
             return await ctx.warning(
-                "You **must** have the bot in a channel in order to use this command")
-        
+                "You **must** have the bot in a channel in order to use this command"
+            )
+
         player: Player = ctx.voice_client
-        
+
         if player.queue.is_empty:
             return await ctx.warning("The queue is **empty**.")
-        
+
         await player.set_context(ctx=ctx)
-        
+
         playing = f"{'Playing'} {player.current.title} by {player.current.author}"
-    
+
         if player.queue.get_queue():
-            tracks = [f"[**{track.title}**]({track.uri})" for track in player.queue.get_queue()]
+            tracks = [
+                f"[**{track.title}**]({track.uri})"
+                for track in player.queue.get_queue()
+            ]
 
         for m in utils.as_chunks(tracks, 10):
             embed = Embed(color=Colors.color, title=f"queued in {ctx.guild.name}")
-            embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url)
-            embed.add_field(name=f"Tracks:", value='\n'.join([l for l in m]))
+            embed.set_author(
+                name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url
+            )
+            embed.add_field(name=f"Tracks:", value="\n".join([l for l in m]))
             embed.set_footer(text=f"{playing}")
-            
+
             if player.current.thumbnail:
                 embed.set_thumbnail(url=player.current.thumbnail)
-            
-            await ctx.reply(embed=embed)  
-            
+
+            await ctx.reply(embed=embed)
+
     @commands.command(name="current", brief="show current playing song")
     async def nowplaying(
-        self, ctx: commands.Context, member: Optional[discord.Member] = Context.author):
-        
+        self, ctx: commands.Context, member: Optional[discord.Member] = Context.author
+    ):
+
         player: Player = ctx.voice_client
-        
+
         if player == None:
             return await ctx.invoke(self.bot.get_command("nowplaying"))
-        
+
         elif player.current:
             embed = discord.Embed(title=f"**Currently Playing:**", color=Colors.color)
             embed.description = f"> **Playing: ** [**{shorten(player.current.title, 23)}**]({player.current.uri})\n > **Time: ** `{format_duration(player.position)}/{format_duration(player.current.length)}`"
@@ -412,6 +425,7 @@ class Music(commands.Cog):
             return await ctx.reply(embed=embed)
         else:
             return await ctx.warning(f"no current playing track : {player.current}")
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Music(bot))
