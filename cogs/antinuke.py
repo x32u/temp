@@ -5,8 +5,7 @@ from discord.ext import commands
 from patches.modules import AntiNukeModule, AntiNukeUser
 from patches.permissions import Permissions
 
-from utils.emojis import Emojis
-from bot.managers.emojis import Colors
+from bot.managers.emojis import Colors, Emojis
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
@@ -55,7 +54,7 @@ class antinuke(commands.Cog):
         
         for name in self.modules:
             module = await AntiNukeModule.from_database(self.bot.db, ctx.guild.id, name)
-            embed.add_field(name=f"**{name}**: {Emojis.OFF if not module or not module.toggled else Emojis.ON}", value=f"‎ ‎ ﹒Action: `{module.punishment if module is not None else 'None'}`\n‎ ‎ ﹒Threshold: `{module.threshold if module is not None else 'None'}`", inline=True)
+            embed.add_field(name=f"**{name}**: {Emojis.disable if not module or not module.toggled else Emojis.enable}", value=f"‎ ‎ ﹒Action: `{module.punishment if module is not None else 'None'}`\n‎ ‎ ﹒Threshold: `{module.threshold if module is not None else 'None'}`", inline=True)
     
         return await ctx.send(embed=embed)
     
