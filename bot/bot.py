@@ -109,8 +109,6 @@ class Evict(commands.AutoShardedBot):
         
         self.db = db
         
-        self.color = 0xCCCCFF
-        self.error_color= 0xFFFFED
         self.pomice = pomice.NodePool()
         
         self.ext = Client(self)
@@ -124,7 +122,6 @@ class Evict(commands.AutoShardedBot):
         self.session = Session()
         
         self.evict_api = os.environ.get("evict_api")
-        self.rival_api = os.environ.get("rival_api")
         self.proxy_url = os.environ.get("proxy_url")
         
         self.commands_url = os.environ.get("commands_url")
