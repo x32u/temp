@@ -3,6 +3,7 @@ import discord
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 class api(commands.Cog): 
     def __init__(self, bot: Evict): 
@@ -22,7 +23,7 @@ class api(commands.Cog):
         
         if check is not None: return await ctx.warning(f"The user **{user.name}** already has a **valid** API key.")
         
-        embed=discord.Embed(description=f"Your API key for {url} is listed above.", color=self.bot.color)
+        embed=discord.Embed(description=f"Your API key for {url} is listed above.", color=Colors.color)
         
         await self.bot.db.execute("INSERT INTO api_key VALUES ($1,$2,$3)", key, user.id, role)
         await ctx.success(f"I have **successfully** added the API key **{key}** to {user.mention}.")

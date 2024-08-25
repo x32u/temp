@@ -7,6 +7,8 @@ from patches.permissions import Permissions
 from bot.helpers import EvictContext
 from bot.bot import Evict
 
+from bot.managers.emojis import Emojis, Colors
+
 class chat(commands.Cog): 
   def __init__(self, bot: Evict): 
     self.bot = bot 
@@ -108,7 +110,7 @@ class chat(commands.Cog):
               if l == 10:
                
                messages.append(mes)
-               number.append(discord.Embed(color=self.bot.color, title=f"auto reactions ({len(check)})", description=messages[i]))
+               number.append(discord.Embed(color=Colors.color, title=f"auto reactions ({len(check)})", description=messages[i]))
                
                i+=1
                mes = ""
@@ -116,7 +118,7 @@ class chat(commands.Cog):
     
       messages.append(mes)
       
-      embed = discord.Embed(color=self.bot.color, title=f"auto reactions ({len(check)})", description=messages[i])
+      embed = discord.Embed(color=Colors.color, title=f"auto reactions ({len(check)})", description=messages[i])
       
       number.append(embed)
       await ctx.paginator(number) 

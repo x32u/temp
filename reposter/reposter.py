@@ -5,6 +5,7 @@ from discord.ui import View, Button
 from discord import Embed, File, Message
 from collections import defaultdict
 from bot.headers import Session
+from bot.managers.emojis import Emojis, Colors
 
 class Reposter:
     async def repost(self, bot: commands.Bot, message: discord.Message, url: str):
@@ -104,7 +105,7 @@ class Reposter:
             embeds = []
             for img in x['data']['images']:
               embed = Embed(
-                color=self.bot.color,
+                color=Colors.color,
                 description=f"[**Tiktok**]({url}) requested by {message.author}"
               )\
               .set_author(

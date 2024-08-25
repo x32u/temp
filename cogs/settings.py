@@ -7,6 +7,7 @@ from reposter.reposter import Reposter
 from bot.dynamicrolebutton import DynamicRoleButton
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 class settings(commands.Cog):
     def __init__(self, bot: Evict):
@@ -182,7 +183,7 @@ class settings(commands.Cog):
             
             channel = member.guild.get_channel(voice_logs['channel_id'])
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{member.name}', icon_url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
             embed.add_field(name='Switched Voice Channels', value=f'{member.mention}', inline=False)
             embed.add_field(name='IDs', value=f"> {member.mention} (``{member.id}``)\n > Before Channel: {before.channel.name} (``{before.channel.id}``)\n > After Channel: {after.channel.name} (``{after.channel.id}``)", inline=False)
@@ -195,7 +196,7 @@ class settings(commands.Cog):
             
             channel = member.guild.get_channel(voice_logs['channel_id'])
             
-            embed = discord.Embed(color=self.bot.color, timestamp=datetime.datetime.now())
+            embed = discord.Embed(color=Colors.color, timestamp=datetime.datetime.now())
             embed.set_author(name=f'{member.name}', icon_url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
             embed.add_field(name='Joined a Voice Channel', value=f'{member.mention}', inline=False)
             embed.add_field(name='IDs', value=f"> {member.mention} (``{member.id}``)\n > Channel: {after.channel.name} (``{after.channel.id}``)", inline=False)
@@ -208,7 +209,7 @@ class settings(commands.Cog):
             
             channel = member.guild.get_channel(voice_logs['channel_id'])
             
-            embed = discord.Embed(color=self.bot.color, timestamp=datetime.datetime.now())
+            embed = discord.Embed(color=Colors.color, timestamp=datetime.datetime.now())
             embed.set_author(name=f'{member.name}', icon_url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
             embed.add_field(name='Left a Voice Channel', value=f'{member.mention}', inline=False)
             embed.add_field(name='IDs', value=f"> {member.mention} (``{member.id}``)\n > Channel: {before.channel.name} (``{before.channel.id}``)", inline=False)
@@ -224,7 +225,7 @@ class settings(commands.Cog):
         if not message_logs: return
         channel = message.guild.get_channel(message_logs['channel_id'])
         
-        embed = discord.Embed(title="Message Deleted", timestamp=datetime.datetime.now(), color=self.bot.color)
+        embed = discord.Embed(title="Message Deleted", timestamp=datetime.datetime.now(), color=Colors.color)
         embed.set_author(name=f'{message.author.name}', icon_url=message.author.avatar.url if message.author.avatar is not None else message.author.default_avatar.url)
         embed.add_field(name='IDs', value=f" > Message: ``{message.id}``\n > {message.author.mention} (``{message.author.id}``)\n > {message.channel.mention} (``{message.channel.id}``)", inline=False)
         embed.set_thumbnail(url=message.author.avatar.url if message.author.avatar is not None else message.author.default_avatar.url)
@@ -254,7 +255,7 @@ class settings(commands.Cog):
         
         channel = after.guild.get_channel(message_logs['channel_id'])
         
-        embed = discord.Embed(title="Message Edited", timestamp=datetime.datetime.now(), color=self.bot.color)
+        embed = discord.Embed(title="Message Edited", timestamp=datetime.datetime.now(), color=Colors.color)
         embed.set_author(name=f'{after.author.name}', icon_url=after.author.avatar.url if after.author.avatar is not None else after.author.default_avatar.url)
         embed.add_field(name='Before message:', value=f'{before.content}', inline=False)
         embed.add_field(name='After message:', value=f'[Click to see new message]({after.jump_url})', inline=False)
@@ -273,7 +274,7 @@ class settings(commands.Cog):
         
         channel = member.guild.get_channel(member_logs['channel_id'])
         
-        embed = discord.Embed(description= f'{member.mention} has **joined the server.**', timestamp=datetime.datetime.now(), color=self.bot.color)
+        embed = discord.Embed(description= f'{member.mention} has **joined the server.**', timestamp=datetime.datetime.now(), color=Colors.color)
         embed.set_author(name=f'{member.name}', icon_url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
         embed.add_field(name='Account Creation', value=f"<t:{int(member.created_at.timestamp())}:R>", inline=False)
         embed.add_field(name='IDs', value=f"> {member.mention} (``{member.id}``)", inline=False)
@@ -290,7 +291,7 @@ class settings(commands.Cog):
         
         channel = member.guild.get_channel(member_logs['channel_id'])
         
-        embed = discord.Embed(description= f'{member.mention} has **left the server.**', timestamp=datetime.datetime.now(), color=self.bot.color)
+        embed = discord.Embed(description= f'{member.mention} has **left the server.**', timestamp=datetime.datetime.now(), color=Colors.color)
         embed.set_author(name=f'{member.name}', icon_url=member.avatar.url if member.avatar is not None else member.default_avatar.url)
         embed.add_field(name='Joined', value=f"<t:{int(member.joined_at.timestamp())}:R>", inline=False)
         embed.add_field(name='Roles', value=', '.join([role.mention for role in member.roles]), inline=False)
@@ -309,7 +310,7 @@ class settings(commands.Cog):
         if before.nick != after.nick:
             channel = after.guild.get_channel(member_logs['channel_id'])
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{after.name}', icon_url=after.avatar.url if after.avatar is not None else after.default_avatar.url)
             embed.add_field(name='Member Updated', value=f'{after.mention}', inline=False)
             embed.add_field(name='Names', value=f'> Old Name: {before.nick}\n > New Name: {after.nick}')
@@ -329,7 +330,7 @@ class settings(commands.Cog):
         async for entry in role.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_create): 
             channel = role.guild.get_channel(role_logs['channel_id'])
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='Role Created', value=f'{role.name} | {role.mention}', inline=False)
             embed.add_field(name='IDs', value=f"> {role.mention} (``{role.id}``)\n > {entry.user.mention} (``{entry.user.id}``)", inline=False)
@@ -348,7 +349,7 @@ class settings(commands.Cog):
         async for entry in role.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_delete): 
             channel = role.guild.get_channel(role_logs['channel_id'])
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='Role Deleted', value=f'{role.name}', inline=False)
             embed.add_field(name='IDs', value=f"> {role.name} (``{role.id}``)\n > {entry.user.mention} (``{entry.user.id}``)", inline=False)
@@ -369,7 +370,7 @@ class settings(commands.Cog):
             if not role_logs: return
             channel = entry.guild.get_channel(role_logs['channel_id'])
             
-            embed = discord.Embed(description='**Member Updated**', color=self.bot.color, timestamp=datetime.datetime.now())
+            embed = discord.Embed(description='**Member Updated**', color=Colors.color, timestamp=datetime.datetime.now())
             embed.set_author(name=f'{entry.target}', icon_url=entry.target.avatar.url if entry.target.avatar is not None else entry.target.default_avatar.url)
             embed.add_field(name='IDs', value=f"> Perp:  {entry.user.mention} (``{entry.user.id}``)\n > Target: {entry.target.mention} (``{entry.target.id}``)", inline=False)
             
@@ -390,7 +391,7 @@ class settings(commands.Cog):
         if before.name != after.name:
             async for entry in after.guild.audit_logs(limit=1, action=discord.AuditLogAction.role_update): 
                 
-                embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+                embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
                 embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
                 embed.add_field(name='Role Updated', value=f'{after.mention}', inline=False)
                 embed.add_field(name='Names', value=f'> Old Name: {before.name}\n > New Name: {after.name}')
@@ -416,7 +417,7 @@ class settings(commands.Cog):
         
         async for entry in after.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_create):
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='Channel Created', value=f'{after.mention}', inline=False)
             embed.add_field(name='IDs', value=f"> {after.mention} (``{after.id}``)\n > {entry.user.mention} (``{entry.user.id}``)", inline=False)
@@ -436,7 +437,7 @@ class settings(commands.Cog):
         
         async for entry in channel.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_delete):
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='Channel Deleted', value=f'{after.name}', inline=False)
             embed.add_field(name='IDs', value=f"> {after.name} (``{after.id}``)\n > {entry.user.mention} (``{entry.user.id}``)", inline=False)
@@ -457,7 +458,7 @@ class settings(commands.Cog):
         if before.name != after.name:
             async for entry in after.guild.audit_logs(limit=1, action=discord.AuditLogAction.channel_update):
                 
-                embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+                embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
                 embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
                 embed.add_field(name='Channel Updated', value=f'{after.mention}', inline=False)
                 embed.add_field(name='Names', value=f'> Old Name: {before.name}\n > New Name: {after.name}')
@@ -478,7 +479,7 @@ class settings(commands.Cog):
         if before.name != after.name:
             async for entry in after.audit_logs(limit=1, action=discord.AuditLogAction.guild_update):
                 
-                embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+                embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
                 embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
                 embed.add_field(name='Server Updated', value=f'{before.name}', inline=False)
                 embed.add_field(name='Names', value=f'> Old Name: {before.name}\n > New Name: {after.name}')
@@ -499,7 +500,7 @@ class settings(commands.Cog):
         
             channel = entry.guild.get_channel(server_logs['channel_id'])
                 
-            embed = discord.Embed(timestamp=datetime.datetime.now(), color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='Webhook Deleted', value=f'{entry.user.name}', inline=False)
             embed.add_field(name='IDs', value=f" > {entry.user.mention} (``{entry.user.id}``)", inline=False)
@@ -519,7 +520,7 @@ class settings(commands.Cog):
         
             channel = entry.guild.get_channel(server_logs['channel_id'])
 
-            embed = discord.Embed(timestamp=datetime.datetime.now(), title=f'Webhook Created', color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), title=f'Webhook Created', color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='IDs', value=f" > {entry.user.mention} (``{entry.user.id}``)", inline=False)
             embed.set_thumbnail(url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
@@ -538,7 +539,7 @@ class settings(commands.Cog):
         
             channel = entry.guild.get_channel(server_logs['channel_id'])
     
-            embed = discord.Embed(timestamp=datetime.datetime.now(), title=f'Webhook Updated', color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), title=f'Webhook Updated', color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='IDs', value=f" > {entry.user.mention} (``{entry.user.id}``)", inline=False)
             embed.set_thumbnail(url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
@@ -559,7 +560,7 @@ class settings(commands.Cog):
             
             await self.bot.fetch_user(entry.target)
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), title='Emoji Created', color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), title='Emoji Created', color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='IDs', value=f" > {entry.user.mention} (``{entry.user.id}``)", inline=False)
             embed.set_thumbnail(url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
@@ -577,7 +578,7 @@ class settings(commands.Cog):
         
             channel = entry.guild.get_channel(server_logs['channel_id'])
             
-            embed = discord.Embed(timestamp=datetime.datetime.now(), title='Emoji Deleted', color=self.bot.color)
+            embed = discord.Embed(timestamp=datetime.datetime.now(), title='Emoji Deleted', color=Colors.color)
             embed.set_author(name=f'{entry.user}', icon_url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)
             embed.add_field(name='IDs', value=f" > {entry.user.mention} (``{entry.user.id}``)", inline=False)
             embed.set_thumbnail(url=entry.user.avatar.url if entry.user.avatar is not None else entry.user.default_avatar.url)

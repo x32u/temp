@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 
 IMAGE_TYPES = (".png", ".jpg", ".jpeg", ".gif", ".webp")
@@ -112,7 +113,7 @@ class emoji(commands.Cog):
        
        except discord.HTTPException as e: return await ctx.error(ctx, f"Unable to add the emoji | {e}")
 
-    embed = discord.Embed(color=self.bot.color, title=f"added {len(emoji)} emojis") 
+    embed = discord.Embed(color=Colors.color, title=f"added {len(emoji)} emojis") 
     embed.description = "".join(map(str, emojis))    
     return await ctx.reply(embed=embed)
    
@@ -147,14 +148,14 @@ class emoji(commands.Cog):
     if len(ctx.guild.stickers) == 0:
             return await ctx.warning("There are **no** stickers in this server.")
     
-    embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: I have started **tagging** all the servers stickers.")
+    embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention}: I have started **tagging** all the servers stickers.")
     message = await ctx.reply(embed=embed)
         
     for s in ctx.guild.stickers:
             v = ctx.guild.vanity_url_code
             await s.edit(name=f"/{v}")
             
-    await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: I have **tagged** all the guilds stickers."))
+    await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: I have **tagged** all the guilds stickers."))
     
    @sticker.command(name='list', description="returns a list of server's stickers", aliases=["l"])
    async def sticker_list(self, ctx: EvictContext):
@@ -187,18 +188,18 @@ class emoji(commands.Cog):
         
         if s.guild_id == ctx.guild.id: 
          
-         embed = discord.Embed(color=self.bot.color, description=f"Are you sure you want to delete `{s.name}`?").set_image(url=s.url)
-         button1 = discord.ui.Button(emoji="<:check:1208233844751474708>")
-         button2 = discord.ui.Button(emoji="<:stop:1208240063691886642>")
+         embed = discord.Embed(color=Colors.color, description=f"Are you sure you want to delete `{s.name}`?").set_image(url=s.url)
+         button1 = discord.ui.Button(emoji=Emojis.approve)
+         button2 = discord.ui.Button(emoji=Emojis.deny)
          
          async def button1_callback(interaction: discord.Interaction): 
           if ctx.author.id != interaction.user.id: return await self.bot.ext.warning(interaction, "You are not the author of this embed")
           await s.delete()
-          return await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {interaction.user.mention}: Deleted sticker"), view=None)   
+          return await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {interaction.user.mention}: Deleted sticker"), view=None)   
          
          async def button2_callback(interaction: discord.Interaction): 
            if ctx.author.id != interaction.user.id: return await self.bot.ext.warning(interaction, "You are not the author of this embed")
-           return await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description=f"{interaction.user.mention}"))
+           return await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description=f"{interaction.user.mention}"))
          
          button1.callback = button1_callback
          button2.callback = button2_callback 
@@ -224,7 +225,7 @@ class emoji(commands.Cog):
        sticker = await ctx.guild.create_sticker(name=name, description=name, emoji="skull", file=file, reason=f"sticker created by {ctx.author}")
        format = str(sticker.format) 
        form = format.replace("StickerFormatType.", "")
-       embed = discord.Embed(color=self.bot.color, title="sticker added")
+       embed = discord.Embed(color=Colors.color, title="sticker added")
        embed.set_thumbnail(url=url)
        embed.add_field(name="values", value=f"name: `{name}`\nid: `{sticker.id}`\nformat: `{form}`\nlink: [url]({url})")
        
@@ -237,7 +238,7 @@ class emoji(commands.Cog):
        
        if message.stickers:
         
-        e = discord.Embed(color=self.bot.color, title=message.stickers[0].name).set_author(name=message.author.name, icon_url=message.author.display_avatar.url)
+        e = discord.Embed(color=Colors.color, title=message.stickers[0].name).set_author(name=message.author.name, icon_url=message.author.display_avatar.url)
         e.set_image(url=message.stickers[0].url)
         e.set_footer(text="react below to steal")
         
@@ -259,21 +260,21 @@ class emoji(commands.Cog):
            format = str(sticker.format) 
            form = format.replace("StickerFormatType.", "")
            
-           embed = discord.Embed(color=self.bot.color, title="sticker added")
+           embed = discord.Embed(color=Colors.color, title="sticker added")
            embed.set_thumbnail(url=url)
            embed.add_field(name="values", value=f"name: `{name}`\nid: `{sticker.id}`\nformat: `{form}`\nlink: [url]({url})")
            
            return await interaction.response.edit_message(embed=embed, view=None)
           
           except:
-           embed = discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: unable to add this sticker")
+           embed = discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: unable to add this sticker")
            return await interaction.response.edit_message(embed=embed, view=None)
 
         button1.callback = button1_callback 
 
         async def button2_callback(interaction: discord.Interaction): 
           if interaction.user != ctx.author: return await self.bot.ext.warning(interaction, "You can't use this button", ephemeral=True)            
-          return await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description=f"{interaction.user.mention}: Cancelled sticker steal"), view=None)
+          return await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description=f"{interaction.user.mention}: Cancelled sticker steal"), view=None)
 
         button2.callback = button2_callback 
 
@@ -304,7 +305,7 @@ class emoji(commands.Cog):
    @commands.command(aliases=['ei'], description="show emoji info", usage="[emoji]")
    async def emojiinfo(self, ctx: EvictContext, *, emoji: Union[discord.Emoji, discord.PartialEmoji]): 
     
-    embed = discord.Embed(color=self.bot.color, title=emoji.name, timestamp=emoji.created_at).set_footer(text=f"id: {emoji.id}")
+    embed = discord.Embed(color=Colors.color, title=emoji.name, timestamp=emoji.created_at).set_footer(text=f"id: {emoji.id}")
     embed.set_thumbnail(url=emoji.url)
     embed.add_field(name="animated", value=emoji.animated)
     embed.add_field(name="link", value=f"[emoji]({emoji.url})")

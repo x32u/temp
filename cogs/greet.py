@@ -5,6 +5,7 @@ from utils.utils import EmbedBuilder
 from patches.permissions import Permissions
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 class greet(commands.Cog): 
   def __init__(self, bot: Evict): 
@@ -26,7 +27,7 @@ class greet(commands.Cog):
    if not res: return await ctx.warning("Boost is not **configured**")
    channel = f'#{ctx.guild.get_channel(res["channel_id"]).name}' if ctx.guild.get_channel(res['channel_id']) else "none"
    e = res['mes'] or "none"
-   embed = discord.Embed(color=self.bot.color, title=f"channel {channel}", description=f"```{e}```")
+   embed = discord.Embed(color=Colors.color, title=f"channel {channel}", description=f"```{e}```")
    await ctx.reply(embed=embed)     
   
   @boost.command(name="message", description="configure the boost message", brief="manage guild", usage="[message]")
@@ -86,7 +87,7 @@ class greet(commands.Cog):
    if not res: return await ctx.warning("Leave is not **configured**")
    channel = f'#{ctx.guild.get_channel(res["channel_id"]).name}' if ctx.guild.get_channel(res['channel_id']) else "none"
    e = res['mes'] or "none"
-   embed = discord.Embed(color=self.bot.color, title=f"channel {channel}", description=f"```{e}```")
+   embed = discord.Embed(color=Colors.color, title=f"channel {channel}", description=f"```{e}```")
    await ctx.reply(embed=embed)     
   
   @leave.command(name="message", description="configure the leave message", brief="manage guild", usage="[message]")
@@ -146,7 +147,7 @@ class greet(commands.Cog):
    if not res: return await ctx.warning("Welcome is not **configured**")
    channel = f'#{ctx.guild.get_channel(res["channel_id"]).name}' if ctx.guild.get_channel(res['channel_id']) else "none"
    e = res['mes'] or "none"
-   embed = discord.Embed(color=self.bot.color, title=f"channel {channel}", description=f"```{e}```")
+   embed = discord.Embed(color=Colors.color, title=f"channel {channel}", description=f"```{e}```")
    await ctx.reply(embed=embed)     
   
   @welcome.command(name="message", description="configure the welcome message", brief="manage guild", usage="[message]")

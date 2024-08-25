@@ -16,6 +16,7 @@ from patches import functions
 
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 DISCORD_API_LINK = "https://discord.com/api/invite/"
 
@@ -29,7 +30,7 @@ class utility(commands.Cog):
         self.a = TimeConverter
     
     async def bday_send(self, ctx: EvictContext, message: str) -> discord.Message: 
-      return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.cake} {ctx.author.mention}: {message}"))
+      return await ctx.reply(embed=discord.Embed(color=Colors.color, description=f"{self.cake} {ctx.author.mention}: {message}"))
     
     async def do_again(self, url: str):
      re = await self.make_request(url)
@@ -73,32 +74,28 @@ class utility(commands.Cog):
      badges = []
      
      if user.id in self.bot.owner_ids: 
-       badges.append("<:developer:1263728141558353963>")
+       badges.append(Emojis.developer)
      
      if user.public_flags.active_developer: 
-      badges.append("<:activedev:1263726943048695828>")
+      badges.append(Emojis.activedev)
      
      if user.public_flags.early_supporter:
-      badges.append("<:early:1263727021318602783>")
+      badges.append(Emojis.early_dev)
      
      if user.public_flags.verified_bot_developer:
-       badges.append("<:earlydev:1263727027022860330>")
+       badges.append(Emojis.early_dev)
      
      if user.public_flags.staff: 
-      badges.append("<:staff:1263729127199084645>")
+      badges.append(Emojis.staff)
      
      if user.public_flags.bug_hunter:
-      badges.append("<:bugreg:1263726968377966642>") 
+      badges.append(Emojis.bugreg) 
      
      if user.public_flags.bug_hunter_level_2:
-      badges.append("<:buggold:1263726960882876456>")   
+      badges.append(Emojis.buggold)   
      
      if user.public_flags.partner:
-      badges.append("<:partner:1263727124066340978>")
-
-# CUSTOM BADGES 
-     if user.id == 987183275560820806:
-       badges.append("<a:odecy:1259624643325591674>") # - odecy
+      badges.append(Emojis.partner)
 
      for guild in self.bot.guilds: 
       mem = guild.get_member(user.id)
@@ -106,7 +103,7 @@ class utility(commands.Cog):
       if mem is not None:
        
        if mem.premium_since is not None:
-         badges.append("<:booster:1263727083310415885>")
+         badges.append(Emojis.booster)
          
          break
      
@@ -115,27 +112,27 @@ class utility(commands.Cog):
       return ''
      
      async def lf(mem: Union[Member, User]): 
-        check = await self.bot.db.fetchrow("SELECT username FROM lastfm WHERE user_id = {}".format(mem.id))
+        check = await self.bot.db.fetchrow("SELECT username FROM lastfm_users WHERE discord_user_id = {}".format(mem.id))
         if check is not None: 
           u = str(check['username']) 
           if u != "error": 
             a = await self.lastfmhandler.get_tracks_recent(u, 1)
-            return f"<:lastfm:1263727050309632031> Listening to [{a['recenttracks']['track'][0]['name']}]({a['recenttracks']['track'][0]['url']}) by **{a['recenttracks']['track'][0]['artist']['#text']}** on LastFM."
+            return f"{Emojis.lastfm} Listening to [{a['recenttracks']['track'][0]['name']}]({a['recenttracks']['track'][0]['url']}) by **{a['recenttracks']['track'][0]['artist']['#text']}** on LastFM."
       
         return ""
 
      def vc(mem: Member):
         if mem.voice: 
           channelname = mem.voice.channel.name 
-          deaf = "<:deafen:1263727000087166996>" if mem.voice.self_deaf or mem.voice.deaf else "<:undeafen:1263729513842606110>"
-          mute = "<:mute:1263727110741164092>" if mem.voice.self_mute or mem.voice.mute else "<:unmute:1263727157696401431>"
-          stream = "<:stream:1263727136821346448>" if mem.voice.self_stream else ""
-          video = "<:video:1263727171738931292>" if mem.voice.self_video else ""
+          deaf = Emojis.deafen if mem.voice.self_deaf or mem.voice.deaf else Emojis.undeafened
+          mute = Emojis.mute if mem.voice.self_mute or mem.voice.mute else Emojis.unmute
+          stream = Emojis.stream if mem.voice.self_stream else ""
+          video = Emojis.video if mem.voice.self_video else ""
           channelmembers = f"with {len(mem.voice.channel.members)-1} other member{'s' if len(mem.voice.channel.members) > 2 else ''}" if len(mem.voice.channel.members) > 1 else ""
           return f"{deaf} {mute} {stream} {video} **in Voice** {channelname} {channelmembers}"
         return ""  
 
-     e = Embed(color=self.bot.color, title=str(user) + " " + "".join(map(str, badges)))        
+     e = Embed(color=Colors.color, title=str(user) + " " + "".join(map(str, badges)))        
      if isinstance(member, Member): 
       e.description = f"{vc(member)}\n{await tz_find(member)}\n{await lf(member)}"
       members = sorted(ctx.guild.members, key=lambda m: m.joined_at)
@@ -154,21 +151,21 @@ class utility(commands.Cog):
 
     @commands.command(description="clear your usernames", aliases=["clearusernames", "clearusers"])
     async def clearnames(self, ctx):
-        embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} are you sure you want to clear your usernames. this decision is **irreversible**.")
+        embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention} are you sure you want to clear your usernames. this decision is **irreversible**.")
         
-        button1 = discord.ui.Button(emoji=self.bot.yes)
-        button2 = discord.ui.Button(emoji=self.bot.no)
+        button1 = discord.ui.Button(emoji=Emojis.approve)
+        button2 = discord.ui.Button(emoji=Emojis.deny)
         
         async def button1_callback(interaction: discord.Interaction): 
           if interaction.user.id != ctx.author.id: return await self.bot.ext.warning(interaction, "you are not the author of this embed", ephemeral=True) 
           
           await self.bot.db.execute("DELETE FROM oldusernames WHERE user_id = $1", ctx.author.id) 
-          return await interaction.response.edit_message(view=None, embed=discord.Embed(color=self.bot.color, description=f"> {self.bot.yes} {interaction.user.mention}: name history cleared"))
+          return await interaction.response.edit_message(view=None, embed=discord.Embed(color=Colors.color, description=f"> {Emojis.approve} {interaction.user.mention}: name history cleared"))
         
         async def button2_callback(interaction: discord.Interaction): 
          if interaction.user.id != ctx.author.id: return await self.bot.ext.warning(interaction, "You are not the author of this embed", ephemeral=True) 
          
-         return await interaction.response.edit_message(view=None, embed=discord.Embed(color=self.bot.color, description=f"aborting action"))  
+         return await interaction.response.edit_message(view=None, embed=discord.Embed(color=Colors.color, description=f"aborting action"))  
         
         button1.callback = button1_callback
         button2.callback = button2_callback
@@ -209,12 +206,12 @@ class utility(commands.Cog):
           l+=1
           if l == 10:
             messages.append(auto)
-            number.append(Embed(color=self.bot.color, description = auto).set_author(name = f"{member}'s past usernames", icon_url = member.display_avatar))
+            number.append(Embed(color=Colors.color, description = auto).set_author(name = f"{member}'s past usernames", icon_url = member.display_avatar))
             i+=1
             auto = ""
             l=0
          messages.append(auto)
-         embed = Embed(description = auto, color = self.bot.color)
+         embed = Embed(description = auto, color = Colors.color)
          embed.set_author(name = f"{member}'s past usernames", icon_url = member.display_avatar)
          number.append(embed)
          if len(number) > 1: return await ctx.warning( f"no logged usernames for **{member}**".capitalize())
@@ -248,7 +245,7 @@ class utility(commands.Cog):
         
         ts = check['time']
         
-        await ctx.reply(embed=Embed(color=self.bot.color, description="{}: **{}** was last seen <t:{}:R>".format(ctx.author.mention, member, ts)))   
+        await ctx.reply(embed=Embed(color=Colors.color, description="{}: **{}** was last seen <t:{}:R>".format(ctx.author.mention, member, ts)))   
 
     @commands.command(description="let everyone know you are away", usage="<reason>")
     async def afk(self, ctx: EvictContext, *, reason="AFK"):      
@@ -295,7 +292,7 @@ class utility(commands.Cog):
             )[index - 1]
 
         embed = discord.Embed(
-            color = self.bot.color,
+            color = Colors.color,
             description=(message.get("content") or ("__Message contained an embed__" if message.get("embeds") else "")),
             timestamp=datetime.datetime.fromtimestamp(message.get("timestamp")),
         )
@@ -366,7 +363,7 @@ class utility(commands.Cog):
             )[index - 1]
 
         embed = discord.Embed(
-            color = self.bot.color,
+            color = Colors.color,
             description=(message.get("content") or ("__Message contained an embed__" if message.get("embeds") else "")),
             timestamp=datetime.datetime.fromtimestamp(message.get("timestamp")),
         )
@@ -392,7 +389,7 @@ class utility(commands.Cog):
       b=len(set(b for b in ctx.guild.members if b.bot))
       h=len(set(b for b in ctx.guild.members if not b.bot))
       
-      embed = Embed(color=self.bot.color)
+      embed = Embed(color=Colors.color)
       
       embed.set_author(name=f"{ctx.guild.name}'s member count", icon_url=ctx.guild.icon)
       embed.add_field(name=f"members (+{len([m for m in ctx.guild.members if (datetime.datetime.now() - m.joined_at.replace(tzinfo=None)).total_seconds() < 3600*24 and not m.bot])})", value=h)
@@ -532,7 +529,7 @@ class utility(commands.Cog):
      
      time = datetime.datetime.fromtimestamp(int(data["current"]["last_updated_epoch"]))
      
-     embed = discord.Embed(color=self.bot.color, title=f"{condition_text} in {place}, {country}", timestamp=time)
+     embed = discord.Embed(color=Colors.color, title=f"{condition_text} in {place}, {country}", timestamp=time)
      embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
      embed.set_thumbnail(url=condition_image)
      embed.add_field(name="Temperature", value=f"{temp_c} °C / {temp_f} °F")
@@ -560,13 +557,13 @@ class utility(commands.Cog):
     @commands.command(description="gets the invite link with administrator permission of a bot", usage="[bot id]")
     async def getbotinvite(self, ctx, id: User):   
       if not id.bot: return await ctx.error("This isn't a bot")
-      embed = Embed(color=self.bot.color, description=f"**[invite the bot](https://discord.com/api/oauth2/authorize?client_id={id.id}&permissions=8&scope=bot%20applications.commands)**")
+      embed = Embed(color=Colors.color, description=f"**[invite the bot](https://discord.com/api/oauth2/authorize?client_id={id.id}&permissions=8&scope=bot%20applications.commands)**")
       await ctx.reply(embed=embed)
     
     @commands.command(aliases=["tr"], description="translate a message", usage="[language] [message]")
     async def translate(self, ctx: EvictContext, lang: str, *, mes: str): 
       translated = GoogleTranslator(source="auto", target=lang).translate(mes)
-      embed = Embed(color=self.bot.color, description="```{}```".format(translated), title="translated to {}".format(lang))
+      embed = Embed(color=Colors.color, description="```{}```".format(translated), title="translated to {}".format(lang))
       await ctx.reply(embed=embed)
     
     @commands.group(invoke_without_command=True, description="check member's birthday", aliases=['bday'])
@@ -639,13 +636,13 @@ class utility(commands.Cog):
         l+=1
         if l == 10:
          messages.append(mes)
-         number.append(Embed(color=self.bot.color, title=f"timezone list", description=messages[i]))
+         number.append(Embed(color=Colors.color, title=f"timezone list", description=messages[i]))
          i+=1
          mes = ""
          l=0
     
      messages.append(mes)
-     embed = Embed(color=self.bot.color, title=f"timezone list", description=messages[i])
+     embed = Embed(color=Colors.color, title=f"timezone list", description=messages[i])
      number.append(embed)
      await ctx.paginate(number) 
 

@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from discord import Embed
 from asyncio import log
 from patches import functions
+from bot.managers.emojis import Emojis, Colors
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class Bot(commands.Cog):
     async def stats(self): 
             channel_id = 1264065200290529350
             channel = self.bot.get_channel(channel_id)
-            embed = discord.Embed(color=self.bot.color, description=f"evict is now online with **{len(self.bot.guilds)}** guilds and **{len(self.bot.users)}** users.")
+            embed = discord.Embed(color=Colors.color, description=f"evict is now online with **{len(self.bot.guilds)}** guilds and **{len(self.bot.users)}** users.")
             try: await channel.send(embed=embed)
             except: return
         
@@ -89,7 +90,7 @@ class Bot(commands.Cog):
             icon= f"[icon]({guild.icon.url})" if guild.icon is not None else "N/A"
             splash=f"[splash]({guild.splash.url})" if guild.splash is not None else "N/A"
             banner=f"[banner]({guild.banner.url})" if guild.banner is not None else "N/A"   
-            embed = discord.Embed(color=self.bot.color, timestamp=datetime.datetime.now(), description=f"evict has joined a guild.")   
+            embed = discord.Embed(color=Colors.color, timestamp=datetime.datetime.now(), description=f"evict has joined a guild.")   
             embed.set_thumbnail(url=guild.icon)
             embed.set_author(name=guild.name, url=guild.icon)
             embed.add_field(name="Owner", value=f"{guild.owner.mention}\n{guild.owner}")
@@ -112,7 +113,7 @@ class Bot(commands.Cog):
             icon= f"[icon]({guild.icon.url})" if guild.icon is not None else "N/A"
             splash=f"[splash]({guild.splash.url})" if guild.splash is not None else "N/A"
             banner=f"[banner]({guild.banner.url})" if guild.banner is not None else "N/A"   
-            embed = discord.Embed(color=self.bot.color, timestamp=datetime.datetime.now(), description=f"evict has left a guild.")   
+            embed = discord.Embed(color=Colors.color, timestamp=datetime.datetime.now(), description=f"evict has left a guild.")   
             embed.set_thumbnail(url=guild.icon)
             embed.set_author(name=guild.name, url=guild.icon)
             embed.add_field(name="Owner", value=f"{guild.owner.mention}\n{guild.owner}")
@@ -142,7 +143,7 @@ class Bot(commands.Cog):
         
             
             embed = Embed(
-                color=self.bot.color,
+                color=Colors.color,
                 title="Getting started with evict",
                 description=(
                     "Hey! Thanks for your interest in **evict bot**. "
@@ -199,7 +200,7 @@ class Bot(commands.Cog):
         
             if check is None:
                 embed = Embed(
-                color=self.bot.color,
+                color=Colors.color,
                 description=(
                     "Hey! Evict is authorization only, please join the [support server](https://discord.gg/evict)"
                     " and request a whitelist."))

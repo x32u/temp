@@ -7,6 +7,7 @@ from patches.classes import Player
 from typing import Optional, Literal
 from discord.ext.commands import Context
 import pomice
+from bot.managers.emojis import Emojis, Colors
 
 class plural:
     def __init__(self, value: int, bold: bool = False, code: bool = False):
@@ -129,14 +130,14 @@ class Player(pomice.Player):
             embed = discord.Embed(
                 title="Now playing",
                 description=f"**LIVE** [{track.title}]({track.uri}) [{track.requester.mention}]",
-                color = self.bot.color
+                color = Colors.color
             )
             self.controller = await self.context.send(embed=embed)
         else:
             embed = discord.Embed(
                 title=f"Now playing",
                 description=f"[{track.title}]({track.uri}) [{track.requester.mention}]",
-                color = self.bot.color
+                color = Colors.color
             )
             self.controller = await self.context.send(embed=embed)
 
@@ -382,7 +383,7 @@ class Music(commands.Cog):
             tracks = [f"[**{track.title}**]({track.uri})" for track in player.queue.get_queue()]
 
         for m in utils.as_chunks(tracks, 10):
-            embed = Embed(color=self.bot.color, title=f"queued in {ctx.guild.name}")
+            embed = Embed(color=Colors.color, title=f"queued in {ctx.guild.name}")
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url)
             embed.add_field(name=f"Tracks:", value='\n'.join([l for l in m]))
             embed.set_footer(text=f"{playing}")
@@ -402,7 +403,7 @@ class Music(commands.Cog):
             return await ctx.invoke(self.bot.get_command("nowplaying"))
         
         elif player.current:
-            embed = discord.Embed(title=f"**Currently Playing:**", color=self.bot.color)
+            embed = discord.Embed(title=f"**Currently Playing:**", color=Colors.color)
             embed.description = f"> **Playing: ** [**{shorten(player.current.title, 23)}**]({player.current.uri})\n > **Time: ** `{format_duration(player.position)}/{format_duration(player.current.length)}`"
             embed.set_footer(text=f"Queue: 1/{player.queue.count}")
             if player.current.thumbnail:

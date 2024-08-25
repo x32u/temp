@@ -7,6 +7,7 @@ from patches.permissions import Permissions
 from patches.fun import MarryView, DiaryModal, Joint
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 class roleplay(commands.Cog):
     def __init__(self, bot: Evict):
@@ -21,7 +22,7 @@ class roleplay(commands.Cog):
       return await ctx.reply(embed=embed)
     
     async def smoke_send(self, ctx: EvictContext, message: str) -> discord.Message: 
-      embed = discord.Embed(color=self.bot.color, description=f"{self.smoke} {ctx.author.mention}: {message}")
+      embed = discord.Embed(color=Colors.color, description=f"{self.smoke} {ctx.author.mention}: {message}")
       return await ctx.reply(embed=embed)
 
     @commands.group(name="joint", invoke_without_command=True, description="have fun with a joint")
@@ -36,7 +37,7 @@ class roleplay(commands.Cog):
       await self.bot.db.execute("INSERT INTO joint VALUES ($1,$2,$3)", ctx.guild.id, 0, ctx.author.id)
       return await self.joint_send(ctx, "The joint is yours")
      await self.bot.db.execute("DELETE FROM joint WHERE guild_id = $1", ctx.guild.id)
-     return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.smoke} {ctx.author.mention}: Got rid of the server's joint")) 
+     return await ctx.reply(embed=discord.Embed(color=Colors.color, description=f"{self.smoke} {ctx.author.mention}: Got rid of the server's joint")) 
     
     @jointcmd.command(name="stats", description="check joint stats", aliases=["status", "settings"])
     @Joint.check_joint()
@@ -54,7 +55,7 @@ class roleplay(commands.Cog):
       newhits = int(check["hits"]+1) 
       mes = await self.joint_send(ctx, "Hitting the **joint**.....")
       await asyncio.sleep(2)
-      embed = discord.Embed(color=self.bot.color, description=f"{self.smoke} {ctx.author.mention}: You just hit the **joint**. This server has a total of **{newhits}** hits!")
+      embed = discord.Embed(color=Colors.color, description=f"{self.smoke} {ctx.author.mention}: You just hit the **joint**. This server has a total of **{newhits}** hits!")
       await mes.edit(embed=embed)
       await self.bot.db.execute("UPDATE joint SET hits = $1 WHERE guild_id = $2", newhits, ctx.guild.id)
     
@@ -86,7 +87,7 @@ class roleplay(commands.Cog):
     async def cuddle(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/cuddle', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just cuddled **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just cuddled **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -95,7 +96,7 @@ class roleplay(commands.Cog):
     async def poke(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/poke', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just poked **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just poked **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -104,7 +105,7 @@ class roleplay(commands.Cog):
     async def kiss(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/kiss', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just kissed **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just kissed **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -113,7 +114,7 @@ class roleplay(commands.Cog):
     async def hug(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/hug', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just hugged **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just hugged **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -122,7 +123,7 @@ class roleplay(commands.Cog):
     async def pat(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/pat', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just patted **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just patted **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -131,7 +132,7 @@ class roleplay(commands.Cog):
     async def tickle(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/tickle', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just tickled **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just tickled **{user.mention}**!")
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
 
@@ -139,7 +140,7 @@ class roleplay(commands.Cog):
     async def lick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/lick', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just licked **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just licked **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -148,7 +149,7 @@ class roleplay(commands.Cog):
     async def slap(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/slap', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just slapped **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just slapped **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -157,7 +158,7 @@ class roleplay(commands.Cog):
     async def spank(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/spank', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just spanked **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just spanked **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -166,7 +167,7 @@ class roleplay(commands.Cog):
     async def feed(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/feed', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fed **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just fed **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -175,7 +176,7 @@ class roleplay(commands.Cog):
     async def punch(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/punch', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just punched **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just punched **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -184,7 +185,7 @@ class roleplay(commands.Cog):
     async def highfive(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/lick', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just highfived **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just highfived **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -193,7 +194,7 @@ class roleplay(commands.Cog):
     async def kill(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/kill', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just killed **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just killed **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -202,7 +203,7 @@ class roleplay(commands.Cog):
     async def bite(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/bite', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just bit **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just bit **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -211,7 +212,7 @@ class roleplay(commands.Cog):
     async def lick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/yeet', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just yeeted **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just yeeted **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -220,7 +221,7 @@ class roleplay(commands.Cog):
     async def nutkick(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/nutkick', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just nutkicked **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just nutkicked **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -229,7 +230,7 @@ class roleplay(commands.Cog):
     async def fuck(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/fuck', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fucked **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just fucked **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -238,7 +239,7 @@ class roleplay(commands.Cog):
     async def threesome(self, ctx: EvictContext, user: discord.Member, user1: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/threesome', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just fucked {str(user.mention)} and {f'{str(user1.mention)}' if user else 'themselves'}!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just fucked {str(user.mention)} and {f'{str(user1.mention)}' if user else 'themselves'}!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -247,7 +248,7 @@ class roleplay(commands.Cog):
     async def hump(self, ctx: EvictContext, user: discord.Member):
             headers = {"api-key": self.bot.evict_api}
             response = await self.bot.session.get_json('https://kure.pl/roleplay/hump', headers=headers)
-            embed = discord.Embed(colour=self.bot.color, description=f"**{ctx.author.mention}** just humped **{user.mention}**!")
+            embed = discord.Embed(colour=Colors.color, description=f"**{ctx.author.mention}** just humped **{user.mention}**!")
             embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
             embed.set_image(url=response["image_url"])
             await ctx.reply(embed=embed)
@@ -269,7 +270,7 @@ class roleplay(commands.Cog):
            check2 = await self.bot.db.fetchrow("SELECT * FROM marry WHERE soulmate = $1", ctx.author.id) 
            if check2 is not None: await ctx.warning("You are already **married**. Are you trying to cheat?? 🤨")
            else:
-             embed = discord.Embed(color=self.bot.color, description=f"**{ctx.author.name}** wants to marry you. do you accept?")
+             embed = discord.Embed(color=Colors.color, description=f"**{ctx.author.name}** wants to marry you. do you accept?")
              view = MarryView(ctx, member)
              view.message = await ctx.reply(content=member.mention, embed=embed, view=view)
     
@@ -281,10 +282,10 @@ class roleplay(commands.Cog):
            check2 = await self.bot.db.fetchrow("SELECT * FROM marry WHERE soulmate = $1", member.id)
            if check2 is None: return await ctx.error(f"{'**You** are' if member == ctx.author else f'**{member.name}** is'} not **married**")
            elif check2 is not None:
-            embed = discord.Embed(color=self.bot.color, description=f"💒 {f'**{member}** is' if member != ctx.author else '**You** are'} currently married to **{await self.bot.fetch_user(int(check2[0]))}** since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check2['time'])))}**")
+            embed = discord.Embed(color=Colors.color, description=f"💒 {f'**{member}** is' if member != ctx.author else '**You** are'} currently married to **{await self.bot.fetch_user(int(check2[0]))}** since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check2['time'])))}**")
             return await ctx.reply(embed=embed)  
       elif check is not None:
-         embed = discord.Embed(color=self.bot.color, description=f"💒 {f'**{member}** is' if member != ctx.author else '**You** are'} currently married to **{await self.bot.fetch_user(int(check[1]))}** since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}**")
+         embed = discord.Embed(color=Colors.color, description=f"💒 {f'**{member}** is' if member != ctx.author else '**You** are'} currently married to **{await self.bot.fetch_user(int(check[1]))}** since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}**")
          return await ctx.reply(embed=embed)   
 
     @commands.command(description="divorce with an user")
@@ -294,21 +295,21 @@ class roleplay(commands.Cog):
            check2 = await self.bot.db.fetchrow("SELECT * FROM marry WHERE soulmate = $1", ctx.author.id)
            if check2 is None: return await ctx.error("**You** are not **married**")
 
-        button1 = Button(emoji=self.bot.yes, style=discord.ButtonStyle.grey)
-        button2 = Button(emoji=self.bot.no, style=discord.ButtonStyle.grey)
-        embed = discord.Embed(color=self.bot.color, description=f"**{ctx.author.name}** are you sure you want to divorce?")
+        button1 = Button(emoji=Emojis.approve, style=discord.ButtonStyle.grey)
+        button2 = Button(emoji=Emojis.deny, style=discord.ButtonStyle.grey)
+        embed = discord.Embed(color=Colors.color, description=f"**{ctx.author.name}** are you sure you want to divorce?")
         async def button1_callback(interaction):
          if interaction.user != ctx.author: return await self.bot.ext.warning(interaction, "You are not the author of this embed", ephemeral=True) 
          if check is None:
             if check2 is not None: await self.bot.db.execute("DELETE FROM marry WHERE soulmate = $1", ctx.author.id)
          elif check is not None: await self.bot.db.execute("DELETE FROM marry WHERE author = $1", ctx.author.id)                    
-         embe = discord.Embed(color=self.bot.color, description=f"**{ctx.author.name}** divorced with their partner")
+         embe = discord.Embed(color=Colors.color, description=f"**{ctx.author.name}** divorced with their partner")
          await interaction.response.edit_message(content=None, embed=embe, view=None)       
         button1.callback = button1_callback  
 
         async def button2_callback(interaction):
           if interaction.user != ctx.author: return await self.bot.ext.warning(interaction, "You are not the author of this embed", ephemeral=True)                       
-          embe = discord.Embed(color=self.bot.color, description=f"**{ctx.author.name}** you changed your mind")
+          embe = discord.Embed(color=Colors.color, description=f"**{ctx.author.name}** you changed your mind")
           await interaction.response.edit_message(content=None, embed=embe, view=None)
         button2.callback = button2_callback  
 
@@ -327,7 +328,7 @@ class roleplay(commands.Cog):
       date = f"{now.month}/{now.day}/{str(now.year)[2:]}"   
       check = await ctx.bot.db.fetchrow("SELECT * FROM diary WHERE user_id = $1 AND date = $2", ctx.author.id, date)
       if check: return await ctx.warning("You **already** have a diary page created today! Please come back tomorrow or delete the diary page you created")    
-      embed = discord.Embed(color=self.bot.color, description=f"{self.book} Press the button below to create a diary page")
+      embed = discord.Embed(color=Colors.color, description=f"{self.book} Press the button below to create a diary page")
       button = discord.ui.Button(emoji=self.book, style=discord.ButtonStyle.blurple)
 
       async def button_callback(interaction: discord.Interaction): 
@@ -346,7 +347,7 @@ class roleplay(commands.Cog):
       results = await self.bot.db.fetch("SELECT * FROM diary WHERE user_id = $1", ctx.author.id)
       if len(results) == 0: return await ctx.warning("You don't have any diary page created")
       embeds = []
-      for result in results: embeds.append(discord.Embed(color=self.bot.color, title=result['title'], description=result['text']).set_author(name=f"diary for {result['date']}").set_footer(text=f"{results.index(result)+1}/{len(results)}"))
+      for result in results: embeds.append(discord.Embed(color=Colors.color, title=result['title'], description=result['text']).set_author(name=f"diary for {result['date']}").set_footer(text=f"{results.index(result)+1}/{len(results)}"))
       return await ctx.paginator(embeds)
     
     @diary.command(name="delete", description="delete a diary page")
@@ -357,7 +358,7 @@ class roleplay(commands.Cog):
      for result in results: 
        try: options.append(discord.SelectOption(label=f"diary {results.index(result)+1} - {result['date']}", value=result['date']))
        except: continue
-     embed = discord.Embed(color=self.bot.color, description="Select the **dropdown** menu below to delete a diary page")  
+     embed = discord.Embed(color=Colors.color, description="Select the **dropdown** menu below to delete a diary page")  
      select = discord.ui.Select(options=options, placeholder="delete a diary page")
      
      async def select_callback(interaction: discord.Interaction): 

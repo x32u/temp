@@ -1,5 +1,6 @@
 from discord.ext import commands 
 import discord
+from bot.managers.emojis import Emojis, Colors
 
 class reacts(commands.Cog): 
   def __init__(self, bot: commands.Bot): 
@@ -22,7 +23,7 @@ class reacts(commands.Cog):
             except: pass                                   
          elif chec is None:
             channel = payload.member.guild.get_channel(check['channel_id'])
-            if not message.embeds: embed = discord.Embed(color=self.bot.color, description=message.content, timestamp=message.created_at.now())
+            if not message.embeds: embed = discord.Embed(color=Colors.color, description=message.content, timestamp=message.created_at.now())
             else: 
               embed = discord.Embed(color=message.embeds[0].color, title=message.embeds[0].title, description=message.embeds[0].description, timestamp=message.created_at.now()) 
               embed.set_image(url=message.embeds[0].image.url)

@@ -11,6 +11,7 @@ from patches.permissions import Permissions
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 poj_cache = {}
 
@@ -31,7 +32,7 @@ class config(Cog):
     @embed.command(description="shows variables for the embed")
     async def variables(self, ctx: EvictContext): 
      
-     embed = Embed(color=self.bot.color, description="to view variables visit https://evict.cc/variables")
+     embed = Embed(color=Colors.color, description="to view variables visit https://evict.cc/variables")
      await ctx.reply(embed=embed)
 
     @Permissions.has_permission(manage_messages=True)
@@ -91,14 +92,14 @@ class config(Cog):
               if l == 10:
                
                messages.append(mes)
-               number.append(Embed(color=self.bot.color, title=f"mediaonly channels ({len(results)})", description=messages[i]))
+               number.append(Embed(color=Colors.color, title=f"mediaonly channels ({len(results)})", description=messages[i]))
                
                i+=1
                mes = ""
                l=0
     
           messages.append(mes)
-          number.append(Embed(color=self.bot.color, title=f"mediaonly channels ({len(results)})", description=messages[i])) 
+          number.append(Embed(color=Colors.color, title=f"mediaonly channels ({len(results)})", description=messages[i])) 
           
           if len(number) > 1: return await ctx.paginate(number) 
           
@@ -193,7 +194,7 @@ class config(Cog):
      check = await self.bot.db.fetchrow("SELECT * FROM starboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("This server does not have starboard **enabled**.") 
      
-     embed = Embed(color=self.bot.color, title="starboard settings")
+     embed = Embed(color=Colors.color, title="starboard settings")
      
      if ctx.guild.get_channel(int(check["channel_id"])): embed.add_field(name="channel", value=ctx.guild.get_channel(int(check["channel_id"])).mention)
      if check["count"]: embed.add_field(name="amount", value=check["count"])
@@ -283,14 +284,14 @@ class config(Cog):
               if l == 10:
                
                messages.append(mes)
-               number.append(Embed(color=self.bot.color, title=f"autoroles ({len(results)})", description=messages[i]))
+               number.append(Embed(color=Colors.color, title=f"autoroles ({len(results)})", description=messages[i]))
                
                i+=1
                mes = ""
                l=0
     
           messages.append(mes)
-          number.append(Embed(color=self.bot.color, title=f"autoroles ({len(results)})", description=messages[i]))
+          number.append(Embed(color=Colors.color, title=f"autoroles ({len(results)})", description=messages[i]))
           
           return await ctx.paginate(number)
 
@@ -468,7 +469,7 @@ class config(Cog):
        if check is not None:
         
         channel = ctx.guild.get_channel(check['channel_id'])   
-        embed = Embed(color=self.bot.color, description=f"confession channel: {channel.mention}\nconfessions sent: **{check['confession']}**")
+        embed = Embed(color=Colors.color, description=f"confession channel: {channel.mention}\nconfessions sent: **{check['confession']}**")
         
         return await ctx.reply(embed=embed)
        return await ctx.warning("Confessions aren't **enabled** in this server.")
@@ -522,7 +523,7 @@ class config(Cog):
      perms = ["administrator", "manage_guild", "manage_roles", "manage_channels", "manage_messages", "manage_nicknames", "manage_emojis", "ban_members", "kick_members", "moderate_members"]
      options = [SelectOption(label=perm.replace("_", " "), value=perm) for perm in perms]
      
-     embed = Embed(color=self.bot.color, description="🔍 Which permissions would you like to add to {}?".format(role.mention))
+     embed = Embed(color=Colors.color, description="🔍 Which permissions would you like to add to {}?".format(role.mention))
      select = Select(placeholder="select permissions", max_values=10, options=options)
 
      async def select_callback(interaction: Interaction):
@@ -534,7 +535,7 @@ class config(Cog):
       if not check: await self.bot.db.execute("INSERT INTO fake_permissions VALUES ($1,$2,$3)", interaction.guild.id, role.id, data)
       else: await self.bot.db.execute("UPDATE fake_permissions SET permissions = $1 WHERE guild_id = $2 AND role_id = $3", data, interaction.guild.id, role.id)      
       
-      await interaction.response.edit_message(embed=Embed(color=self.bot.color, description=f"{self.bot.yes} {interaction.user.mention}: Added **{len(select.values)}** permission{'s' if len(select.values) > 1 else ''} to {role.mention}"), view=None)
+      await interaction.response.edit_message(embed=Embed(color=Colors.color, description=f"{Emojis.approve} {interaction.user.mention}: Added **{len(select.values)}** permission{'s' if len(select.values) > 1 else ''} to {role.mention}"), view=None)
 
      select.callback = select_callback 
      
@@ -567,7 +568,7 @@ class config(Cog):
      if check is None: return await ctx.error("This role has no fake permissions")
      permissions = json.loads(check['permissions'])
      
-     embed = Embed(color=self.bot.color, title=f"@{role.name}'s fake permissions", description="\n".join([f"`{permissions.index(perm)+1}` {perm}" for perm in permissions]))
+     embed = Embed(color=Colors.color, title=f"@{role.name}'s fake permissions", description="\n".join([f"`{permissions.index(perm)+1}` {perm}" for perm in permissions]))
      embed.set_thumbnail(url=role.display_icon)
      
      return await ctx.reply(embed=embed)
@@ -577,7 +578,7 @@ class config(Cog):
       
       perms = ["administrator", "manage_guild", "manage_roles", "manage_channels", "manage_messages", "manage_nicknames", "manage_emojis", "ban_members", "kick_members", "moderate_members"]
       
-      embed = Embed(color=self.bot.color, description="\n".join([f"`{perms.index(perm)+1}` {perm}" for perm in perms])).set_author(icon_url=self.bot.user.display_avatar.url, name="fakepermissions perms list")
+      embed = Embed(color=Colors.color, description="\n".join([f"`{perms.index(perm)+1}` {perm}" for perm in perms])).set_author(icon_url=self.bot.user.display_avatar.url, name="fakepermissions perms list")
       await ctx.reply(embed=embed)  
     
     @command(description="react to a message using the bot", brief="manage messages", usage="[message id / message link] [emoji]")
@@ -622,7 +623,7 @@ class config(Cog):
     
     @counter.command(name="types", description="check the counter types and channel types")
     async def counter_types(self, ctx: EvictContext):
-      embed = Embed(color=self.bot.color, description="to view counters visit https://evict.cc/counters")
+      embed = Embed(color=Colors.color, description="to view counters visit https://evict.cc/counters")
       await ctx.reply(embed=embed)
 
     @counter.command(name="list", description="check a list of the active server counters")
@@ -646,14 +647,14 @@ class config(Cog):
               if l == 10:
                
                messages.append(mes)
-               number.append(Embed(color=self.bot.color, title=f"server counters ({len(results)})", description=messages[i]))
+               number.append(Embed(color=Colors.color, title=f"server counters ({len(results)})", description=messages[i]))
                
                i+=1
                mes = ""
                l=0
     
           messages.append(mes)
-          number.append(Embed(color=self.bot.color, title=f"server counters ({len(results)})", description=messages[i]))
+          number.append(Embed(color=Colors.color, title=f"server counters ({len(results)})", description=messages[i]))
           
           return await ctx.paginate(number) 
 
@@ -830,7 +831,7 @@ class config(Cog):
             return await ctx.warning("There is no sticky message configured in this server.")
         
         embeds = [
-            Embed(color=self.bot.color, title=f"sticky messages", description=f"{ctx.guild.get_channel(result['channel_id'])} ```{result['key']}```",).set_footer(text=f"{results.index(result)+1}/{len(results)}")
+            Embed(color=Colors.color, title=f"sticky messages", description=f"{ctx.guild.get_channel(result['channel_id'])} ```{result['key']}```",).set_footer(text=f"{results.index(result)+1}/{len(results)}")
             for result in results]
         
         await ctx.paginate(embeds)

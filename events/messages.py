@@ -6,6 +6,7 @@ from reposter.reposter import Reposter
 from patches.permissions import Perms
 from collections import defaultdict
 from patches import functions
+from bot.managers.emojis import Emojis, Colors
 
 DISCORD_API_LINK = "https://discord.com/api/invite/"
 
@@ -94,7 +95,7 @@ class Messages(commands.Cog):
           if check is not None: 
            await message.channel.send(f"{message.interaction.user.mention} thanks for bumping the server. You will be reminded in 2 hours!") 
            await asyncio.sleep(7200)
-           embed = discord.Embed(color=self.bot.color, description="Bump the server using the `/bump` command")
+           embed = discord.Embed(color=Colors.color, description="Bump the server using the `/bump` command")
            await message.channel.send(f"{message.interaction.user.mention} time to bump !!", embed=embed)  
 
   @commands.Cog.listener("on_message")
@@ -106,14 +107,14 @@ class Messages(commands.Cog):
         mem = message.mentions[0]
         check = await self.bot.db.fetchrow("SELECT * from afk where guild_id = $1 AND user_id = $2", message.guild.id, mem.id) 
         if check:
-         em = discord.Embed(color=self.bot.color, description=f"💤 **{mem}** is AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}** - {check['reason']}")
+         em = discord.Embed(color=Colors.color, description=f"💤 **{mem}** is AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}** - {check['reason']}")
          await message.reply(embed=em)
       else: 
        embeds = [] 
        for mem in message.mentions:
          check = await self.bot.db.fetchrow("SELECT * from afk where guild_id = $1 AND user_id = $2", message.guild.id, mem.id) 
          if check:
-          em = discord.Embed(color=self.bot.color, description=f"💤 **{mem}** is AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}** - {check['reason']}")
+          em = discord.Embed(color=Colors.color, description=f"💤 **{mem}** is AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(check['time'])))}** - {check['reason']}")
           embeds.append(em)
          if len(embeds) == 10: 
            await message.reply(embeds=embeds)
@@ -123,7 +124,7 @@ class Messages(commands.Cog):
 
      che = await self.bot.db.fetchrow("SELECT * from afk where guild_id = $1 AND user_id = $2", message.guild.id, message.author.id) 
      if che:
-      embed = discord.Embed(color=self.bot.color, description=f"<a:wave:1020721034934104074> Welcome back **{message.author}**! You were AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(che['time'])))}**")
+      embed = discord.Embed(color=Colors.color, description=f"<a:wave:1020721034934104074> Welcome back **{message.author}**! You were AFK since **{self.bot.ext.relative_time(datetime.datetime.fromtimestamp(int(che['time'])))}**")
       try: await message.reply(embed=embed)
       except: pass
       await self.bot.db.execute("DELETE FROM afk WHERE guild_id = $1 AND user_id = $2", message.guild.id, message.author.id)    
@@ -341,9 +342,9 @@ class Messages(commands.Cog):
                         if not message.author.is_timed_out():
                             await message.channel.send(
                                 embed=discord.Embed(
-                                    color=self.bot.color,
+                                    color=Colors.color,
                                     title="AutoMod",
-                                    description=f"{self.bot.warning} {message.author.mention}: You have been muted for **1 minute** for spamming messages in this channel",
+                                    description=f"{Emojis.warn} {message.author.mention}: You have been muted for **1 minute** for spamming messages in this channel",
                                 )
                             )
                             await message.author.timeout(
@@ -413,7 +414,7 @@ class Messages(commands.Cog):
            if int(data["guild"]["id"]) == message.guild.id: return
            await message.delete()
            await message.author.timeout(discord.utils.utcnow() + datetime.timedelta(minutes=1), reason="AutoMod: Sending invites")
-           await message.channel.send(embed=discord.Embed(color=self.bot.color, title="AutoMod", description=f"{self.bot.warning} {message.author.mention}: You have been muted for **1 minute** for sending discord invites in this channel"))
+           await message.channel.send(embed=discord.Embed(color=Colors.color, title="AutoMod", description=f"{Emojis.warn} {message.author.mention}: You have been muted for **1 minute** for sending discord invites in this channel"))
           except KeyError: pass  
 
   @commands.Cog.listener('on_message')
@@ -444,7 +445,7 @@ class Messages(commands.Cog):
            if int(data["guild"]["id"]) == message.guild.id: return
            await message.delete()
            await message.author.timeout(discord.utils.utcnow() + datetime.timedelta(minutes=5), reason="AudoMod: Sending invites")
-           await message.channel.send(embed=discord.Embed(color=self.bot.color, title="AutoMod", description=f"{self.bot.warning} {message.author.mention}: You have been muted for **5 minutes** for sending discord invites in this channel"))
+           await message.channel.send(embed=discord.Embed(color=Colors.color, title="AutoMod", description=f"{Emojis.warn} {message.author.mention}: You have been muted for **5 minutes** for sending discord invites in this channel"))
           except KeyError: pass      
 
 

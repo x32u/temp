@@ -6,6 +6,7 @@ from discord import Embed, TextChannel, PartialEmoji
 from patches.permissions import Permissions
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 class skull(commands.Cog):
     def __init__(self, bot: Evict):
@@ -46,7 +47,7 @@ class skull(commands.Cog):
     async def skull_stats(self, ctx: EvictContext): 
      check = await self.bot.db.fetchrow("SELECT * FROM skullboard WHERE guild_id = $1", ctx.guild.id)
      if check is None: return await ctx.warning("skullboard is not **enabled**") 
-     embed = Embed(color=self.bot.color, title="skullboard settings")
+     embed = Embed(color=Colors.color, title="skullboard settings")
      if ctx.guild.get_channel(int(check["channel_id"])): embed.add_field(name="channel", value=ctx.guild.get_channel(int(check["channel_id"])).mention)
      if check["count"]: embed.add_field(name="amount", value=check["count"])
      if check["emoji_text"]: embed.add_field(name="emoji", value=check["emoji_text"])
@@ -79,7 +80,7 @@ class skull(commands.Cog):
             except: pass                                   
          elif chec is None:
             channel = payload.member.guild.get_channel(check['channel_id'])
-            if not message.embeds: embed = discord.Embed(color=self.bot.color, description=message.content, timestamp=message.created_at.now())
+            if not message.embeds: embed = discord.Embed(color=Colors.color, description=message.content, timestamp=message.created_at.now())
             else: 
               embed = discord.Embed(color=message.embeds[0].color, title=message.embeds[0].title, description=message.embeds[0].description, timestamp=message.created_at.now()) 
               embed.set_image(url=message.embeds[0].image.url)

@@ -8,6 +8,7 @@ from patches.classes import Mod
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 class ValidTime(commands.Converter):
   async def convert(self, ctx: EvictContext, argument: int):
@@ -82,7 +83,7 @@ class moderation(commands.Cog):
    check = await self.bot.db.fetchrow("SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id)
    if not check: return await ctx.warning( "Moderation is **not** enabled in this server") 
    view = ClearMod(ctx)
-   view.message = await ctx.reply(view=view, embed=discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Are you sure you want to disable moderation?")) 
+   view.message = await ctx.reply(view=view, embed=discord.Embed(color=Colors.color, description=f"{ctx.author.mention} Are you sure you want to disable moderation?")) 
 
   @commands.command(description="enable the moderation features in your server", brief="administrator", help="moderation")
   @Permissions.has_permission(administrator=True)
@@ -107,11 +108,11 @@ class moderation(commands.Cog):
   @commands.cooldown(1, 30, commands.BucketType.guild)
   async def nuke(self, ctx: EvictContext, channel: discord.TextChannel = None): 
    
-   embed = discord.Embed(color=self.bot.color, description=f"Do you want to **nuke** this channel?")
+   embed = discord.Embed(color=Colors.color, description=f"Do you want to **nuke** this channel?")
    
-   yes = discord.ui.Button(emoji=self.bot.yes)
+   yes = discord.ui.Button(emoji=Emojis.approve)
    
-   no = discord.ui.Button(emoji=self.bot.no)
+   no = discord.ui.Button(emoji=Emojis.deny)
    
    guild = ctx.guild
    
@@ -138,7 +139,7 @@ class moderation(commands.Cog):
    
    async def no_callback(interaction: discord.Interaction): 
     if not interaction.user: return await self.bot.ext.warning(interaction, "You are not the **author** of this embed", ephemeral=True)
-    await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description="aborting action"), view=None)
+    await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description="aborting action"), view=None)
    
    yes.callback = yes_callback
    no.callback = no_callback 
@@ -161,7 +162,7 @@ class moderation(commands.Cog):
       await member.edit(roles=[r for r in roles if r.position < ctx.guild.get_member(self.bot.user.id).top_role.position and r != ctx.guild.premium_subscriber_role and r != '@everyone'], reason=reason + " | {}".format(ctx.author))
       await ModConfig.sendlogs(self.bot, "restore", ctx.author, member, reason + " | " + str(ctx.author))
       await self.bot.db.execute(f"DELETE FROM restore WHERE user_id = {member.id} AND guild_id = {ctx.guild.id}")
-      embed = discord.Embed(color=self.bot.color, title="roles restored", description=f"target: **{member}**")
+      embed = discord.Embed(color=Colors.color, title="roles restored", description=f"target: **{member}**")
       embed.set_thumbnail(url=member.display_avatar.url)
       embed.add_field(name="added", value='none' if succeed == ', ' else succeed or "none", inline=False)
       embed.add_field(name="failed", value='none' if failed == ', ' else failed or "none", inline=False)
@@ -181,13 +182,13 @@ class moderation(commands.Cog):
   @commands.command(alises=["nicknameclear"], description="clear everyone's nickname", brief="administrator")
   @Permissions.has_permission(administrator=True)
   async def nickclear(self, ctx: EvictContext):
-    embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} **removing** everyone's nickname.")
+    embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention} **removing** everyone's nickname.")
     message = await ctx.reply(embed=embed)
     for members in ctx.guild.members:
       if members.nick:
         try: await members.edit(nick=None, reason=f'nickname clear ran by {ctx.author}')
         except discord.Forbidden: continue
-      await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: **removed** everyone's nickname."))
+      await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: **removed** everyone's nickname."))
 
   @Mod.is_mod_configured()
   @commands.command(aliases=['uta'], description='untimeout all users', help='moderation')
@@ -371,13 +372,13 @@ class moderation(commands.Cog):
               l+=1
               if l == 10:
                messages.append(mes)
-               number.append(discord.Embed(color=self.bot.color, title=f"warns ({len(check)})", description=messages[i]))
+               number.append(discord.Embed(color=Colors.color, title=f"warns ({len(check)})", description=messages[i]))
                i+=1
                mes = ""
                l=0
     
       messages.append(mes)
-      embed = discord.Embed(color=self.bot.color, title=f"warns ({len(check)})", description=messages[i]).set_footer(text="All times are GMT")
+      embed = discord.Embed(color=Colors.color, title=f"warns ({len(check)})", description=messages[i]).set_footer(text="All times are GMT")
       number.append(embed)
       await ctx.paginate(number)
 
@@ -590,15 +591,15 @@ class moderation(commands.Cog):
   async def rolehumansremove(self, ctx: EvictContext, *, role: GoodRole):
       if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from users that have dangerous permissions.')
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from users.')
-      embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all humans.")
+      embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention} Removing {role.mention} from all humans.")
       message = await ctx.reply(embed=embed)
       try:
          for member in [m for m in ctx.guild.members if not m.bot]: 
             if not role in member.roles: continue
             await member.remove_roles(role, reason=f"{ctx.author}: massrole")
 
-         await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Removed {role.mention} from all humans"))
-      except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to remove {role.mention} from all humans"))  
+         await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Removed {role.mention} from all humans"))
+      except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to remove {role.mention} from all humans"))  
   
   @Mod.is_mod_configured()
   @rolehumans.command(name="add", description="add a role to all humans in this server", usage='[role]', brief="manage_roles")  
@@ -606,15 +607,15 @@ class moderation(commands.Cog):
   async def rolehumansadd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant assign roles to users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
-    embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all humans.")
+    embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention}: Adding {role.mention} to all humans.")
     message = await ctx.reply(embed=embed)
     try:
      for member in [m for m in ctx.guild.members if not m.bot]: 
        if role in member.roles: continue
        await member.add_roles(role, reason=f"{ctx.author}: massrole")
 
-     await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Added {role.mention} to all humans"))
-    except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to add {role.mention} to all humans")) 
+     await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Added {role.mention} to all humans"))
+    except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to add {role.mention} to all humans")) 
 
   @role.group(invoke_without_command=True, name="bots", description="mass add or remove roles from members", help="moderation")  
   async def rolebots(self, ctx: EvictContext):
@@ -626,15 +627,15 @@ class moderation(commands.Cog):
   async def rolebotsremove(self, ctx: EvictContext, *, role: GoodRole):
       if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from bots that have dangerous permissions.')
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from bots.')
-      embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all bots.")
+      embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention} Removing {role.mention} from all bots.")
       message = await ctx.reply(embed=embed)
       try:
          for member in [m for m in ctx.guild.members if m.bot]: 
             if not role in member.roles: continue
             await member.remove_roles(role, reason=f"{ctx.author}: massrole")
 
-         await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Removed {role.mention} from all bots"))
-      except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to remove {role.mention} from all bots"))  
+         await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Removed {role.mention} from all bots"))
+      except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to remove {role.mention} from all bots"))  
   
   @Mod.is_mod_configured()
   @rolebots.command(name="add", description="add a role to all bots in this server", usage='[role]', brief="manage_roles")  
@@ -642,15 +643,15 @@ class moderation(commands.Cog):
   async def rolebotsadd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant remove roles from users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to bots.')
-    embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all bots.")
+    embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention}: Adding {role.mention} to all bots.")
     message = await ctx.reply(embed=embed)
     try:
      for member in [m for m in ctx.guild.members if m.bot]: 
        if role in member.roles: continue
        await member.add_roles(role, reason=f"{ctx.author}: massrole")
 
-     await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Added {role.mention} to all bots"))
-    except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to add {role.mention} to all bots"))    
+     await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Added {role.mention} to all bots"))
+    except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to add {role.mention} to all bots"))    
 
   @role.group(invoke_without_command=True, name="all", description="mass add or remove roles from members", help="moderation")  
   async def roleall(self, ctx: EvictContext):
@@ -661,15 +662,15 @@ class moderation(commands.Cog):
   @Permissions.has_permission(manage_roles=True) 
   async def roleallremove(self, ctx: EvictContext, *, role: GoodRole):
       if role.is_premium_subscriber(): return await ctx.warning('I cant remove integrated roles from users.')
-      embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention} Removing {role.mention} from all members.")
+      embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention} Removing {role.mention} from all members.")
       message = await ctx.reply(embed=embed)
       try:
          for member in ctx.guild.members: 
             if not role in member.roles: continue
             await member.remove_roles(role, reason=f"{ctx.author}: massrole")
 
-         await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Removed {role.mention} from all members"))
-      except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to remove {role.mention} from all members"))  
+         await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Removed {role.mention} from all members"))
+      except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to remove {role.mention} from all members"))  
   
   @Mod.is_mod_configured()
   @roleall.command(name="add", description="add a role to all members in this server", usage='[role]', brief="manage_roles")  
@@ -677,15 +678,15 @@ class moderation(commands.Cog):
   async def rolealladd(self, ctx: EvictContext, *, role: GoodRole):  
     if self.bot.ext.is_dangerous(role): return await ctx.warning('I cant assign roles to users that have dangerous permissions.')
     if role.is_premium_subscriber(): return await ctx.warning('I cant assign integrated roles to users.')
-    embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: Adding {role.mention} to all members.")
+    embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention}: Adding {role.mention} to all members.")
     message = await ctx.reply(embed=embed)
     try:
      for member in ctx.guild.members: 
        if role in member.roles: continue
        await member.add_roles(role, reason=f"{ctx.author}: massrole")
 
-     await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: Added {role.mention} to all members"))
-    except Exception: await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.author.mention}: Unable to add {role.mention} to all members"))
+     await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: Added {role.mention} to all members"))
+    except Exception: await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.author.mention}: Unable to add {role.mention} to all members"))
 
   @commands.group(name="autokick", aliases=["aks"], invoke_without_command=True)
   async def autokick(self, ctx): 
@@ -733,13 +734,13 @@ class moderation(commands.Cog):
               l+=1
               if l == 10:
                messages.append(mes)
-               number.append(discord.Embed(color=self.bot.color, title=f"autokick list [{len(results)}]", description=messages[i]))
+               number.append(discord.Embed(color=Colors.color, title=f"autokick list [{len(results)}]", description=messages[i]))
                i+=1
                mes = ""
                l=0
     
           messages.append(mes)          
-          number.append(discord.Embed(color=self.bot.color, title=f"autokick list [{len(results)}]", description=messages[i]))
+          number.append(discord.Embed(color=Colors.color, title=f"autokick list [{len(results)}]", description=messages[i]))
           await ctx.paginate(number)
 
   @commands.group(name="private", invoke_without_command=True)
@@ -802,13 +803,13 @@ class moderation(commands.Cog):
               l+=1
               if l == 10:
                messages.append(mes)
-               number.append(discord.Embed(color=self.bot.color, title=f"private whitelist [{len(results)}]", description=messages[i]))
+               number.append(discord.Embed(color=Colors.color, title=f"private whitelist [{len(results)}]", description=messages[i]))
                i+=1
                mes = ""
                l=0
     
           messages.append(mes)          
-          number.append(discord.Embed(color=self.bot.color, title=f"private whitelist [{len(results)}]", description=messages[i]))
+          number.append(discord.Embed(color=Colors.color, title=f"private whitelist [{len(results)}]", description=messages[i]))
           await ctx.paginate(number)
         
 async def setup(bot: Evict): 

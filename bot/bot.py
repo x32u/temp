@@ -111,12 +111,6 @@ class Evict(commands.AutoShardedBot):
         
         self.color = 0xCCCCFF
         self.error_color= 0xFFFFED
-        self.yes = "<:approve:1271155661451034666>"
-        self.no = "<:deny:1269374707484852265>"
-        self.warning = "<:warn:1263727178802004021>"
-        self.left = "<:left:1263727060078035066>"
-        self.right = "<:right:1263727130370637995>"
-        self.goto = "<:filter:1263727034798968893>"
         self.pomice = pomice.NodePool()
         
         self.ext = Client(self)

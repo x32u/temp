@@ -6,17 +6,7 @@ from discord.ui import Modal
 from patches.permissions import Permissions
 from bot.helpers import EvictContext
 
-unlockemoji = "<:unlock:1263730907680870435>"
-lockemoji = "<:lock:1263727069095919698>"
-plusemoji = "<:increase:1263731093845315654>"
-minusemoji = "<:decrease:1263731510239035442>"
-channelemoji = "<:rename:1263727430561169560>"
-unghostemoji = "<:reveal:1263731670121709568>"
-ghostemoji = "<:hide:1263731781157392396>"
-claimemoji = "<:claim:1263731873167708232>"
-hammeremoji = "<:moderate:1263727075198763101>"
-manemoji = "<:information:1263727043967717428>" 
-trashemoji = "<:trash:1263727144832602164>"
+from bot.managers.emojis import Emojis, Colors
 
 async def check_owner(ctx: EvictContext):
             check = await ctx.bot.db.fetchrow("SELECT * FROM vcs WHERE voice = $1 AND user_id = $2", ctx.author.voice.channel.id, ctx.author.id)
@@ -75,7 +65,7 @@ class vmbuttons(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="", emoji=lockemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:lock")    
+    @discord.ui.button(label="", emoji=Emojis.lock, style=discord.ButtonStyle.gray, custom_id="persistent_view:lock")    
     async def lock(self, interaction: discord.Interaction, button: discord.ui.Button):
           check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
           if check is not None:     
@@ -90,7 +80,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.set_permissions(interaction.guild.default_role, connect=False)
               await interaction.client.ext.success(interaction, f"I **locked** <#{interaction.user.voice.channel.id}>.", ephemeral=True)   
 
-    @discord.ui.button(label="", emoji=unlockemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:unlock")
+    @discord.ui.button(label="", emoji=Emojis.unlock, style=discord.ButtonStyle.gray, custom_id="persistent_view:unlock")
     async def unlock(self, interaction: discord.Interaction, button: discord.ui.Button):   
         check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
         if check is not None:     
@@ -105,7 +95,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.set_permissions(interaction.guild.default_role, connect=True)
               await interaction.client.ext.success(interaction, f"I **unlocked** <#{interaction.user.voice.channel.id}>.", ephemeral=True)
 
-    @discord.ui.button(label="", emoji=unghostemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:reveal")
+    @discord.ui.button(label="", emoji=Emojis.reveal, style=discord.ButtonStyle.gray, custom_id="persistent_view:reveal")
     async def reveal(self, interaction: discord.Interaction, button: discord.ui.Button):
         check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
         if check is not None:     
@@ -120,7 +110,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.set_permissions(interaction.guild.default_role, view_channel=True)
               await interaction.client.ext.success(interaction, f"I **revealed** <#{interaction.user.voice.channel.id}>.", ephemeral=True)
       
-    @discord.ui.button(label="", emoji=ghostemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:hide")
+    @discord.ui.button(label="", emoji=Emojis.hide, style=discord.ButtonStyle.gray, custom_id="persistent_view:hide")
     async def hide(self, interaction: discord.Interaction, button: discord.ui.Button):
         check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
         if check is not None:     
@@ -135,7 +125,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.set_permissions(interaction.guild.default_role, view_channel=False)
               await interaction.client.ext.success(interaction, f"I **hid** <#{interaction.user.voice.channel.id}>.", ephemeral=True)  
 
-    @discord.ui.button(label="", emoji=channelemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:rename")
+    @discord.ui.button(label="", emoji=Emojis.rename, style=discord.ButtonStyle.gray, custom_id="persistent_view:rename")
     async def rename(self, interaction: discord.Interaction, button: discord.ui.Button): 
        check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
        if check is not None:     
@@ -150,7 +140,7 @@ class vmbuttons(discord.ui.View):
                 rename = vcModal()
                 await interaction.response.send_modal(rename)
     
-    @discord.ui.button(label="", emoji=plusemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:increase")
+    @discord.ui.button(label="", emoji=Emojis.increase, style=discord.ButtonStyle.gray, custom_id="persistent_view:increase")
     async def increase(self, interaction: discord.Interaction, button: discord.ui.Button):
         check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
         if check is not None:     
@@ -168,7 +158,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.edit(user_limit=res)
               await interaction.client.ext.success(interaction, f"I **increased** <#{interaction.user.voice.channel.id}> limit to **{res}** members.", ephemeral=True)
 
-    @discord.ui.button(label="", emoji=minusemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:decrease")
+    @discord.ui.button(label="", emoji=Emojis.decrease, style=discord.ButtonStyle.gray, custom_id="persistent_view:decrease")
     async def decrease(self, interaction: discord.Interaction, button: discord.ui.Button):
         check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
         if check is not None:     
@@ -186,7 +176,7 @@ class vmbuttons(discord.ui.View):
               await interaction.user.voice.channel.edit(user_limit=res)
               await interaction.client.ext.success(interaction, f" I **decreased** <#{interaction.user.voice.channel.id}> limit to **{res}** members.", ephemeral=True)
     
-    @discord.ui.button(label="", emoji=claimemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:claim")
+    @discord.ui.button(label="", emoji=Emojis.claim, style=discord.ButtonStyle.gray, custom_id="persistent_view:claim")
     async def claim(self, interaction: discord.Interaction, button: discord.ui.Button):
          check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
          if check is not None:     
@@ -203,7 +193,7 @@ class vmbuttons(discord.ui.View):
                     await interaction.client.db.execute(f"UPDATE vcs SET user_id = $1 WHERE voice = $2", interaction.user.id, interaction.user.voice.channel.id)
                     return await interaction.client.ext.success(interaction, "you are the new owner of this voice channel", ephemeral=True)     
     
-    @discord.ui.button(label="", emoji=manemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:info")
+    @discord.ui.button(label="", emoji=Emojis.information, style=discord.ButtonStyle.gray, custom_id="persistent_view:info")
     async def info(self, interaction: discord.Interaction, button: discord.ui.Button):
          check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
          if not interaction.user.voice: return await interaction.client.ext.warning(interaction, "You are **not** in a voice channel.", ephemeral=True)
@@ -217,7 +207,7 @@ class vmbuttons(discord.ui.View):
                 embed.set_thumbnail(url=member.display_avatar)
                 await interaction.response.send_message(embed=embed, view=None, ephemeral=True)
                 
-    @discord.ui.button(label="", emoji=trashemoji, style=discord.ButtonStyle.gray, custom_id="persistent_view:trash")
+    @discord.ui.button(label="", emoji=Emojis.trash, style=discord.ButtonStyle.gray, custom_id="persistent_view:trash")
     async def trash(self, interaction: discord.Interaction, button: discord.ui.Button):
          check = await interaction.client.db.fetchrow("SELECT * FROM voicemaster WHERE guild_id = $1", interaction.guild.id) 
          if not interaction.user.voice: return await interaction.client.ext.warning(interaction, "You are **not** in a voice channel.", ephemeral=True)
@@ -230,10 +220,10 @@ class voicemaster(commands.Cog):
         self.bot = bot
    
    def create_interface(self, ctx: EvictContext) -> discord.Embed: 
-     em = discord.Embed(color=self.bot.color, title="VoiceMaster Interface", description="Click the buttons below to control the voice channel")    
+     em = discord.Embed(color=Colors.color, title="VoiceMaster Interface", description="Click the buttons below to control the voice channel")    
      em.set_author(name=ctx.guild.name, icon_url=ctx.guild.icon)
      em.set_thumbnail(url=ctx.guild.icon)
-     em.add_field(name="Button Usage", value=f"{lockemoji} — Lock the voice channel\n{unlockemoji} — Unlock the voice channel\n{ghostemoji} — Hide the voice channel\n{unghostemoji} — Reveal the voice channel\n{channelemoji} — Rename the voice channel\n{plusemoji} — Increase the user limit\n{minusemoji} — Decrease the user limit\n{claimemoji} — Claim the voice channel\n{manemoji} — Info of the channel\n{trashemoji} — Delete the voice channel")
+     em.add_field(name="Button Usage", value=f"{Emojis.lock} — Lock the voice channel\n{Emojis.unlock} — Unlock the voice channel\n{Emojis.hide} — Hide the voice channel\n{Emojis.reveal} — Reveal the voice channel\n{Emojis.rename} — Rename the voice channel\n{Emojis.increase} — Increase the user limit\n{Emojis.decrease} — Decrease the user limit\n{Emojis.claim} — Claim the voice channel\n{Emojis.information} — Info of the channel\n{Emojis.trash} — Delete the voice channel")
      return em
 
    async def get_channel_categories(self, channel: discord.VoiceChannel, member: discord.Member) -> bool: 

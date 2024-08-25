@@ -7,6 +7,7 @@ from geopy.geocoders import Nominatim
 from discord.ext import commands
 from discord.ext.commands import Context
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 class ValidAutoreact(commands.EmojiConverter):
     async def convert(self, ctx: commands.Context, argument: str):
@@ -198,7 +199,7 @@ class Timezone(object):
    }
   
   async def timezone_send(self, ctx: Context, message: str):
-   return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.clock} {ctx.author.mention}: {message}"))
+   return await ctx.reply(embed=discord.Embed(color=Colors.color, description=f"{self.clock} {ctx.author.mention}: {message}"))
   
   async def timezone_request(self, member: discord.Member):
    coord = await self.get_user_lat_long(member)
@@ -239,7 +240,7 @@ class Timezone(object):
    else: 
      await self.bot.db.execute("DELETE FROM timezone WHERE user_id = $1", ctx.author.id)
      await self.bot.db.execute("INSERT INTO timezone VALUES ($1,$2)", ctx.author.id, result)
-   embed = Embed(color=self.bot.color, description=f"Saved your timezone as **{result}**\n{self.clock} Current time: **{await self.timezone_request(ctx.author)}**")
+   embed = Embed(color=Colors.color, description=f"Saved your timezone as **{result}**\n{self.clock} Current time: **{await self.timezone_request(ctx.author)}**")
    await ctx.reply(embed=embed)
 
   async def get_user_timezone(self, ctx: Context, member: discord.Member): 

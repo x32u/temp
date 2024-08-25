@@ -4,6 +4,7 @@ from discord.ext import commands
 from patches.permissions import Permissions
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 def get_progress(xp, level):
   corner_black_left = "<:blue_left_rounded:1263743883569926224>"
@@ -94,12 +95,12 @@ class leveling(commands.Cog):
     check = await self.bot.db.fetchrow("SELECT * FROM levelsetup WHERE guild_id = {}".format(ctx.guild.id)) 
     if check is None: return await ctx.error("Levels **aren't** enabled in this server.")
     che = await self.bot.db.fetchrow("SELECT * FROM levels WHERE guild_id = {} AND author_id = {}".format(ctx.guild.id, member.id))
-    if che is None: return await ctx.reply(embed=discord.Embed(color=self.bot.color, title=f"{member.name}'s rank").set_author(name=member, icon_url=member.display_avatar.url).add_field(name="xp", value="**{}**".format("0")).add_field(name="level", value="**{}**".format("0")).add_field(name="progress (0%)", value=get_progress(0, 0), inline=False))
+    if che is None: return await ctx.reply(embed=discord.Embed(color=Colors.color, title=f"{member.name}'s rank").set_author(name=member, icon_url=member.display_avatar.url).add_field(name="xp", value="**{}**".format("0")).add_field(name="level", value="**{}**".format("0")).add_field(name="progress (0%)", value=get_progress(0, 0), inline=False))
     level = int(che['level'])
     xp = int(che['exp'])
     xp_end = math.floor(5 * math.sqrt(level) + 50 * level + 30)
     percentage = int(xp/xp_end * 100)
-    return await ctx.reply(embed=discord.Embed(color=self.bot.color, title=f"{member.name}'s rank").set_author(name=member, icon_url=member.display_avatar.url).add_field(name="xp", value="**{}**".format(str(xp))).add_field(name="level", value="**{}**".format(str(level))).add_field(name="progress ({}%)".format(percentage), value=get_progress(xp, level), inline=False))               
+    return await ctx.reply(embed=discord.Embed(color=Colors.color, title=f"{member.name}'s rank").set_author(name=member, icon_url=member.display_avatar.url).add_field(name="xp", value="**{}**".format(str(xp))).add_field(name="level", value="**{}**".format(str(level))).add_field(name="progress ({}%)".format(percentage), value=get_progress(xp, level), inline=False))               
   
   @commands.group(invoke_without_command=True)
   async def level(self, ctx: EvictContext): 
@@ -158,12 +159,12 @@ class leveling(commands.Cog):
        l+=1
        if l == 10:
          messages.append(auto)
-         number.append(discord.Embed(color=self.bot.color, description = auto).set_author(name = f"level rewards", icon_url = ctx.guild.icon.url or None))
+         number.append(discord.Embed(color=Colors.color, description = auto).set_author(name = f"level rewards", icon_url = ctx.guild.icon.url or None))
          i+=1
          auto = ""
          l=0
       messages.append(auto)
-      embed = discord.Embed(description = auto, color = self.bot.color)
+      embed = discord.Embed(description = auto, color = Colors.color)
       embed.set_author(name = f"Level Rewards", icon_url = ctx.guild.icon.url or None)
       number.append(embed)
       await ctx.paginate(number)
@@ -205,7 +206,7 @@ class leveling(commands.Cog):
       l+=1
       if l == 10: break
     messages.append(auto)
-    embed = discord.Embed(description = auto, color = self.bot.color)
+    embed = discord.Embed(description = auto, color = Colors.color)
     embed.set_author(name = f"Level Leaderboard", icon_url = ctx.guild.icon.url or None)
     await ctx.send(embed=embed)     
          

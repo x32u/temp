@@ -9,6 +9,7 @@ from bot.headers import Session
 from patches.fun import RockPaperScissors, BlackTea, TicTacToe, Pack
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 api = API("0cfD&erb1KAjSj7UcGk0")
 
@@ -22,12 +23,12 @@ class fun(commands.Cog):
      choices = choice.split(", ")
      if len(choices) == 1: return await ctx.reply("please put a `,` between your choices")
      final = random.choice(choices)
-     await ctx.reply(embed=discord.Embed(color=self.bot.color, description=final))
+     await ctx.reply(embed=discord.Embed(color=Colors.color, description=final))
 
     @Permissions.has_permission(manage_messages=True)
     @commands.command(name="poll", description="start a quick poll", help="fun", brief="manage messages")
     async def poll(self, ctx: EvictContext, *, question: str): 
-      message = await ctx.send(embed=discord.Embed(color=self.bot.color, description=question).set_author(name=f"{ctx.author} asked"))
+      message = await ctx.send(embed=discord.Embed(color=Colors.color, description=question).set_author(name=f"{ctx.author} asked"))
       await message.add_reaction("👍")
       await message.add_reaction("👎")
 
@@ -38,7 +39,7 @@ class fun(commands.Cog):
     @commands.command(aliases=["rps"], description="play rock paper scissors with the bot", help="fun")
     async def rockpaperscisssors(self, ctx: EvictContext): 
       view = RockPaperScissors(ctx)
-      embed = discord.Embed(color=self.bot.color, title="Rock Paper Scissors!", description="Click a button to play!")
+      embed = discord.Embed(color=Colors.color, title="Rock Paper Scissors!", description="Click a button to play!")
       view.message = await ctx.reply(embed=embed, view=view)    
     
     @commands.group(invoke_without_command=True)
@@ -55,35 +56,35 @@ class fun(commands.Cog):
     
     @commands.command(description="retard rate an user", help="fun", usage="<member>")
     async def howretarded(self, ctx, member: discord.Member=commands.Author):
-     if member.id in self.bot.owner_ids: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="how retarded", description=f"{member.mention} is `0%` retarded <a:dumbass:1265487107196190802>"))
-     else: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="how retarded", description=f"{member.mention} is `{randrange(100)}%` retarded <a:dumbass:1265487107196190802>"))
+     if member.id in self.bot.owner_ids: await ctx.reply(embed=discord.Embed(color=Colors.color, title="how retarded", description=f"{member.mention} is `0%` retarded <a:dumbass:1265487107196190802>"))
+     else: await ctx.reply(embed=discord.Embed(color=Colors.color, title="how retarded", description=f"{member.mention} is `{randrange(100)}%` retarded <a:dumbass:1265487107196190802>"))
 
     @commands.command(description="gay rate an user", help="fun", usage="<member>")
     async def howgay(self, ctx, member: discord.Member=commands.Author):
-     if member.id in self.bot.owner_ids: return await ctx.reply(embed=discord.Embed(color=self.bot.color, title="gay r8", description=f"{member.mention} is `0%` gay 🏳️‍🌈"))
-     else:await ctx.reply(embed=discord.Embed(color=self.bot.color, title="gay r8", description=f"{member.mention} is `{randrange(100)}%` gay 🏳️‍🌈"))
+     if member.id in self.bot.owner_ids: return await ctx.reply(embed=discord.Embed(color=Colors.color, title="gay r8", description=f"{member.mention} is `0%` gay 🏳️‍🌈"))
+     else:await ctx.reply(embed=discord.Embed(color=Colors.color, title="gay r8", description=f"{member.mention} is `{randrange(100)}%` gay 🏳️‍🌈"))
     
     @commands.command(description="cool rate an user", help="fun", usage="<member>")
     async def howcool(self, ctx, member: discord.Member=commands.Author):
      if member.id in self.bot.owner_ids: return
-     else: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="cool r8", description=f"{member.mention} is `{randrange(100)}%` cool 😎"))
+     else: await ctx.reply(embed=discord.Embed(color=Colors.color, title="cool r8", description=f"{member.mention} is `{randrange(100)}%` cool 😎"))
 
     @commands.command(description="check an user's iq", help="fun", usage="<member>")
     async def iq(self, ctx, member: discord.Member=commands.Author):
-     if member.id in self.bot.owner_ids: return await ctx.reply(embed=discord.Embed(color=self.bot.color, title="iq test", description=f"{member.mention} has `3000` iq 🧠"))
-     else: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="iq test", description=f"{member.mention} has `{randrange(100)}` iq 🧠"))
+     if member.id in self.bot.owner_ids: return await ctx.reply(embed=discord.Embed(color=Colors.color, title="iq test", description=f"{member.mention} has `3000` iq 🧠"))
+     else: await ctx.reply(embed=discord.Embed(color=Colors.color, title="iq test", description=f"{member.mention} has `{randrange(100)}` iq 🧠"))
 
     @commands.command(description="hot rate an user", help="fun", usage="<member>")
     async def hot(self, ctx, member: discord.Member=commands.Author):
      if member.id in self.bot.owner_ids: return
-     else: await ctx.reply(embed=discord.Embed(color=self.bot.color, title="hot r8", description=f"{member.mention} is `{randrange(100)}%` hot 🥵"))     
+     else: await ctx.reply(embed=discord.Embed(color=Colors.color, title="hot r8", description=f"{member.mention} is `{randrange(100)}%` hot 🥵"))     
     
     @commands.command()
     async def pp(self, ctx:EvictContext, *, member: discord.Member=commands.Author):
       lol = "===================="
-      embed = discord.Embed(color=self.bot.color, description=f"{member.name}'s penis\n\n8{lol[random.randint(1, 20):]}D")
+      embed = discord.Embed(color=Colors.color, description=f"{member.name}'s penis\n\n8{lol[random.randint(1, 20):]}D")
       if member.id in self.bot.owner_ids:
-            embed = discord.Embed(color=self.bot.color, description=f"{member.name}'s penis\n\n8==============================D")
+            embed = discord.Embed(color=Colors.color, description=f"{member.name}'s penis\n\n8==============================D")
       await ctx.reply(embed=embed)  
     
     @commands.command(description="check how many bitches an user has", help="fun", usage="<member>")
@@ -92,9 +93,9 @@ class fun(commands.Cog):
       if random.choice(choices) == "infinite": result = "∞" 
       elif random.choice(choices) == "zero": result = "0"
       else: result = random.randint(0, 100)
-      embed = discord.Embed(color=self.bot.color, description=f"{user.mention} has `{result}` bitches")
+      embed = discord.Embed(color=Colors.color, description=f"{user.mention} has `{result}` bitches")
       if user.id in self.bot.owner_ids:
-            embed = discord.Embed(color=self.bot.color, description=f"{user.mention} has `1000000000000` bitches")
+            embed = discord.Embed(color=Colors.color, description=f"{user.mention} has `1000000000000` bitches")
       await ctx.reply(embed=embed)
 
     @commands.command(description="send a random bird image", help="fun")
@@ -129,7 +130,7 @@ class fun(commands.Cog):
             url = f"https://{url}"
         try:      
           data = await api.screenshot(f"{url}")
-          embed = discord.Embed(color=self.bot.color)
+          embed = discord.Embed(color=Colors.color)
           embed.set_image(url=data.image_url)
           await ctx.reply(embed=embed)
         except Exception: return await ctx.warning(f"This site **does not** appear to be valid.")
@@ -149,7 +150,7 @@ class fun(commands.Cog):
         async with ctx.typing():
             recommended = await self.session.get_json(url="https://www.tiktok.com/api/recommend/item_list/?WebIdLastTime=1709562791&aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Win32&browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F124.0.0.0%20Safari%2F537.36&channel=tiktok_web&clientABVersions=70508271%2C72097972%2C72118536%2C72139452%2C72142433%2C72147654%2C72156694%2C72157773%2C72174908%2C72183344%2C72191581%2C72191933%2C72203590%2C72211002%2C70405643%2C71057832%2C71200802%2C71957976&cookie_enabled=true&count=9&coverFormat=2&device_id=7342516164603889184&device_platform=web_pc&device_type=web_h264&focus_state=true&from_page=fyp&history_len=3&isNonPersonalized=false&is_fullscreen=false&is_page_visible=true&language=en&odinId=7342800074206741537&os=windows&priority_region=&pullType=1&referer=&region=BA&screen_height=1440&screen_width=2560&showAboutThisAd=true&showAds=false&tz_name=Europe%2FLondon&watchLiveLastTime=1713523355360&webcast_language=en&msToken=W3zoVLSFi9M0BsPE6uC63GCdeoVC7hmjRNelZIe-7FP7x-1LRee6WYHYfpWXg3NYPoreJf_dMxfRWTZprVN8UU70_IaHnBMNirtZIRNp2QuR1nBivJgnetgiM-XTh7_KGbNswVs=&X-Bogus=DFSzswVOmtvANegtt2bDG-OckgSu&_signature=_02B4Z6wo00001BozSvQAAIDBhqj5OL8769AaM05AAGCne")
             recommended = recommended['itemList'][0]
-            embed = discord.Embed(color=self.bot.color)
+            embed = discord.Embed(color=Colors.color)
             embed.description = f'[{recommended["desc"]}](https://tiktok.com/@{recommended["author"]["uniqueId"]}/video/{recommended["id"]})'
 
             embed.set_author(
@@ -173,7 +174,7 @@ class fun(commands.Cog):
       try:
         data = await api.get_roblox_user(f"{profile}")
         url = data.url
-        embed = discord.Embed(color=self.bot.color, description=f'{data.bio}', title=f'{data.username}', url=f'{url}')
+        embed = discord.Embed(color=Colors.color, description=f'{data.bio}', title=f'{data.username}', url=f'{url}')
         embed.add_field(name='friends:', value=f'{data.friends}', inline=True)
         embed.add_field(name='following:', value=f'{data.followings}', inline=True)
         embed.add_field(name='followers:', value=f'{data.followers}', inline=True)
@@ -186,7 +187,7 @@ class fun(commands.Cog):
     async def snapchatuser(self, ctx: EvictContext, profile: str):
       try:  
         data = await api.get_snapchat_user(f"{profile}")
-        embed = discord.Embed(color=self.bot.color, description=f'{data.bio}')
+        embed = discord.Embed(color=Colors.color, description=f'{data.bio}')
         embed.set_author(name=f'{data.username}', icon_url=f'{data.avatar}')
         embed.set_image(url=data.snapcode)
         embed.set_thumbnail(url=data.avatar)
@@ -199,7 +200,7 @@ class fun(commands.Cog):
       try:
         data = await api.get_tiktok_user(f"{profile}")
         url = data.url
-        embed = discord.Embed(color=self.bot.color, description=f'{data.bio}', title=f'{data.username}', url=f'{url}')
+        embed = discord.Embed(color=Colors.color, description=f'{data.bio}', title=f'{data.username}', url=f'{url}')
         embed.set_author(name=f'{data.username}', icon_url=f'{data.avatar}')
         embed.add_field(name='friends:', value=f'{data.friends}', inline=True)
         embed.add_field(name='followers:', value=f'{data.followers}', inline=True)
@@ -217,7 +218,7 @@ class fun(commands.Cog):
       try:  
         data = await api.get_instagram_user(f"{profile}")
         url = data.url
-        embed = discord.Embed(color=self.bot.color, description=f'{data.bio}', title=f'{data.full_name}', url=f'{url}')
+        embed = discord.Embed(color=Colors.color, description=f'{data.bio}', title=f'{data.full_name}', url=f'{url}')
         embed.set_author(name=f'{data.username}', icon_url=f'{data.profile_pic}')
         embed.add_field(name='followers:', value=f'{data.followers}', inline=True)
         embed.add_field(name='following:', value=f'{data.following}', inline=True)
@@ -253,7 +254,7 @@ class fun(commands.Cog):
 
     @commands.command(aliases=["ttt"], description="play tictactoe with your friends", help="fun", usage="[member]")
     async def tictactoe(self, ctx: EvictContext, *, member: discord.Member):
-      if member is ctx.author: return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.warning} {ctx.author.mention}: You can't play with yourself. It's ridiculous"))
+      if member is ctx.author: return await ctx.reply(embed=discord.Embed(color=Colors.color, description=f"{Emojis.warn} {ctx.author.mention}: You can't play with yourself. It's ridiculous"))
       if member.bot: return await ctx.reply("bots can't play")      
       vi = TicTacToe(ctx.author, member)
       vi.message = await ctx.send(content=f'{member.mention}\n**{member.name}** vs **{ctx.author.name}**\n\nTic Tac Toe: **{ctx.author.name}** Is First', embed=None, view=vi, allowed_mentions=discord.AllowedMentions(users=[member]))  
@@ -266,7 +267,7 @@ class fun(commands.Cog):
      except KeyError: pass 
 
      BlackTea.MatchStart[ctx.guild.id] = True 
-     embed = discord.Embed(color=self.bot.color, title="BlackTea Matchmaking", description=f"⏰ Waiting for players to join. To join react with 🍵.\nThe game will begin in **20 seconds**")
+     embed = discord.Embed(color=Colors.color, title="BlackTea Matchmaking", description=f"⏰ Waiting for players to join. To join react with 🍵.\nThe game will begin in **20 seconds**")
      embed.add_field(name="goal", value="You have **10 seconds** to say a word containing the given group of **3 letters.**\nIf failed to do so, you will lose a life. Each player has **2 lifes**")
      embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)  
      mes = await ctx.send(embed=embed)
@@ -332,7 +333,7 @@ class fun(commands.Cog):
       auto += f"{'<a:crown:1021829752782323762>' if le == 1 else f'`{le}`'} **{ctx.guild.get_member(leader) or leader}**\n"
       if le == 10: break
       le += 1
-     e = discord.Embed(color=self.bot.color, title=f"leaderboard for blacktea", description=auto).set_footer(text=f"top {'10' if len(leaderboard) > 9 else len(leaderboard)} players")     
+     e = discord.Embed(color=Colors.color, title=f"leaderboard for blacktea", description=auto).set_footer(text=f"top {'10' if len(leaderboard) > 9 else len(leaderboard)} players")     
      await ctx.send(embed=e)
      BlackTea.lifes[players[0]] = 0
      BlackTea.MatchStart[ctx.guild.id] = False 
@@ -340,7 +341,7 @@ class fun(commands.Cog):
     @commands.command(name="8ball", description="answers to your question", usage="[question]", help="fun")
     async def mtball(self, ctx: EvictContext, *, arg):      
      rand = ['**Yes**', '**No**', '**definitely yes**', '**Of course not**', '**Maybe**', '**Never**', '**Yes, dummy**', '**No wtf**']
-     e = discord.Embed(color=self.bot.color, description=f"You asked: {arg}\nAnswer: {random.choice(rand)}")
+     e = discord.Embed(color=Colors.color, description=f"You asked: {arg}\nAnswer: {random.choice(rand)}")
      await ctx.reply(embed=e)
 
     @commands.command(name='search', description='search for something on google', usage='[query]', aliases=['google'])
@@ -353,7 +354,7 @@ class fun(commands.Cog):
 
         embeds = []
         for page, chunk in enumerate(chunks):
-            embed = discord.Embed(color=self.bot.color, title='Search Results').set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url).set_footer(text=f"Page {page+1}/{len(chunks)} Of Google Pages", icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png')
+            embed = discord.Embed(color=Colors.color, title='Search Results').set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url).set_footer(text=f"Page {page+1}/{len(chunks)} Of Google Pages", icon_url='https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png')
             for res in chunk:
                 embed.add_field(name=f"Google", value=f"[**{res.get('title')}**](https://{res.get('domain')})\n{(res.get('description'))}", inline=False)
             embeds.append(embed)

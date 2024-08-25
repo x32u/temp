@@ -12,6 +12,8 @@ from patches.permissions import Permissions
 from bot.helpers import EvictContext
 from bot.bot import Evict
 
+from bot.managers.emojis import Emojis, Colors
+
 class owner(commands.Cog):
    def __init__(self, bot: Evict):
        self.bot = bot
@@ -116,7 +118,7 @@ class owner(commands.Cog):
     error_details = json.loads(error_details.get("info"))
     guild = self.bot.get_guild(error_details["guild_id"])
 
-    embed = discord.Embed(description=str(error_details["error"]), color=self.bot.color).add_field(name="Guild", value=f"{guild.name}\n`{guild.id}`", inline=True)
+    embed = discord.Embed(description=str(error_details["error"]), color=Colors.color).add_field(name="Guild", value=f"{guild.name}\n`{guild.id}`", inline=True)
     embed.add_field(name="Channel", value=f"<#{error_details['channel_id']}>\n`{error_details['channel_id']}`", inline=True)
     embed.add_field(name="User", value=f"<@{error_details['user_id']}>\n`{error_details['user_id']}`", inline=True)
     embed.add_field(name="Command", value=f"**{error_details['command']}**")
@@ -336,7 +338,7 @@ class owner(commands.Cog):
         splash=f"[splash]({guild.splash.url})" if guild.splash is not None else "N/A"
         banner=f"[banner]({guild.banner.url})" if guild.banner is not None else "N/A"   
         desc=guild.description if guild.description is not None else ""
-        embed = Embed(color=self.bot.color, title=f"{guild.name}", timestamp=datetime.datetime.now(), description=f"Server created on {self.convert_datetime(guild.created_at.replace(tzinfo=None))}\n{desc}")   
+        embed = Embed(color=Colors.color, title=f"{guild.name}", timestamp=datetime.datetime.now(), description=f"Server created on {self.convert_datetime(guild.created_at.replace(tzinfo=None))}\n{desc}")   
         embed.set_thumbnail(url=guild.icon)
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
         embed.add_field(name="Owner", value=f"{guild.owner.mention}\n{guild.owner}")

@@ -6,6 +6,7 @@ from patches.modules import AntiNukeModule, AntiNukeUser
 from patches.permissions import Permissions
 
 from utils.emojis import Emojis
+from bot.managers.emojis import Colors
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
@@ -46,7 +47,7 @@ class antinuke(commands.Cog):
     @Permissions.has_permission(administrator=True)
     async def settings(self, ctx: EvictContext):
         
-        embed = discord.Embed(title=f"Anti-Nuke Settings - {ctx.guild.name}", color=self.bot.color)
+        embed = discord.Embed(title=f"Anti-Nuke Settings - {ctx.guild.name}", color=Colors.color)
         embed.set_footer(icon_url=ctx.me.avatar.url, text=f"If you have any questions, please join our support server: {self.bot.support_server}")
         embed.add_field(name="Support", value=f"**[Support Server]({self.bot.support_server})**", inline=True)
         
@@ -98,7 +99,7 @@ class antinuke(commands.Cog):
         whitelisted = await ctx.bot.db.fetch("SELECT * FROM antinuke_whitelist WHERE guild_id = $1", ctx.guild.id)
         if not whitelisted: return await ctx.success("No users are **whitelisted** in this server.")
         
-        embed = discord.Embed(title=f"Anti-Nuke Whitelisted Members - {ctx.guild.name}", color=self.bot.color)
+        embed = discord.Embed(title=f"Anti-Nuke Whitelisted Members - {ctx.guild.name}", color=Colors.color)
         embed.set_footer(icon_url=ctx.me.avatar.url, text=f"If you have any questions, please join our support server: {self.bot.support_server}")
         
         embed.add_field(name="Support", value=f"**[Support Server]({self.bot.support_server})**", inline=True)
@@ -118,7 +119,7 @@ class antinuke(commands.Cog):
         admins = await ctx.bot.db.fetch("SELECT * FROM antinuke_admins WHERE guild_id = $1", ctx.guild.id)
         if not admins: return await ctx.success("No users are **Anti-Nuke Admins** in this server.")
         
-        embed = discord.Embed(title=f"Anti-Nuke Admins - {ctx.guild.name}", color=self.bot.color)
+        embed = discord.Embed(title=f"Anti-Nuke Admins - {ctx.guild.name}", color=Colors.color)
         embed.set_footer(icon_url=ctx.me.avatar.url, text=f"If you have any questions, please join our support server: {self.bot.support_server}")
         embed.add_field(name="Support", value=f"**[Support Server]({self.bot.support_server})**", inline=True)
         
@@ -324,7 +325,7 @@ class antinuke(commands.Cog):
         
         self.remove_action(guild_id, user_id, module.module) # Cleaining up cache
         
-        log_embed = discord.Embed(title=f"Anti-Nuke: {module.module}", description=f"Action taken by {self.bot.user.name}", color=self.bot.color, timestamp=datetime.datetime.now())
+        log_embed = discord.Embed(title=f"Anti-Nuke: {module.module}", description=f"Action taken by {self.bot.user.name}", color=Colors.color, timestamp=datetime.datetime.now())
         
         log_embed.add_field(name="User", value=f"<@{user_id}>", inline=True)
         log_embed.add_field(name="Action", value=module.punishment, inline=True)

@@ -1,24 +1,26 @@
-from discord.ext import commands
 import discord, datetime, time
+
+from discord.ext import commands
 from typing import Union
 from math import log, floor
 
+from bot.managers.emojis import Emojis, Colors
 
 class Client(object): 
   def __init__(self, bot: commands.Bot): 
     self.bot = bot 
     
   async def success(self, ctx: Union[commands.Context, discord.Interaction], message: str, ephemeral: bool=True) -> discord.Message: 
-   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: {message}"))
-   else: return await ctx.response.send_message(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
+   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: {message}"))
+   else: return await ctx.response.send_message(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
   
   async def error(self, ctx: Union[commands.Context, discord.Interaction], message: str, ephemeral: bool=True) -> discord.Message: 
-   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=self.bot.error_color, description=f"{self.bot.no} {ctx.author.mention}: {message}"))
-   else: return await ctx.response.send_message(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
+   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=Colors.error_color, description=f"{Emojis.deny} {ctx.author.mention}: {message}"))
+   else: return await ctx.response.send_message(embed=discord.Embed(color=Colors.color, description=f"{Emojis.deny} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
   
   async def warning(self, ctx: Union[commands.Context, discord.Interaction], message: str, ephemeral: bool=True) -> discord.Message: 
-   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=self.bot.error_color, description=f"{self.bot.warning} {ctx.author.mention}: {message}"))
-   else: return await ctx.response.send_message(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.warning} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
+   if isinstance(ctx, commands.Context): return await ctx.reply(embed=discord.Embed(color=Colors.error_color, description=f"{Emojis.warn} {ctx.author.mention}: {message}"))
+   else: return await ctx.response.send_message(embed=discord.Embed(color=Colors.color, description=f"{Emojis.warn} {ctx.user.mention}: {message}"), ephemeral=ephemeral)
    
   async def link_to_message(self, link: str) -> discord.Message: 
    link = link.replace("https://discord.com/channels/", "")
@@ -149,7 +151,7 @@ class PaginatorView(discord.ui.View):
       self.ctx = ctx
       self.i = 0
       
-    @discord.ui.button(emoji="<:filter:1263727034798968893>")
+    @discord.ui.button(emoji=f"{Emojis.filter}")
     async def goto(self, interaction: discord.Interaction, button: discord.ui.Button): 
      if interaction.user.id != self.ctx.author.id: return await interaction.client.ext.send_warning(interaction, "You are not the author of this embed")     
      modal = GoToModal()
@@ -160,7 +162,7 @@ class PaginatorView(discord.ui.View):
       self.i = int(modal.page.value)-1
      except: pass 
      
-    @discord.ui.button(emoji="<:left:1263727060078035066>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji=f"{Emojis.left}", style=discord.ButtonStyle.secondary)
     async def left(self, interaction: discord.Interaction, button: discord.ui.Button): 
       if interaction.user.id != self.ctx.author.id: return await interaction.client.ext.warning(interaction, "You are not the author of this embed")            
       if self.i == 0: 
@@ -170,7 +172,7 @@ class PaginatorView(discord.ui.View):
       self.i = self.i-1
       return await interaction.response.edit_message(embed=self.embeds[self.i])
 
-    @discord.ui.button(emoji="<:right:1263727130370637995>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji=f"{Emojis.right}", style=discord.ButtonStyle.secondary)
     async def right(self, interaction: discord.Interaction, button: discord.ui.Button): 
       if interaction.user.id != self.ctx.author.id: return await interaction.client.ext.warning(interaction, "You are not the author of this embed")     
       if self.i == len(self.embeds)-1: 
@@ -180,7 +182,7 @@ class PaginatorView(discord.ui.View):
       self.i = self.i + 1  
       return await interaction.response.edit_message(embed=self.embeds[self.i])   
     
-    @discord.ui.button(emoji="<:deny:1263727013433184347>", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(emoji=f"{Emojis.deny}", style=discord.ButtonStyle.secondary)
     async def delete(self, interaction: discord.Interaction, button: discord.ui.Button): 
       if interaction.user.id != self.ctx.author.id: return await interaction.client.ext.warning(interaction, "You are not the author of this embed")         
       await interaction.message.delete()

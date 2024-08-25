@@ -8,6 +8,7 @@ from patches.classes  import Mod
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 class edit(commands.Cog):
     def __init__(self, bot: Evict):
@@ -345,7 +346,7 @@ class edit(commands.Cog):
         try: 
             color = color.replace("#", "")
             await role.edit(color=int(color, 16), reason=f"role edited by {ctx.author}")
-            return await ctx.reply(embed=discord.Embed(color=role.color, description=f"{self.bot.yes} {ctx.author.mention}: Changed role's color"))
+            return await ctx.reply(embed=discord.Embed(color=role.color, description=f"{Emojis.approve} {ctx.author.mention}: Changed role's color"))
         except: return await ctx.error( "Unable to change the role's color")  
 
     @commands.group(aliases=["threadedit"], invoke_without_command=True)

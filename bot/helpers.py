@@ -4,7 +4,9 @@ from discord import Embed, utils, ButtonStyle, Message
 from typing import Any, Union, Dict, Optional, List, Sequence
 from discord.ui import View
 from discord.ext import commands
+
 from bot.ext import PaginatorView
+from bot.managers.emojis import Emojis, Colors
 
 class EvictContext(Context): 
   flags: Dict[str, Any] = {}
@@ -36,28 +38,28 @@ class EvictContext(Context):
    return None 
  
   async def success(self, message: str) -> discord.Message:  
-    return await self.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {self.author.mention}: {message}") )
+    return await self.reply(embed=discord.Embed(color=Colors.color, description=f"> {Emojis.approve} {self.author.mention}: {message}") )
   
   async def neutral(self, message: str) -> discord.Message:  
-    return await self.reply(embed=discord.Embed(color=self.bot.color, description=f"{message}") )
+    return await self.reply(embed=discord.Embed(color=Colors.color, description=f"{message}") )
  
   async def error(self, message: str) -> discord.Message: 
-    return await self.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.no} {self.author.mention}: {message}") ) 
+    return await self.reply(embed=discord.Embed(color=Colors.color, description=f"> {Emojis.deny} {self.author.mention}: {message}") ) 
  
   async def warning(self, message: str) -> discord.Message: 
-    return await self.reply(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.warning} {self.author.mention}: {message}") )
+    return await self.reply(embed=discord.Embed(color=Colors.error_color, description=f" > {Emojis.warn} {self.author.mention}: {message}") )
   
   async def check(self):
-      return await self.message.add_reaction("<:approve:1271155661451034666>")
+      return await self.message.add_reaction({Emojis.approve})
   
   async def lastfm_message(self, message: str) -> discord.Message: 
-    return await self.reply(embed=discord.Embed(color=0xff0000, description=f"> <:lastfm:1263727050309632031> {self.author.mention}: {message}"))  
+    return await self.reply(embed=discord.Embed(color=Colors.lastfm, description=f"> {Emojis.lastfm} {self.author.mention}: {message}"))  
   
   async def paginate(self, contents: List[str], title:str=None, author: dict={'name': '', 'icon_url': None}):
    iterator = [m for m in utils.as_chunks(contents, 10)]
    embeds = [
             Embed(
-                color=self.bot.color,
+                color=Colors.color,
                 title=title,
                 description="\n".join(
                     [f"{f}" for f in m]
@@ -71,7 +73,7 @@ class EvictContext(Context):
    iterator = [m for m in utils.as_chunks(contents, 10)]
    embeds = [
             Embed(
-                color=self.bot.color,
+                color=Colors.color,
                 title=title,
                 description="\n".join(
                     [f"`{(m.index(f)+1)+(iterator.index(m)*10)}.` {f}" for f in m]
@@ -91,7 +93,7 @@ class EvictContext(Context):
     commandname = f"{str(command.parent)} {command.name}" if str(command.parent) != "None" else command.name
     
     i+=1 
-    embeds.append(discord.Embed(color=self.bot.color, title=f"{commandname}", description=command.description).set_author(name=self.author.name, icon_url=self.author.display_avatar.url if not None else '')
+    embeds.append(discord.Embed(color=Colors.color, title=f"{commandname}", description=command.description).set_author(name=self.author.name, icon_url=self.author.display_avatar.url if not None else '')
     
     .add_field(name="aliases", value=', '.join(map(str, command.aliases)) or "none")
     .add_field(name="permissions", value=command.brief or "any")
@@ -148,7 +150,7 @@ class EvictContext(Context):
     command = self.command
     commandname = f"{str(command.parent)} {command.name}" if str(command.parent) != "None" else command.name
     
-    embed = discord.Embed(color=self.bot.color, title=commandname, description=command.description)
+    embed = discord.Embed(color=Colors.color, title=commandname, description=command.description)
     embed.set_author(name=self.author.name, icon_url=self.author.display_avatar.url if not None else '')
     embed.add_field(name="aliases", value=', '.join(map(str, command.aliases)) or "none")
     embed.add_field(name="permissions", value=command.brief or "any")

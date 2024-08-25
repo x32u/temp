@@ -2,6 +2,7 @@ import discord, os, asyncio
 from discord.ext import commands 
 from patches.permissions import Permissions
 from utils.utils import EmbedBuilder
+from bot.managers.emojis import Emojis, Colors
 
 def get_ticket():
  async def predicate(ctx: commands.Context):  
@@ -185,7 +186,7 @@ class tickets(commands.Cog):
         check = await self.bot.db.fetchrow("SELECT * FROM tickets WHERE guild_id = $1", ctx.guild.id)
         if check is None: return await ctx.reply("no ticket panel created") 
         results = await self.bot.db.fetch("SELECT * FROM ticket_topics WHERE guild_id = $1", ctx.guild.id) 
-        embed = discord.Embed(color=self.bot.color, description=f"🔍 Choose a setting")
+        embed = discord.Embed(color=Colors.color, description=f"🔍 Choose a setting")
         button1 = discord.ui.Button(label="add topic", style=discord.ButtonStyle.gray)
         button2 = discord.ui.Button(label="remove topic", style=discord.ButtonStyle.red, disabled=len(results) == 0)
 
@@ -196,7 +197,7 @@ class tickets(commands.Cog):
 
         async def button2_callback(interaction: discord.Interaction): 
           if interaction.user != ctx.author: return await interaction.client.ext.warning(interaction, "You are **not** the author of this message.", ephemeral=True)
-          e = discord.Embed(color=self.bot.color, description=f"🔍 Select a topic to delete.")
+          e = discord.Embed(color=Colors.color, description=f"🔍 Select a topic to delete.")
           options = []
           for result in results: options.append(discord.SelectOption(label=result[1], description=result[2]))
           select = discord.ui.Select(options=options, placeholder="Select a topic.")
@@ -295,22 +296,22 @@ class tickets(commands.Cog):
            message = await channel.send(content=x[0], embed=x[1], view=view)
          except: message = await channel.send(EmbedBuilder.embed_replacement(ctx.author, check['message']), view=view)               
         else: 
-          embed = discord.Embed(color=self.bot.color, title="Create a ticket", description="Click on the button below this message to create a ticket")
+          embed = discord.Embed(color=Colors.color, title="Create a ticket", description="Click on the button below this message to create a ticket")
           embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.display_avatar.url)
           await channel.send(embed=embed, view=CreateTicket())
         
         await ctx.success("Sent the **ticket** message to {}".format(channel.mention)) 
-        await self.bot.db.execute("UPDATE tickets SET color = $1 WHERE guild_id = $2", self.bot.color or message.embeds[0].color.value, ctx.guild.id)
+        await self.bot.db.execute("UPDATE tickets SET color = $1 WHERE guild_id = $2", Colors.color or message.embeds[0].color.value, ctx.guild.id)
       
     @ticket.command(description="check the ticket panel's settings")
     async def settings(self, ctx: commands.Context):
         check = await self.bot.db.fetchrow("SELECT * FROM tickets WHERE guild_id = $1", ctx.guild.id)
         if check is None: return await ctx.reply("You have **not** created a ticket panel.")
-        embed1 = discord.Embed(color=self.bot.color, title="Ticket Settings", description="Settings for **{}**".format(ctx.guild.name))
+        embed1 = discord.Embed(color=Colors.color, title="Ticket Settings", description="Settings for **{}**".format(ctx.guild.name))
         embed1.add_field(name="Ticket Channel", value=ctx.guild.get_channel(check['channel_id']).mention if ctx.guild.get_channel(check['channel_id']) is not None else "N/A")
         embed1.add_field(name="Logs Channel", value=ctx.guild.get_channel(check['logs']).mention if ctx.guild.get_channel(check['logs']) is not None else "N/A")
         embed1.add_field(name="Category", value=ctx.guild.get_channel(check['category']).mention if ctx.guild.get_channel(check['category']) is not None else "N/A")
-        embed2 = discord.Embed(color=self.bot.color, title="ticket message", description="```{}```".format(check['message']) if check['message'] is not None else "default")
+        embed2 = discord.Embed(color=Colors.color, title="ticket message", description="```{}```".format(check['message']) if check['message'] is not None else "default")
         await ctx.send(embed=embed1)
         await ctx.send(embed=embed2)
     

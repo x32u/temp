@@ -2,6 +2,7 @@ import discord, json, humanfriendly, asyncio, datetime, random
 from discord.ext import commands
 from patches.permissions import Permissions
 from events.tasks import gwend_task, gw_loop
+from bot.managers.emojis import Emojis, Colors
 
 class GiveawayView(discord.ui.View): 
   def __init__(self): 
@@ -97,13 +98,13 @@ class giveaway(commands.Cog):
       l+=1
       if l == 10:
         messages.append(mes)
-        number.append(discord.Embed(color=self.bot.color, title=f"giveaways ({len(results)})", description=messages[i]))
+        number.append(discord.Embed(color=Colors.color, title=f"giveaways ({len(results)})", description=messages[i]))
         i+=1
         mes = ""
         l=0
     
     messages.append(mes)
-    number.append(discord.Embed(color=self.bot.color, title=f"giveaways ({len(results)})", description=messages[i]))
+    number.append(discord.Embed(color=Colors.color, title=f"giveaways ({len(results)})", description=messages[i]))
     await ctx.paginate(number)  
 
   @giveaway.command(name="create", brief="manage server", description="create a giveaway in this server", usage="<channel>")
@@ -125,7 +126,7 @@ class giveaway(commands.Cog):
    except humanfriendly.InvalidTimespan: return await ctx.send(content="Invalid time parsed")
    try: winners = int(responses[2])
    except ValueError: return await ctx.send(content="Invalid number of winners") 
-   embed = discord.Embed(color=self.bot.color, title=description, description=f"Ends: <t:{int((datetime.datetime.now() + datetime.timedelta(seconds=seconds)).timestamp())}> (<t:{int((datetime.datetime.now() + datetime.timedelta(seconds=seconds)).timestamp())}:R>)\nHosted by: {ctx.author.mention}\nWinners: **{winners}**")
+   embed = discord.Embed(color=Colors.color, title=description, description=f"Ends: <t:{int((datetime.datetime.now() + datetime.timedelta(seconds=seconds)).timestamp())}> (<t:{int((datetime.datetime.now() + datetime.timedelta(seconds=seconds)).timestamp())}:R>)\nHosted by: {ctx.author.mention}\nWinners: **{winners}**")
    embed.add_field(name="Entries", value="0")
    view=GiveawayView()
    await ctx.send(content=f"Giveaway setup completed! Check {channel.mention}")

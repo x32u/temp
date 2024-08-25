@@ -8,6 +8,7 @@ from patches.permissions import Permissions
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 def has_booster_role(): 
  async def predicate(ctx: EvictContext): 
@@ -74,9 +75,9 @@ class boosters(commands.Cog):
         check = await self.bot.db.fetchrow("SELECT * FROM booster_module WHERE guild_id = {}".format(ctx.guild.id))        
         if check is None: return await ctx.warning("booster role module is **not** configured".capitalize())
         
-        embed = discord.Embed(color=self.bot.color, description="Are you sure you want to unset the boosterrole module? This action is **IRREVERSIBLE**")
-        yes = discord.ui.Button(emoji=self.bot.yes)
-        no = discord.ui.Button(emoji=self.bot.no)
+        embed = discord.Embed(color=Colors.color, description="Are you sure you want to unset the boosterrole module? This action is **IRREVERSIBLE**")
+        yes = discord.ui.Button(emoji=Emojis.approve)
+        no = discord.ui.Button(emoji=Emojis.deny)
         
         async def yes_callback(interaction: discord.Interaction):
           if interaction.user != ctx.author: return await self.bot.ext.warning(interaction, "This is not your message", ephemeral=True)
@@ -84,12 +85,12 @@ class boosters(commands.Cog):
           await self.bot.db.execute("DELETE FROM booster_module WHERE guild_id = $1", ctx.guild.id)
           await self.bot.db.execute("DELETE FROM booster_roles WHERE guild_id = $1", ctx.guild.id)        
           
-          return await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: I have **cleared** the booster role module."), view=None)
+          return await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: I have **cleared** the booster role module."), view=None)
 
         async def no_callback(interaction: discord.Interaction): 
           if interaction.user != ctx.author: return await self.bot.ext.warning(interaction, "This is **not** your message.", ephemeral=True)
           
-          return await interaction.response.edit_message(embed=discord.Embed(color=self.bot.color, description="I did **not** clear the booster role module."), view=None)
+          return await interaction.response.edit_message(embed=discord.Embed(color=Colors.color, description="I did **not** clear the booster role module."), view=None)
 
         yes.callback = yes_callback
         no.callback = no_callback
@@ -205,7 +206,7 @@ class boosters(commands.Cog):
             discord.SelectOption(
             label="cancel",
             description="cancel the booster role edit",
-            emoji=self.bot.no
+            emoji=Emojis.deny
             )]
         else: 
           options = [ 
@@ -232,11 +233,11 @@ class boosters(commands.Cog):
             discord.SelectOption(
             label="cancel",
             description="cancel the booster role edit",
-            emoji=self.bot.no
+            emoji=Emojis.deny
             )
         ]
         
-        embed = discord.Embed(color=self.bot.color, title="booster role edit menu", description="customize your custom role using the dropdown menu below") 
+        embed = discord.Embed(color=Colors.color, title="booster role edit menu", description="customize your custom role using the dropdown menu below") 
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
         

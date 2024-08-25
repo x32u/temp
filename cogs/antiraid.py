@@ -6,6 +6,8 @@ from patches.permissions import Permissions, Whitelist
 from bot.helpers import EvictContext
 from bot.bot import Evict
 
+from bot.managers.emojis import Emojis, Colors
+
 def check_whitelist(module: str):
         async def predicate(ctx: EvictContext):
             
@@ -35,13 +37,13 @@ class antiraid(commands.Cog):
     @antiraid.command(aliases=['stats'], description="check antiraid settings", help="antiraid", name="settings")
     async def antiraid_settings(self, ctx: EvictContext): 
      
-     settings_enabled = {"massjoin": self.bot.no, "defaultavatar": self.bot.no, "newaccounts": self.bot.no} 
+     settings_enabled = {"massjoin": Emojis.deny, "defaultavatar": Emojis.deny, "newaccounts": Emojis.deny} 
      results = await self.bot.db.fetch("SELECT command FROM antiraid WHERE guild_id = $1", ctx.guild.id)
      
      for result in results: 
-      if settings_enabled.get(result[0]): settings_enabled[result[0]] = self.bot.yes
+      if settings_enabled.get(result[0]): settings_enabled[result[0]] = Emojis.approve
      
-     embed = discord.Embed(color=self.bot.color, description='\n'.join([f'**{m}:** {settings_enabled.get(m)}' for m in  ['massjoin', 'defaultavatar', 'newaccounts']]))
+     embed = discord.Embed(color=Colors.color, description='\n'.join([f'**{m}:** {settings_enabled.get(m)}' for m in  ['massjoin', 'defaultavatar', 'newaccounts']]))
      embed.set_author(name=f"antiraid settings for {ctx.guild.name}") 
      embed.set_thumbnail(url=ctx.guild.icon)
      

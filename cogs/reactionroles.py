@@ -5,6 +5,7 @@ from typing import Union
 
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 class reactionroles(commands.Cog): 
   def __init__(self, bot: Evict): 
@@ -70,13 +71,13 @@ class reactionroles(commands.Cog):
        l+=1
        if l == 10:
          messages.append(mes)
-         number.append(discord.Embed(color=self.bot.color, title=f"reaction roles ({len(results)})", description=messages[i]))
+         number.append(discord.Embed(color=Colors.color, title=f"reaction roles ({len(results)})", description=messages[i]))
          i+=1
          mes = ""
          l=0
 
    messages.append(mes)          
-   number.append(discord.Embed(color=self.bot.color, title=f"reaction roles ({len(results)})", description=messages[i]))
+   number.append(discord.Embed(color=Colors.color, title=f"reaction roles ({len(results)})", description=messages[i]))
    await ctx.paginate(number)   
 
 async def setup(bot: Evict) -> None: 

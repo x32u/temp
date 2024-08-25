@@ -10,6 +10,7 @@ from utils.utils import EmbedBuilder
 from patches.lastfm import LastFMHandler as Handler
 from bot.bot import Evict
 from bot.helpers import EvictContext
+from bot.managers.emojis import Emojis, Colors
 
 def sort_key(lis): 
    return lis[1]
@@ -104,7 +105,7 @@ class lastfm(commands.Cog):
      check = await self.bot.db.fetchrow("SELECT * FROM lfmode WHERE user_id = $1", ctx.author.id)
      if not check: return await ctx.lastfm_message("You do not have a **last.fm** embed.") 
      
-     embed = discord.Embed(color=self.bot.color, description=f"```{check['mode']}```")
+     embed = discord.Embed(color=Colors.color, description=f"```{check['mode']}```")
      return await ctx.reply(embed=embed)    
 
     @lf_embed.command(name="none", description="clear your last.fm custom embed", aliases=["delete"])
@@ -147,7 +148,7 @@ class lastfm(commands.Cog):
                  jsonData = await self.lastfmhandler.get_top_artists(user, 10)
                  mes = '\n'.join(f"`{i+1}` **[{jsonData['topartists']['artist'][i]['name']}]({jsonData['topartists']['artist'][i]['url']})** {jsonData['topartists']['artist'][i]['playcount']} plays" for i in range(10))
                  
-                 embed = discord.Embed(description = mes,color=self.bot.color)
+                 embed = discord.Embed(description = mes,color=Colors.color)
                  embed.set_thumbnail(url = member.display_avatar)
                  embed.set_author(name = f"{user}'s overall top artists", icon_url = member.display_avatar)
                  return await ctx.reply(embed=embed)  
@@ -171,7 +172,7 @@ class lastfm(commands.Cog):
                   
                   jsonData = await self.lastfmhandler.get_top_tracks(user, 10)                               
                   
-                  embed = discord.Embed(description = '\n'.join(f"`{i+1}` **[{jsonData['toptracks']['track'][i]['name']}]({jsonData['toptracks']['track'][i]['url']})** {jsonData['toptracks']['track'][i]['playcount']} plays" for i in range(10)),color = self.bot.color)
+                  embed = discord.Embed(description = '\n'.join(f"`{i+1}` **[{jsonData['toptracks']['track'][i]['name']}]({jsonData['toptracks']['track'][i]['url']})** {jsonData['toptracks']['track'][i]['playcount']} plays" for i in range(10)),color = Colors.color)
                   embed.set_thumbnail(url = ctx.message.author.avatar)
                   embed.set_author(name = f"{user}'s overall top tracks", icon_url = ctx.message.author.avatar)
                   return await ctx.reply(embed=embed)   
@@ -228,7 +229,7 @@ class lastfm(commands.Cog):
              
              if user != "error":                     
                   jsonData = await self.lastfmhandler.get_top_albums(user, 10)
-                  embed = discord.Embed(description = '\n'.join(f"`{i+1}` **[{jsonData['topalbums']['album'][i]['name']}]({jsonData['topalbums']['album'][i]['url']})** {jsonData['topalbums']['album'][i]['playcount']} plays" for i in range(10)),color = self.bot.color)
+                  embed = discord.Embed(description = '\n'.join(f"`{i+1}` **[{jsonData['topalbums']['album'][i]['name']}]({jsonData['topalbums']['album'][i]['url']})** {jsonData['topalbums']['album'][i]['playcount']} plays" for i in range(10)),color = Colors.color)
                   embed.set_thumbnail(url = ctx.message.author.avatar)
                   embed.set_author(name = f"{user}'s overall top albums", icon_url = ctx.message.author.avatar)
                   return await ctx.reply(embed=embed)   
@@ -260,7 +261,7 @@ class lastfm(commands.Cog):
              albumcount = int(i["album_count"])
              image = i["image"][3]["#text"]
 
-             embed = discord.Embed(color=self.bot.color)
+             embed = discord.Embed(color=Colors.color)
              embed.set_footer(text=f"{playcount:,} total scrobbles")
              embed.set_thumbnail(url=image)
              embed.set_author(name=f"{name}", icon_url=image)
@@ -306,7 +307,7 @@ class lastfm(commands.Cog):
      if len(rows) == 0: return await ctx.warning(f"No one has listened to {artist}.")              
      
      embeds = []
-     embed = discord.Embed(color=self.bot.color, description="\n".join(rows), title=f"Top Listeners for {artist} in {ctx.guild.name}")
+     embed = discord.Embed(color=Colors.color, description="\n".join(rows), title=f"Top Listeners for {artist} in {ctx.guild.name}")
      embed.set_author(name=f"{ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
      embeds.append(embed)     
      
@@ -359,7 +360,7 @@ class lastfm(commands.Cog):
       if len(rows) == 0: return await ctx.warning(f"No one has listened to {artist}")               
       
       embeds = []
-      embed = discord.Embed(color=self.bot.color, description="\n".join(rows), title=f"Top Listeners for {artist}")
+      embed = discord.Embed(color=Colors.color, description="\n".join(rows), title=f"Top Listeners for {artist}")
       embed.set_author(name=f"{ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
       embeds.append(embed)
       
@@ -367,7 +368,7 @@ class lastfm(commands.Cog):
       re = await self.bot.db.fetchrow("SELECT * FROM lfcrowns WHERE user_id = $1 AND artist = $2", sorted(tuples, key=lambda n: n[1])[::-1][0][3], artist)
       if not re: 
         
-        embeds.append(discord.Embed(color=self.bot.color, description=f"> `{(await self.bot.fetch_user(sorted(tuples, key=lambda n: n[1])[::-1][0][3]))}` claimed the crown for **{artist}**"))
+        embeds.append(discord.Embed(color=Colors.color, description=f"> `{(await self.bot.fetch_user(sorted(tuples, key=lambda n: n[1])[::-1][0][3]))}` claimed the crown for **{artist}**"))
         ar = await self.bot.db.fetchrow("SELECT * FROM lfcrowns WHERE artist = $1", artist)
         if ar: await self.bot.db.execute("UPDATE lfcrowns SET user_id = $1 WHERE artist = $2", sorted(tuples, key=lambda n: n[1])[::-1][0][3], artist) 
         else: await self.bot.db.execute("INSERT INTO lfcrowns VALUES ($1,$2)", sorted(tuples, key=lambda n: n[1])[::-1][0][3], artist)
@@ -441,12 +442,12 @@ class lastfm(commands.Cog):
       
        if l == 11: 
       
-        embeds.append(discord.Embed(color=self.bot.color, title=f"{member.name}'s cronws ({len(check)})", description=mes))  
+        embeds.append(discord.Embed(color=Colors.color, title=f"{member.name}'s cronws ({len(check)})", description=mes))  
       
         mes = ""
         l = 1 
       
-      embeds.append(discord.Embed(color=self.bot.color, title=f"{member.name}'s cronws ({len(check)})", description=mes))    
+      embeds.append(discord.Embed(color=Colors.color, title=f"{member.name}'s cronws ({len(check)})", description=mes))    
       return await ctx.paginate(embeds) 
     
     @lastfm.command(name="chart", aliases=["c"], description="Generates an album image chart.", usage="[size] [period]\nsizes available: 3x3 (default), 2x2, 4x5, 20x4\nperiods available: alltime (default), yearly, monthly")
@@ -509,7 +510,7 @@ class lastfm(commands.Cog):
                     artist = a['recenttracks']['track'][0]['artist']['#text'].replace(" ", "+")
                     album = a['recenttracks']['track'][0]['album']['#text'] or "N/A"
                     
-                    embed = discord.Embed(colour=self.bot.color)
+                    embed = discord.Embed(colour=Colors.color)
                     embed.add_field(name="**Track:**", value = f"```Ruby\n{a['recenttracks']['track'][0]['name']}```", inline = True)
                     embed.add_field(name="**Artist:**", value = f"```Ruby\n{a['recenttracks']['track'][0]['artist']['#text']}```", inline = True)
                     embed.set_author(name = user, icon_url = member.display_avatar, url = f"https://last.fm/user/{user}")                               

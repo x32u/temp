@@ -7,6 +7,7 @@ from patches.permissions import Permissions
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
+from bot.managers.emojis import Emojis, Colors
 
 class auth(commands.Cog): 
     def __init__(self, bot: Evict): 
@@ -21,7 +22,7 @@ class auth(commands.Cog):
      check = await self.bot.db.fetchrow("SELECT * FROM authorize WHERE guild_id = $1", guild)
      if check is not None: return await ctx.warning("This server is **already** whitelisted.")
 
-     embed = discord.Embed(color=self.bot.color, description="The following server has been authorized", title="Authorization", timestamp=datetime.datetime.now())
+     embed = discord.Embed(color=Colors.color, description="The following server has been authorized", title="Authorization", timestamp=datetime.datetime.now())
      
      embed.add_field(name="Server ID", value=f"{guild}", inline=False)
      embed.add_field(name="Buyer Mention", value=f"{buyer.mention}", inline=False)
@@ -48,10 +49,10 @@ class auth(commands.Cog):
         for g in self.bot.guilds:
             await self.bot.db.execute("INSERT INTO authorize values ($1, $2) ON CONFLICT (guild_id) DO NOTHING", g.id, g.owner.id)
         
-        embed = discord.Embed(color=self.bot.color, description=f"{ctx.author.mention}: authorizing **all** servers.")
+        embed = discord.Embed(color=Colors.color, description=f"{ctx.author.mention}: authorizing **all** servers.")
         message = await ctx.reply(embed=embed)
         
-        await message.edit(embed=discord.Embed(color=self.bot.color, description=f"{self.bot.yes} {ctx.author.mention}: authorized **all** servers."))
+        await message.edit(embed=discord.Embed(color=Colors.color, description=f"{Emojis.approve} {ctx.author.mention}: authorized **all** servers."))
      
     @commands.command()
     @Permissions.staff()
@@ -73,7 +74,7 @@ class auth(commands.Cog):
         check = await self.bot.db.fetchrow("SELECT * FROM authorize WHERE guild_id = $1", id)
         if check is None: return await ctx.warning(f"I am **unable** to find this server.")
 
-        embed = discord.Embed(color=self.bot.color, description="The following server has been unauthorized", title="Unauthorization", timestamp=datetime.datetime.now())
+        embed = discord.Embed(color=Colors.color, description="The following server has been unauthorized", title="Unauthorization", timestamp=datetime.datetime.now())
      
         embed.add_field(name="Server ID", value=f"{id}", inline=False)
         embed.add_field(name="Staff Mention", value=f"{ctx.author.mention}", inline=False)
