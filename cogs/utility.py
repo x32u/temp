@@ -661,7 +661,7 @@ class utility(commands.Cog):
         banned = [ban async for ban in ctx.guild.bans(limit=1000)]
 
         if not banned:
-            return await ctx.warning("no one is banned.")
+            return await ctx.warning("There is no one banned.")
 
         ban_list = [
             f"**{m.user}** - {m.reason or 'No reason provided'}" for m in banned
@@ -930,7 +930,7 @@ class utility(commands.Cog):
             f"SELECT * FROM timezone WHERE user_id IN ({','.join(ids)})"
         )
         if len(results) == 0:
-            await self.tz.timezone_send(ctx, "Nobody (even you) has their timezone set")
+            await self.tz.timezone_send(ctx, "Nobody has their timezone set")
         await ctx.typing()
         i = 0
         k = 1

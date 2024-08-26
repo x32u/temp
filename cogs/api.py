@@ -43,9 +43,11 @@ class api(commands.Cog):
         await self.bot.db.execute(
             "INSERT INTO api_key VALUES ($1,$2,$3)", key, user.id, role
         )
+        
         await ctx.success(
             f"I have **successfully** added the API key **{key}** to {user.mention}."
         )
+        
         await user.send(f"{key}", embed=embed)
 
     @api.command(
@@ -60,6 +62,7 @@ class api(commands.Cog):
         check = await self.bot.db.fetchrow(
             "SELECT * FROM api_key WHERE user_id = {}".format(user.id)
         )
+        
         if check is None:
             return await ctx.warning(
                 f"The user **{user.name}** doesn't have a **valid** API key."
@@ -68,6 +71,7 @@ class api(commands.Cog):
         await self.bot.db.execute(
             "DELETE FROM api_key WHERE user_id = {}".format(user.id)
         )
+        
         await ctx.success(
             f"I have **successfully** deleted the API key from **{user.name}**."
         )
@@ -84,6 +88,7 @@ class api(commands.Cog):
         check = await self.bot.db.fetchrow(
             "SELECT * FROM api_key WHERE user_id = {}".format(user.id)
         )
+        
         if check is None:
             return await ctx.warning(
                 f"The user **{user.name}** doesn't have a **valid** API key."

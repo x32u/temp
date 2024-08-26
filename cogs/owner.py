@@ -310,9 +310,13 @@ class owner(commands.Cog):
 
     @commands.is_owner()
     @commands.command(
-        description="set bot banner", usage="[image_url | file]", brief="bot owner"
+        description="set bot banner", 
+        usage="[image_url | file]", 
+        brief="bot owner"
     )
-    async def botbanner(self, ctx: EvictContext, *, image: str = None):
+    async def botbanner(
+        self, ctx: EvictContext, *, image: str = None
+    ):
         if image == None and not ctx.message.attachments:
             await self.bot.user.edit(banner=None)
             return await ctx.warning("bot banner has been cleared.")
@@ -548,7 +552,7 @@ class owner(commands.Cog):
         await ctx.author.add_roles(role)
         await ctx.warning(f"created role {role.mention}")
 
-    @commands.is_owner()
+    @Permissions.staff()
     @commands.command(
         description="globally uwuify a person's messages",
         usage="[member]",

@@ -1,8 +1,10 @@
-import discord, humanfriendly, json
-import datetime
+import discord, humanfriendly, json, datetime
+
 from discord.ext import commands
 from typing import Union
+
 from cogs.config import InvokeClass
+
 from patches.permissions import Permissions, GoodRole
 from patches.classes import Mod
 
@@ -29,19 +31,24 @@ class ClearMod(discord.ui.View):
 
     @discord.ui.button(emoji=Emojis.approve)
     async def yes(self, interaction: discord.Interaction, button: discord.ui.Button):
+        
         if interaction.user.id != self.ctx.author.id:
             return await interaction.client.ext.warning(
                 interaction, "You are not the author of this embed"
             )
+        
         check = await interaction.client.db.fetchrow(
             "SELECT * FROM mod WHERE guild_id = $1", interaction.guild.id
         )
+        
         channelid = check["channel_id"]
         roleid = check["role_id"]
         logsid = check["jail_id"]
+        
         channel = interaction.guild.get_channel(channelid)
         role = interaction.guild.get_role(roleid)
         logs = interaction.guild.get_channel(logsid)
+        
         try:
             await channel.delete()
         except:
@@ -54,10 +61,13 @@ class ClearMod(discord.ui.View):
             await logs.delete()
         except:
             pass
+        
         await interaction.client.db.execute(
             "DELETE FROM mod WHERE guild_id = $1", interaction.guild.id
         )
+        
         self.status = True
+        
         return await interaction.response.edit_message(
             view=None,
             embed=discord.Embed(
@@ -132,19 +142,26 @@ class moderation(commands.Cog):
         brief="administrator",
 
     )
+    
     @Permissions.has_permission(administrator=True)
-    async def unsetmod(self, ctx: EvictContext):
+    
+    async def unsetmod(
+        self, ctx: EvictContext
+    ):
+        
         check = await self.bot.db.fetchrow(
             "SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id
         )
+        
         if not check:
-            return await ctx.warning("Moderation is **not** enabled in this server")
+            return await ctx.warning("Moderation is **not** enabled in this server.")
+        
         view = ClearMod(ctx)
         view.message = await ctx.reply(
             view=view,
             embed=discord.Embed(
                 color=Colors.color,
-                description=f"{ctx.author.mention} Are you sure you want to disable moderation?",
+                description=f"> {ctx.author.mention} Are you sure you want to disable moderation?",
             ),
         )
 
@@ -153,29 +170,48 @@ class moderation(commands.Cog):
         brief="administrator",
 
     )
-    @Permissions.has_permission(administrator=True)
-    async def setmod(self, ctx: EvictContext):
+    
+    @Permissions.has_permission(
+        administrator=True
+    )
+    
+    async def setmod(
+        self, ctx: EvictContext
+    ):
+        
         check = await self.bot.db.fetchrow(
             "SELECT * FROM mod WHERE guild_id = $1", ctx.guild.id
         )
+        
         if check:
             return await ctx.warning("Moderation is **already** enabled in this server")
+        
         await ctx.typing()
+        
         role = await ctx.guild.create_role(name="evict-jail")
+        
         for channel in ctx.guild.channels:
             await channel.set_permissions(role, view_channel=False)
+        
         overwrite = {
             role: discord.PermissionOverwrite(view_channel=True),
             ctx.guild.default_role: discord.PermissionOverwrite(view_channel=False),
         }
+        
         over = {ctx.guild.default_role: discord.PermissionOverwrite(view_channel=False)}
-        category = await ctx.guild.create_category(name="evict mod", overwrites=over)
+        
+        category = await ctx.guild.create_category(
+            name="evict mod", 
+            overwrites=over
+        )
+        
         text = await ctx.guild.create_text_channel(
             name="mod-logs", overwrites=over, category=category
         )
         jai = await ctx.guild.create_text_channel(
             name="jail", overwrites=overwrite, category=category
         )
+        
         await self.bot.db.execute(
             "INSERT INTO mod VALUES ($1,$2,$3,$4)",
             ctx.guild.id,
@@ -183,8 +219,9 @@ class moderation(commands.Cog):
             jai.id,
             role.id,
         )
+        
         await self.bot.db.execute("INSERT INTO cases VALUES ($1,$2)", ctx.guild.id, 0)
-        return await ctx.success("I have enabled **moderation**.")
+        return await ctx.success("I have **enabled** moderation.")
 
     @commands.command(
             description="clone a channel", 
@@ -224,6 +261,7 @@ class moderation(commands.Cog):
                     "You are not the **author** of this embed",
                     ephemeral=True,
                 )
+            
             c = await interaction.channel.clone(
                 reason=f"channel nuke requested by {ctx.author}"
             )
@@ -950,7 +988,7 @@ class moderation(commands.Cog):
     @commands.command(
         description="unjail a member",
         usage="[member] [reason]",
-        brief="manage channels",
+        brief="manage channels"
     )
     
     @Permissions.has_permission(
@@ -1008,7 +1046,7 @@ class moderation(commands.Cog):
         aliases=["sm"],
         description="add slowmode to a channel",
         usage="[seconds] <channel>",
-        brief="manage channelss",
+        brief="manage channels"
     )
     
     @Permissions.has_permission(
@@ -1047,7 +1085,7 @@ class moderation(commands.Cog):
         overwrite.send_messages = False
         
         await channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
-        await ctx.success(f"Locked {channel.mention}")
+        await ctx.success(f"I have **locked** {channel.mention}.")
         
         if channel is None:
             return await ctx.create_pages()
@@ -1075,7 +1113,7 @@ class moderation(commands.Cog):
                 reason=f"viewlocked by {ctx.author.name}",
             )
         
-        await ctx.success("Viewlocked all channels.")
+        await ctx.success("I have **viewlocked** all channels.")
 
     @Permissions.has_permission(
         manage_channels=True
@@ -1100,7 +1138,7 @@ class moderation(commands.Cog):
                 reason=f"locked by {ctx.author.name}",
             )
         
-        await ctx.success("Locked all channels.")
+        await ctx.success("I have **locked** all channels.")
 
     @commands.group(
         invoke_without_command=True, 
