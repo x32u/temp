@@ -264,7 +264,7 @@ class donor(commands.Cog):
         )
 
         if len(results) == 0:
-            return await ctx.warning("No **uwulocked** members found.")
+            return await ctx.warning("No **shutup** members found.")
 
         shutup_list = [
             f"``{index + 1}.`` {await self.bot.fetch_user(result['user_id'])} (``{result['user_id']}``)"

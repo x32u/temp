@@ -74,7 +74,7 @@ async def blacklist(ctx: commands.Context):
             return await interaction.response.send_message(
                 embed=discord.Embed(
                     color=Colors.color,
-                    description=f"{bot.warning} {interaction.user.mention}: This is not your message",
+                    description=f"> {Emojis.warning} {interaction.user.mention}: This is not your message",
                 ),
                 ephemeral=True,
             )

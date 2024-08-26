@@ -59,8 +59,6 @@ class antinuke(commands.Cog):
     @has_admin()
     @commands.group(
         invoke_without_command=True,
-        description="Anti-Nuke Commands",
-        help="<subcommand>",
         usage="settings",
         brief="Anti-Nuke Admin",
         aliases=["an"],
@@ -72,9 +70,6 @@ class antinuke(commands.Cog):
     @has_admin()
     @is_enabled()
     @antinuke.command(
-        description="Anti-Nuke Settings",
-        help="",
-        usage="",
         brief="Anti-Nuke Admin",
         aliases=["config"],
     )
@@ -105,14 +100,13 @@ class antinuke(commands.Cog):
                 inline=True,
             )
 
-        return await ctx.send(embed=embed)
+        return await ctx.reply(embed=embed)
 
     @has_admin()
     @is_enabled()
     @antinuke.command(
         description="Add an Anti-Nuke Whitelisted Member",
-        help="[User]",
-        usage="@Sam",
+        usage="[user]",
         brief="Anti-Nuke Admin",
         aliases=["wl"],
     )
@@ -147,8 +141,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(
         description="Add an Anti-Nuke Admin",
-        help="[User]",
-        usage="@Sam",
+        usage="[user]",
         brief="Anti-Nuke Admin",
     )
     @Permissions.has_permission(administrator=True)
@@ -181,8 +174,6 @@ class antinuke(commands.Cog):
     @has_admin()
     @antinuke.command(
         description="List Anti-Nuke Whitelisted Members",
-        help="",
-        usage="",
         brief="Anti-Nuke Admin",
     )
     @Permissions.has_permission(administrator=True)
@@ -224,7 +215,8 @@ class antinuke(commands.Cog):
     @has_admin()
     @is_enabled()
     @antinuke.command(
-        description="List Anti-Nuke Admin", help="", usage="", brief="Anti-Nuke Admin"
+        description="List Anti-Nuke Admin", 
+        brief="Anti-Nuke Admin"
     )
     @Permissions.has_permission(administrator=True)
     async def admins(self, ctx: EvictContext):
@@ -260,12 +252,13 @@ class antinuke(commands.Cog):
             ]
         )
 
-        return await ctx.send(embed=embed)
+        return await ctx.reply(embed=embed)
 
     @has_admin()
     @is_enabled()
     @antinuke.command(
-        description="Enable Anti-Nuke", help="", usage="", brief="Anti-Nuke Admin"
+        description="Enable Anti-Nuke", 
+        brief="Anti-Nuke Admin"
     )
     @Permissions.has_permission(administrator=True)
     async def enable(self, ctx: EvictContext):
@@ -298,7 +291,8 @@ class antinuke(commands.Cog):
     @has_admin()
     @is_enabled()
     @antinuke.command(
-        description="Disable Anti-Nuke", help="", usage="", brief="Anti-Nuke Admin"
+        description="Disable Anti-Nuke", 
+        brief="Anti-Nuke Admin"
     )
     @Permissions.has_permission(administrator=True)
     async def disable(self, ctx: EvictContext):
@@ -311,8 +305,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(
         description="Toggle Anti-Nuke",
-        help="[Module]",
-        usage="ban",
+        usage="[module]",
         brief="Anti-Nuke Admin",
     )
     @Permissions.has_permission(administrator=True)
@@ -337,8 +330,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(
         description="Anti-Nuke Module Threshold",
-        help="[Module] [Threshold]",
-        usage="ban 1",
+        usage="[module] [threshold]",
         brief="Anti-Admin",
     )
     @Permissions.has_permission(administrator=True)
@@ -363,8 +355,7 @@ class antinuke(commands.Cog):
     @is_enabled()
     @antinuke.command(
         description="Anti-Nuke Module Action",
-        help="[Module] [Action]",
-        usage="ban kick",
+        usage="[module] [action]",
         brief="Anti-Admin",
         aliases=["punishment"],
     )

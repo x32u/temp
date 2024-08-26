@@ -2,6 +2,7 @@ from discord.ext import commands
 
 
 async def create_db(self: commands.Bot):
+    
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS prefixes (guild_id BIGINT, prefix TEXT)"
     )
@@ -113,7 +114,9 @@ async def create_db(self: commands.Bot):
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS shutup (guild_id BIGINT, user_id BIGINT)"
     )
-    await self.db.execute("CREATE TABLE IF NOT EXISTS antiinvite (guild_id BIGINT)")
+    await self.db.execute(
+        "CREATE TABLE IF NOT EXISTS antiinvite (guild_id BIGINT)"
+    )
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS whitelist (guild_id BIGINT, module TEXT, object_id BIGINT, mode TEXT)"
     )
@@ -237,7 +240,9 @@ async def create_db(self: commands.Bot):
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS vanity (guild_id BIGINT, vanity_message TEXT, vanity_string TEXT, role_id BIGINT)"
     )
-    await self.db.execute("CREATE TABLE IF NOT EXISTS globalban (banned BIGINT)")
+    await self.db.execute(
+        "CREATE TABLE IF NOT EXISTS globalban (banned BIGINT)"
+    )
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS autoresponses (guild_id BIGINT, key TEXT, response TEXT)"
     )
@@ -257,10 +262,7 @@ async def create_db(self: commands.Bot):
         "CREATE TABLE IF NOT EXISTS autokick (guild_id BIGINT, autokick_users BIGINT, author BIGINT)"
     )
     await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS private (guild_id BIGINT, private_users BIGINT)"
-    )
-    await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS hellohook (guild_id BIGINT, webhook_link TEXT, mes TEXT)"
+        "CREATE TABLE IF NOT EXISTS private (guild_id BIGINT, user_id BIGINT)"
     )
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS autopfp (guild_id BIGINT, channel_id BIGINT, genre TEXT, type TEXT)"
@@ -268,21 +270,14 @@ async def create_db(self: commands.Bot):
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS autobanner (guild_id BIGINT, channel_id BIGINT, genre TEXT)"
     )
-    await self.db.execute("CREATE TABLE IF NOT EXISTS gblacklist (guild_id BIGINT)")
-    await self.db.execute("CREATE TABLE IF NOT EXISTS gwhitelist (guild_id BIGINT)")
-    await self.db.execute("CREATE TABLE IF NOT EXISTS mwhitelist (guild_id BIGINT)")
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS sticky (guild_id BIGINT, channel_id BIGINT, key TEXT)"
     )
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS stickymessage (guild_id BIGINT, channel_id BIGINT, message_id BIGINT)"
     )
-    await self.db.execute("CREATE TABLE IF NOT EXISTS guwulock (user_id BIGINT)")
     await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS threadbumper (guild_id BIGINT, thread_id BIGINT)"
-    )
-    await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS user_avatars (guild_id BIGINT, channel_id BIGINT)"
+        "CREATE TABLE IF NOT EXISTS guwulock (user_id BIGINT)"
     )
     await self.db.execute(
         "CREATE TABLE IF NOT EXISTS restrictcommand (guild_id BIGINT, command TEXT, role_id BIGINT)"

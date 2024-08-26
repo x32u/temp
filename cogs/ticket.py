@@ -265,7 +265,7 @@ class DeleteTicket(discord.ui.View):
 
     @discord.ui.button(
         label="",
-        emoji="<:trash:1263727144832602164>",
+        emoji=Emojis.trash,
         style=discord.ButtonStyle.gray,
         custom_id="persistent_view:delete",
     )
@@ -280,7 +280,7 @@ class DeleteTicket(discord.ui.View):
             if check is not None:
                 filename = await make_transcript(interaction.channel)
                 embed = discord.Embed(
-                    color=inte.client.color,
+                    color=Colors.color,
                     title="ticket logs",
                     description="Logs for ticket `{}` | closed by **{}**".format(
                         inte.channel.id, inte.user
