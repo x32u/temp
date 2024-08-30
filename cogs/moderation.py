@@ -1119,12 +1119,12 @@ class moderation(commands.Cog):
         manage_channels=True
     )
     
-    @lock.command(
+    @commands.command(
         description="lock all channels", 
         brief="manage channels"
     )
     
-    async def all(
+    async def lockall(
         self, ctx: EvictContext
     ):
         

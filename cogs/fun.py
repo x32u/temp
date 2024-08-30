@@ -472,33 +472,47 @@ class fun(commands.Cog):
 
     @commands.command(description="play blacktea with your friends", help="fun")
     async def blacktea(self, ctx: EvictContext):
+        
         try:
             if BlackTea.MatchStart[ctx.guild.id] is True:
-                return await ctx.reply(
-                    "somebody in this server is already playing blacktea"
+                return await ctx.warning(
+                    "There is already a blacktea match going on."
                 )
+        
         except KeyError:
             pass
 
         BlackTea.MatchStart[ctx.guild.id] = True
+        
         embed = discord.Embed(
             color=Colors.color,
             title="BlackTea Matchmaking",
             description=f"⏰ Waiting for players to join. To join react with 🍵.\nThe game will begin in **20 seconds**",
         )
+        
         embed.add_field(
             name="goal",
             value="You have **10 seconds** to say a word containing the given group of **3 letters.**\nIf failed to do so, you will lose a life. Each player has **2 lifes**",
         )
+        
         embed.set_author(name=ctx.author.name, icon_url=ctx.author.display_avatar.url)
         mes = await ctx.send(embed=embed)
+        
         await mes.add_reaction("🍵")
         await asyncio.sleep(20)
-        me = await ctx.channel.fetch_message(mes.id)
+        
+        try: 
+            me = await ctx.channel.fetch_message(mes.id)
+        
+        except:
+            BlackTea.MatchStart.remove(ctx.guild.id)
+            return await ctx.reply("The blacktea message was deleted")
+        
         players = [user.id async for user in me.reactions[0].users()]
         leaderboard = []
         players.remove(self.bot.user.id)
 
+        
         if len(players) < 2:
             BlackTea.MatchStart[ctx.guild.id] = False
             return await ctx.send(
@@ -508,6 +522,7 @@ class fun(commands.Cog):
                 allowed_mentions=discord.AllowedMentions(users=True),
             )
 
+        
         while len(players) > 1:
             for player in players:
                 strin = await BlackTea.get_string()

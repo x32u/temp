@@ -82,8 +82,10 @@ class information(commands.Cog):
         self, ctx: EvictContext, *, member: discord.User = commands.Author
     ):
         user = await self.bot.fetch_user(member.id)
+        
         if not user.banner:
             return await ctx.warning(f"**{user}** doesn't have a banner")
+        
         embed = discord.Embed(
             color=Colors.color, title=f"{user.name}'s banner", url=user.banner.url
         )
@@ -503,7 +505,22 @@ class information(commands.Cog):
         )
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         return await ctx.reply(embed=embed)
-
+    
+    @commands.command(name='profile', description='return a users banner and pfp', usage="[user]")
+    async def profile(self, ctx: EvictContext, *, member: discord.User = commands.Author):
+     
+     user = await self.bot.fetch_user(member.id)
+     
+     if user.banner is not None: embed1 = Embed(color=Colors.color, title=f"{user.name}'s banner", url=user.banner.url)
+     if user.avatar is not None: embed2 = Embed(color=Colors.color, title=f"{user.name}'s avatar", url=user.avatar.url)
+     
+     if user.banner is not None: embed1.set_image(url=user.banner.url)
+     if user.avatar is not None: embed2.set_image(url=user.avatar.url)
+     
+     if user.banner is not None: await ctx.send(embed=embed1)
+     if user.avatar is not None: await ctx.send(embed=embed2) 
+     
+     else: return await ctx.warning(f"**{user.name}**'s profile is **empty**.")
 
 async def setup(bot: Evict):
     await bot.add_cog(information(bot))
