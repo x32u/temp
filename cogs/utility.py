@@ -1,5 +1,6 @@
-import datetime, discord, os, arrow, uwuipy, humanfriendly, asyncio
+import datetime, discord, os, arrow, uwuipy, humanfriendly, asyncio, aiohttp
 
+from zipfile import ZipFile
 from discord.ext.commands import Cog
 from discord.ext import commands
 from discord import Embed, TextChannel, Member, User, Role
@@ -1031,8 +1032,13 @@ class utility(commands.Cog):
                     "You already have a reminder set in this channel. Use `{ctx.clean_prefix}reminder stop` to cancel the reminder"
                 )
 
-    @commands.command(description="see all the members in the server")
-    async def members(self, ctx: EvictContext):
+    @commands.command(
+        description="see all the members in the server"
+    )
+    
+    async def members(
+        self, ctx: EvictContext
+    ):
 
         member_list = [
             f"**{member}** joined <t:{int(member.joined_at.timestamp())}:f> (<t:{int(member.joined_at.timestamp())}:R>)"
@@ -1042,6 +1048,31 @@ class utility(commands.Cog):
 
         await ctx.index(member_list, f"members [{len(ctx.guild.members[1:])}]")
 
+    @Permissions.has_permission(manage_expressions=True)
+    @commands.command(
+        description="send all emojis to a zip file"
+    )
+    
+    async def zipemojis(
+        self, ctx: EvictContext
+    ):
+        emojis = ctx.guild.emojis
+    
+        if not emojis:
+            await ctx.warning("This server has no custom emojis.")
+            return
+
+        zip_buffer = BytesIO()
+        with ZipFile(zip_buffer, 'w') as zip_file:
+            async with aiohttp.ClientSession() as session:
+                for emoji in emojis:
+                    async with session.get(emoji.url) as response:
+                        if response.status == 200:
+                            image_data = await response.read()
+                        zip_file.writestr(f"{emoji.name}.png", image_data)
+
+        zip_buffer.seek(0)
+        await ctx.send("Here are all the emojis as a ZIP file:", file=discord.File(zip_buffer, "emojis.zip"))
 
 async def setup(bot: Evict):
     await bot.add_cog(utility(bot))

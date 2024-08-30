@@ -506,8 +506,13 @@ class information(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.avatar.url)
         return await ctx.reply(embed=embed)
     
-    @commands.command(name='profile', description='return a users banner and pfp', usage="[user]")
-    async def profile(self, ctx: EvictContext, *, member: discord.User = commands.Author):
+    @commands.command(
+            name='profile', 
+            description='return a users banner and pfp', 
+            usage="[user]")
+    
+    async def profile(
+        self, ctx: EvictContext, *, member: discord.User = commands.Author):
      
      user = await self.bot.fetch_user(member.id)
      
