@@ -271,7 +271,7 @@ class fun(commands.Cog):
     async def snapchat(self, ctx: EvictContext, *, username: str):
         try:
             results = await self.bot.session.json(
-                "https://kure.pl/snapstory",
+                "https://api.evict.cc/snapstory",
                 headers=self.bot.resent_api,
                 params={"username": username},
             )

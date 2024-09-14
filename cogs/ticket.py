@@ -99,9 +99,9 @@ class CreateTicket(discord.ui.View):
                     color=(
                         int(check["color"])
                         if check[4] is not None
-                        else interaction.client.color
+                        else Colors.color
                     ),
-                    description=f"{interaction.client.warning} {interaction.user.mention}: You already have a ticket opened",
+                    description=f"{Emojis.warn} {interaction.user.mention}: You already have a ticket opened",
                 ),
                 ephemeral=True,
             )
@@ -126,7 +126,7 @@ class CreateTicket(discord.ui.View):
                 interaction.guild.default_role, overwrite=overwrite1
             )
             embed = discord.Embed(
-                color=int(check["color"]) or interaction.client.color,
+                color=int(check["color"]) or Colors.color,
                 description="Support will be with you shortly, please be patient.\n\nTo close the ticket press the button down below.",
             )
             embed.set_footer(
@@ -146,8 +146,8 @@ class CreateTicket(discord.ui.View):
             )
             await interaction.response.send_message(
                 embed=discord.Embed(
-                    color=int(check["color"]) or interaction.client.color,
-                    description=f"{interaction.client.yes} {interaction.user.mention}: Opened ticket in {text.mention}",
+                    color=int(check["color"]) or Colors.color,
+                    description=f"{Emojis.approve} {interaction.user.mention}: Opened ticket in {text.mention}",
                 ),
                 ephemeral=True,
             )
@@ -174,7 +174,7 @@ class CreateTicket(discord.ui.View):
             color=(
                 int(check["color"])
                 if check["color"] is not None
-                else interaction.client.color
+                else Colors.color
             ),
             description="🔍 Please choose a topic",
         )
@@ -187,8 +187,8 @@ class CreateTicket(discord.ui.View):
             if check is None:
                 return await interaction.response.send_message(
                     embed=discord.Embed(
-                        color=inte.client.color,
-                        description=f"{inte.client.warning} {inte.user.mention}: Ticket module was disabled",
+                        color=Colors.color,
+                        description=f"{Emojis.warn} {inte.user.mention}: Ticket module was disabled",
                     ),
                     ephemeral=True,
                 )
@@ -212,7 +212,7 @@ class CreateTicket(discord.ui.View):
                 color=(
                     int(check["color"])
                     if check["color"] is not None
-                    else inte.client.color
+                    else Colors.color
                 ),
                 title=f"{select.values[0]}",
                 description="Support will be with you shortly, please be patient.\n\nTo close the ticket press the button down below.",
@@ -231,9 +231,9 @@ class CreateTicket(discord.ui.View):
                     color=(
                         int(check["color"])
                         if check["color"] is not None
-                        else inte.client.color
+                        else Colors.color
                     ),
-                    description=f"{inte.client.yes} {inte.user.mention}: Opened ticket in {text.mention}",
+                    description=f"{Emojis.approve} {inte.user.mention}: Opened ticket in {text.mention}",
                 ),
                 view=None,
             )

@@ -1,9 +1,23 @@
 import discord, os
-from discord.ext.commands import Context
-from discord import Embed, utils, ButtonStyle, Message
-from typing import Any, Union, Dict, Optional, List, Sequence
-from discord.ui import View
+from discord import Embed, utils, Message
+from discord.ui import View, Select
 from discord.ext import commands
+from typing import Mapping, Coroutine, List, Any, Callable, Optional, Union, Dict, Union, Sequence
+
+from discord import (
+    Message,
+    Embed,
+    Interaction,
+    utils,
+    SelectOption
+)
+from discord.ext.commands import (
+    Context,
+    Command,
+    Group
+)
+
+from discord.ext.commands.cog import Cog
 
 from bot.ext import PaginatorView
 from bot.managers.emojis import Emojis, Colors
@@ -314,10 +328,94 @@ class HelpCommand(commands.HelpCommand):
         self.ec_color = 0xCCCCFF
         super().__init__(**kwargs)
 
-    async def send_bot_help(self, ctx: commands.Context) -> None:
-        return await self.context.reply(
-            f"{self.context.author.mention}: check <https://evict.cc/commands> for list of commands"
+    def create_main_help_embed(self, ctx):
+        embed = Embed(
+            color=0xCCCCFF,
+            title="Evict Command Menu",
+            description="```\n"
+                        "[ ] = optional, < > = required\n"
+                        "Sub commands are indicated by an asterisk(*).\n```",
         )
+        embed.add_field(
+            name="Useful Links 🔗 ",
+            value="**[Support](https://discord.gg/evict)**  • "
+                  "**[Website](https://evict.cc)**  • "
+                  "**[Invite](https://discord.com/oauth2/authorize?client_id=1203514684326805524&permissions=8&integration_type=0&scope=bot)**",
+            inline=False
+        )
+        
+        return embed
+
+    async def send_bot_help(
+        self, mapping: Mapping[Cog | None, List[Command[Any, Callable[..., Any], Any]]]
+    ) -> Coroutine[Any, Any, None]:
+        
+        bot = self.context.bot
+        embed = self.create_main_help_embed(self.context)
+        
+        embed.set_thumbnail(url=bot.user.display_avatar.url)
+        embed.set_footer(text="Select a category from the dropdown menu below")  # Fixed footer
+        
+        # Log details about the cogs and their commands
+        for cog in mapping.keys():
+            cog_name = cog.qualified_name if cog else "No Category"
+            print(f"Cog Name: {cog_name}, Commands: {len(mapping[cog])}")
+        
+        # Create a list of categories for the dropdown menu, excluding specific categories
+        categories = [
+            cog.qualified_name if cog else "No Category"
+            for cog in mapping.keys()
+            if cog and cog.qualified_name not in ["owner", "Jishaku", "Members", "api", "auth", "Messages", "Bot", "listeners", "task", "reacts", "Cog"]
+        ]
+
+        # Log the resulting categories
+        print("Categories after filtering:", categories)
+
+        # Handle case where no categories are found
+        if not categories:
+            categories.append("General")  # Provide a default category if none are found
+
+        # Ensure the number of categories does not exceed 25
+        categories = categories[:25]
+
+        # Create the Select menu
+        select = Select(
+            placeholder="Choose a category...",
+            options=[SelectOption(label=category, value=category, description="") for category in categories]
+        )
+
+        async def select_callback(interaction: Interaction):
+            selected_category = interaction.data['values'][0]
+            selected_cog = next((cog for cog in mapping.keys() if (cog and cog.qualified_name == selected_category) or (not cog and selected_category == "No Category")), None)
+            
+            if selected_cog is not None:
+                commands = mapping[selected_cog]
+                command_list = ", ".join([f"{command.name}*" if isinstance(command, Group) else f"{command.name}" for command in commands])
+            else:
+                command_list = "No commands available"
+            
+            embed = Embed(
+                color=0x7291DF,
+                title=f"Category: {selected_category}",
+                description=f"**```\n{command_list}\n```**",
+            )
+            embed.set_author(name="Evict Command Menu", icon_url=bot.user.display_avatar.url)
+            embed.set_footer(text=f"{len(commands)} command{'s' if len(commands) != 1 else ''}" if selected_cog else "No commands")
+            
+            await interaction.response.edit_message(embed=embed, view=view)
+
+        select.callback = select_callback
+
+        # Create a View and add the Select menu to it
+        view = View()
+        view.add_item(select)
+
+        await self.context.reply(embed=embed, view=view)
+
+    def get_desc(self, c: Command | Group) -> str:
+        if c.help != None: 
+            return c.help.capitalize()
+        return "no description"
 
     async def send_command_help(self, command: commands.Command):
 

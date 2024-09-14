@@ -372,7 +372,7 @@ class lastfm(commands.Cog):
             )
 
         CALLBACK_URL = (
-            f"https://kure.pl/lastfm/callback?discord_user_id={ctx.author.id}"
+            f"https://api.evict.cc/lastfm/callback?discord_user_id={ctx.author.id}"
         )
         auth_url = f"http://www.last.fm/api/auth/?api_key=166f77a5ce11d4860de9acf5d384e426&cb={CALLBACK_URL}"
 
@@ -523,6 +523,7 @@ class lastfm(commands.Cog):
                 ctx.author.id
             )
         )
+        
         if check is None:
             return await ctx.lastfm_message(
                 "You don't have a **Last.fm** account connected."
@@ -533,25 +534,28 @@ class lastfm(commands.Cog):
             resp = await self.lastfmhandler.get_tracks_recent(fmuser, 1)
             artist = resp["recenttracks"]["track"][0]["artist"]["#text"]
 
-        tuples = []
-        rows = []
+        tuples = {}
         ids = [str(m.id) for m in ctx.guild.members]
         results = await self.bot.db.fetch(
-            f"SELECT * FROM lastfm WHERE user_id IN ({','.join(ids)})"
+            f"SELECT * FROM lastfm_users WHERE discord_user_id IN ({','.join(ids)})"
         )
 
         if len(results) == 0:
             return await ctx.lastfm_message("No one has a **Last.fm** account linked.")
+        
         for result in results:
-
-            user_id = int(result[0])
-            fmuser2 = result[1]
+            user_id = int(result["discord_user_id"])
+            fmuser2 = result["username"]
             us = ctx.guild.get_member(user_id)
             z = await self.lastfmhandler.get_artist_playcount(fmuser2, artist)
-            tuples.append((str(us), int(z), f"https://last.fm/user/{fmuser2}", us.id))
+            
+            tuples[user_id] = (str(us), int(z), f"https://last.fm/user/{fmuser2}")
 
+        sorted_users = sorted(tuples.values(), key=lambda n: n[1], reverse=True)[:10]
+        
+        rows = []
         num = 0
-        for x in sorted(tuples, key=lambda n: n[1])[::-1][:10]:
+        for x in sorted_users:
             if x[1] != 0:
                 num += 1
                 rows.append(
@@ -561,7 +565,6 @@ class lastfm(commands.Cog):
         if len(rows) == 0:
             return await ctx.warning(f"No one has listened to {artist}.")
 
-        embeds = []
         embed = discord.Embed(
             color=Colors.color,
             description="\n".join(rows),
@@ -570,7 +573,6 @@ class lastfm(commands.Cog):
         embed.set_author(
             name=f"{ctx.author.display_name}", icon_url=ctx.author.display_avatar.url
         )
-        embeds.append(embed)
 
         return await ctx.reply(embed=embed)
 
@@ -584,11 +586,13 @@ class lastfm(commands.Cog):
 
         await ctx.typing()
 
+        # Check if the command invoker has a Last.fm account connected
         check = await self.bot.db.fetchrow(
             "SELECT * FROM lastfm_users WHERE discord_user_id = {}".format(
                 ctx.author.id
             )
         )
+        
         if check is None:
             return await ctx.lastfm_message(
                 "You don't have a **Last.fm** account connected."
@@ -596,10 +600,10 @@ class lastfm(commands.Cog):
 
         fmuser = check["username"]
         if not artist:
-            resp = await self.lastfmhandler.get_tracks_recent(fmuser, 1)
+            resp = await self.lastfmhandler.get_artist_playcount(fmuser, 1)
             artist = resp["recenttracks"]["track"][0]["artist"]["#text"]
 
-        tuples = []
+        user_data = {}
         o = 0
 
         if not self.globalwhoknows_cache.get(artist):
@@ -607,7 +611,7 @@ class lastfm(commands.Cog):
             ids = [str(m.id) for m in self.bot.users]
 
             results = await self.bot.db.fetch(
-                f"SELECT * FROM lastfm WHERE user_id IN ({','.join(ids)})"
+                f"SELECT * FROM lastfm_users WHERE discord_user_id IN ({','.join(ids)})"
             )
 
             if len(results) == 0:
@@ -615,24 +619,24 @@ class lastfm(commands.Cog):
                     "No one has a **Last.fm** account linked."
                 )
             for result in results:
-
-                user_id = int(result[0])
-                fmuser2 = result[1]
+                user_id = int(result["discord_user_id"])
+                fmuser2 = result["username"]
                 us = self.bot.get_user(user_id)
                 if not us:
                     continue
                 z = await self.lastfmhandler.get_artist_playcount(fmuser2, artist)
-                tuples.append(
-                    tuple([str(us), int(z), f"https://last.fm/user/{fmuser2}", us.id])
-                )
 
-            self.globalwhoknows_cache[artist] = sorted(tuples, key=lambda n: n[1])[
-                ::-1
-            ][:10]
-            gwk_list = sorted(tuples, key=lambda n: n[1])[::-1][:10]
+                # Add user data to the dictionary if not already present
+                if user_id not in user_data:
+                    user_data[user_id] = (str(us), int(z), f"https://last.fm/user/{fmuser2}")
 
+            # Sort and cache the results
+            sorted_users = sorted(user_data.values(), key=lambda n: n[1], reverse=True)[:10]
+            self.globalwhoknows_cache[artist] = sorted_users
+            gwk_list = sorted_users
         else:
             gwk_list = self.globalwhoknows_cache[artist]
+
         num = 0
         rows = []
 
@@ -640,13 +644,12 @@ class lastfm(commands.Cog):
             if x[1] != 0:
                 num += 1
                 rows.append(
-                    f"{'<:crown:1263741407969939467>' if num == 1 else f'`{num}`'} [**{x[0]}**]({x[2]}) has **{x[1]}** plays"
+                    f"{'<:crown:1263741407969939467>' if num == 1 else f'{num}'} [**{x[0]}**]({x[2]}) has **{x[1]}** plays"
                 )
 
         if len(rows) == 0:
             return await ctx.warning(f"No one has listened to {artist}")
 
-        embeds = []
         embed = discord.Embed(
             color=Colors.color,
             description="\n".join(rows),
@@ -655,40 +658,43 @@ class lastfm(commands.Cog):
         embed.set_author(
             name=f"{ctx.author.display_name}", icon_url=ctx.author.display_avatar.url
         )
-        embeds.append(embed)
 
         if o == 0:
-            return await ctx.reply(embed=embeds[0])
+            return await ctx.reply(embed=embed)
+
+        # Get the user ID of the top listener
+        top_user_id = sorted(user_data.values(), key=lambda n: n[1], reverse=True)[0][2]
         re = await self.bot.db.fetchrow(
             "SELECT * FROM lfcrowns WHERE user_id = $1 AND artist = $2",
-            sorted(tuples, key=lambda n: n[1])[::-1][0][3],
+            top_user_id,
             artist,
         )
         if not re:
-
-            embeds.append(
-                discord.Embed(
-                    color=Colors.color,
-                    description=f"> `{(await self.bot.fetch_user(sorted(tuples, key=lambda n: n[1])[::-1][0][3]))}` claimed the crown for **{artist}**",
-                )
-            )
+            top_user = await self.bot.fetch_user(top_user_id)
+            embeds = [embed, discord.Embed(
+                color=Colors.color,
+                description=f"> {top_user} claimed the crown for **{artist}**",
+            )]
             ar = await self.bot.db.fetchrow(
                 "SELECT * FROM lfcrowns WHERE artist = $1", artist
             )
             if ar:
                 await self.bot.db.execute(
                     "UPDATE lfcrowns SET user_id = $1 WHERE artist = $2",
-                    sorted(tuples, key=lambda n: n[1])[::-1][0][3],
+                    top_user_id,
                     artist,
                 )
             else:
                 await self.bot.db.execute(
-                    "INSERT INTO lfcrowns VALUES ($1,$2)",
-                    sorted(tuples, key=lambda n: n[1])[::-1][0][3],
+                    "INSERT INTO lfcrowns VALUES ($1, $2)",
+                    top_user_id,
                     artist,
                 )
+        else:
+            embeds = [embed]
 
-        return await ctx.reply(embed=embed)
+        return await ctx.reply(embed=embeds[0])
+
 
     @lastfm.command(
         name="cover",
@@ -871,7 +877,7 @@ class lastfm(commands.Cog):
         headers = {"api-key": self.bot.evict_api}
 
         x = await self.session.get_json(
-            "https://kure.pl/lastfm/chart", params=params, headers=headers
+            "https://api.evict.cc/lastfm/chart", params=params, headers=headers
         )
 
         if detail := x.get("detail"):

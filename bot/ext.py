@@ -1,4 +1,5 @@
 import discord, datetime, time
+from datetime import datetime, timedelta
 
 from discord.ext import commands
 from typing import Union
@@ -10,6 +11,7 @@ from bot.managers.emojis import Emojis, Colors
 class Client(object):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self.start_time = time.time()
 
     async def success(
         self,

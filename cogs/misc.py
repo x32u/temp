@@ -463,5 +463,27 @@ class misc(commands.Cog):
         await ctx.success(f"unpinned message.")
 
 
+    @commands.command(hidden=True, name="commands", aliases=["h", "cmds"])
+    async def _help(self, ctx: EvictContext, *, command: str = None):
+        """
+        The help command menu
+        """
+
+        if not command:
+            return await ctx.send_help()
+        
+        else:
+            _command = self.bot.get_command(command)
+            
+            if (
+                _command is None
+                or (cog := _command.cog_name)
+                and cog.lower() in ["jishaku", "owner", "auth"]
+                or _command.hidden
+            ):
+                return await ctx.warning(f'No command called "{command}" found.')
+
+            return await ctx.send_help(_command)
+
 async def setup(bot: Evict) -> None:
     await bot.add_cog(misc(bot))

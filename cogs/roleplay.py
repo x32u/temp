@@ -142,7 +142,7 @@ class roleplay(commands.Cog):
     async def cuddle(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/cuddle", headers=headers
+            "https://api.evict.cc/roleplay/cuddle", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -156,7 +156,7 @@ class roleplay(commands.Cog):
     async def poke(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/poke", headers=headers
+            "https://api.evict.cc/roleplay/poke", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -170,7 +170,7 @@ class roleplay(commands.Cog):
     async def kiss(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/kiss", headers=headers
+            "https://api.evict.cc/roleplay/kiss", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -184,7 +184,7 @@ class roleplay(commands.Cog):
     async def hug(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/hug", headers=headers
+            "https://api.evict.cc/roleplay/hug", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -198,7 +198,7 @@ class roleplay(commands.Cog):
     async def pat(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/pat", headers=headers
+            "https://api.evict.cc/roleplay/pat", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -212,7 +212,7 @@ class roleplay(commands.Cog):
     async def tickle(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/tickle", headers=headers
+            "https://api.evict.cc/roleplay/tickle", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -225,7 +225,7 @@ class roleplay(commands.Cog):
     async def lick(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/lick", headers=headers
+            "https://api.evict.cc/roleplay/lick", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -239,7 +239,7 @@ class roleplay(commands.Cog):
     async def slap(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/slap", headers=headers
+            "https://api.evict.cc/roleplay/slap", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -253,7 +253,7 @@ class roleplay(commands.Cog):
     async def spank(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/spank", headers=headers
+            "https://api.evict.cc/roleplay/spank", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -267,7 +267,7 @@ class roleplay(commands.Cog):
     async def feed(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/feed", headers=headers
+            "https://api.evict.cc/roleplay/feed", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -281,7 +281,7 @@ class roleplay(commands.Cog):
     async def punch(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/punch", headers=headers
+            "https://api.evict.cc/roleplay/punch", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -295,7 +295,7 @@ class roleplay(commands.Cog):
     async def highfive(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/lick", headers=headers
+            "https://api.evict.cc/roleplay/lick", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -309,7 +309,7 @@ class roleplay(commands.Cog):
     async def kill(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/kill", headers=headers
+            "https://api.evict.cc/roleplay/kill", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -323,7 +323,7 @@ class roleplay(commands.Cog):
     async def bite(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/bite", headers=headers
+            "https://api.evict.cc/roleplay/bite", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -337,7 +337,7 @@ class roleplay(commands.Cog):
     async def lick(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/yeet", headers=headers
+            "https://api.evict.cc/roleplay/yeet", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -351,7 +351,7 @@ class roleplay(commands.Cog):
     async def nutkick(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/nutkick", headers=headers
+            "https://api.evict.cc/roleplay/nutkick", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -365,7 +365,7 @@ class roleplay(commands.Cog):
     async def fuck(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/fuck", headers=headers
+            "https://api.evict.cc/roleplay/fuck", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -381,7 +381,7 @@ class roleplay(commands.Cog):
     ):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/threesome", headers=headers
+            "https://api.evict.cc/roleplay/threesome", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,
@@ -395,7 +395,7 @@ class roleplay(commands.Cog):
     async def hump(self, ctx: EvictContext, user: discord.Member):
         headers = {"api-key": self.bot.evict_api}
         response = await self.bot.session.get_json(
-            "https://kure.pl/roleplay/hump", headers=headers
+            "https://api.evict.cc/roleplay/hump", headers=headers
         )
         embed = discord.Embed(
             colour=Colors.color,

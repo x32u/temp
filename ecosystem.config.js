@@ -2,7 +2,7 @@ module.exports = {
     apps: [
       {
         name: 'evict',
-        script: 'python3.11',
+        script: 'python3.12',
         args: 'evict.py',
         interpreter: 'none', // This tells PM2 not to use Node.js to run the script
       },

@@ -25,7 +25,7 @@ class api(commands.Cog):
         self, ctx: EvictContext, user: discord.User, key: str, role: str
     ):
 
-        url = "https://kure.pl"
+        url = "https://api.evict.cc"
 
         check = await self.bot.db.fetchrow(
             "SELECT * FROM api_key WHERE user_id = {}".format(user.id)

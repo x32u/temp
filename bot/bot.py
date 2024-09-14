@@ -1,9 +1,11 @@
-import discord, asyncpg, typing, time, os, discord_ios, pomice, asyncio, json
+import discord, asyncpg, typing, time, os, discord_ios, pomice, asyncio, json, datetime
 
-from typing import List
+from typing import List, Union
 from humanfriendly import format_timespan
 
-from discord.ext import commands
+from discord.ext import commands, ipc
+from discord.ext.ipc.server import Server
+from discord.ext.ipc.objects import ClientPayload
 
 from bot.helpers import StartUp
 from bot.helpers import EvictContext, HelpCommand
@@ -112,11 +114,13 @@ class Evict(commands.AutoShardedBot):
             ),
             intents=discord.Intents.all(),
             owner_ids=[214753146512080907, 598125772754124823],
-            shard_count=1,
+            shard_count=2,
             help_command=HelpCommand(),
             strip_after_prefix=True,
             activity=discord.CustomActivity(name="🔗 evict.cc"),
         )
+
+        self.ipc = ipc.Server(bot=self, secret_key="Ng\\_3QEVfjN)U/1=FQz`58c%B4m3|&", standard_port=6060, do_multicast=False)
 
         self.db = db
 
@@ -145,6 +149,21 @@ class Evict(commands.AutoShardedBot):
 
         self.commands_url = os.environ.get("commands_url")
         self.support_server = os.environ.get("support_server")
+
+    @Server.route(name="status")
+    async def ipc_status(self, payload: ClientPayload):
+       return {
+           "shards": [
+               {
+                   "guilds": f"{len([guild for guild in self.guilds if guild.shard_id == shard.id])}",
+                   "users": f"{len([user for guild in self.guilds for user in guild.members if guild.shard_id == shard.id])}",
+                   "ping": f"{(shard.latency * 1000):.2f}ms",
+                   "uptime": f"{int(self.uptime)}",
+                   "id": f"{shard.id}",
+               }
+               for shard in self.shards.values()
+           ]
+       }
 
     async def create_db_pool(self):
         self.db = await asyncpg.create_pool(
@@ -282,8 +301,8 @@ class Evict(commands.AutoShardedBot):
         self.redis: Redis = await Redis.from_url()
 
         await StartUp.loadcogs(self)
-
         await create_db(self)
+        await self.ipc.start()
 
     async def get_context(
         self, message: discord.Message, cls=EvictContext

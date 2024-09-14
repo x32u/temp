@@ -127,7 +127,7 @@ class CustomApp(FastAPI):
         super().__init__(
             redoc_url=None,
             docs_url=None,
-            title="Kure API",
+            title="Evict API",
             on_shutdown=[self.shutdown],
             on_startup=[self.startup],
             openapi_tags=[
@@ -283,10 +283,10 @@ class CustomApp(FastAPI):
             return self.openapi_schema
 
         openapi_schema = get_openapi(
-            title="Kure API",
+            title="Evict API",
             version="1.0.0",
             routes=self.routes,
-            summary="A private API for Evict.",
+            summary="A private API for Evict."
         )
         openapi_schema["info"]["x-logo"] = {
             "url": "https://cdn.discordapp.com/banners/1177424668328726548/a_107bac482c5a64d493a87f989b84f202.gif?size=1024"
@@ -351,14 +351,11 @@ auth_scheme = AuthScheme(name="api-key")
 
 
 @app.get("/", include_in_schema=False)
-async def docs():
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
-        title=app.title,
-        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
-        swagger_ui_parameters={"syntaxHighlight.theme": "obsidian"},
-        swagger_favicon_url="https://cdn.resent.dev/resent.png",
-    )
+async def docs(token: APIKey = Depends(auth_scheme)):
+    if token.role != "master":
+        raise HTTPException(
+            status_code=403, detail="You are not allowed to access this endpoint."
+        )
 
 
 @app.get("/shards/get", include_in_schema=False)
@@ -396,7 +393,7 @@ def generate_api_sig(params: dict, secret: str) -> str:
 
 @app.get("/lastfm/authorize")
 async def authorize(discord_user_id: str):
-    redirect_uri = f"https://kure.pl/lastfm/callback?discord_user_id={discord_user_id}"
+    redirect_uri = f"https://api.evict.cc/lastfm/callback?discord_user_id={discord_user_id}"
     return RedirectResponse(
         f"http://www.last.fm/api/auth/?api_key={LastFM_API_KEY}&cb={redirect_uri}"
     )
