@@ -292,42 +292,7 @@ class Messages(commands.Cog):
             message.author.id,
             message.guild.id,
         )
-        check1 = await self.bot.db.fetchrow(
-            "SELECT user_id FROM guwulock WHERE user_id = $1", message.author.id
-        )
-        if check1:
-            return
-        if check is None or not check:
-            return
-        uwu = uwuipy()
-        uwu_message = uwu.uwuify(message.content)
-        hook = await self.webhook(message.channel)
-        await hook.send(
-            content=uwu_message,
-            username=message.author.display_name,
-            avatar_url=message.author.display_avatar,
-            thread=(
-                message.channel
-                if isinstance(message.channel, discord.Thread)
-                else discord.utils.MISSING
-            ),
-        )
-        await message.delete()
 
-    @commands.Cog.listener("on_message")
-    async def guwulock(self, message: discord.Message):
-        if not message.guild:
-            return
-        check1 = await self.bot.db.fetchrow(
-            "SELECT user_id FROM uwulock WHERE user_id = $1 AND guild_id = $2",
-            message.author.id,
-            message.guild.id,
-        )
-        check = await self.bot.db.fetchrow(
-            "SELECT user_id FROM guwulock WHERE user_id = $1", message.author.id
-        )
-        if check1:
-            return
         if check is None or not check:
             return
         uwu = uwuipy()

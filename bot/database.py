@@ -277,9 +277,6 @@ async def create_db(self: commands.Bot):
         "CREATE TABLE IF NOT EXISTS stickymessage (guild_id BIGINT, channel_id BIGINT, message_id BIGINT)"
     )
     await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS guwulock (user_id BIGINT)"
-    )
-    await self.db.execute(
         "CREATE TABLE IF NOT EXISTS restrictcommand (guild_id BIGINT, command TEXT, role_id BIGINT)"
     )
     await self.db.execute(

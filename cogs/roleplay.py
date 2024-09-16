@@ -319,18 +319,19 @@ class roleplay(commands.Cog):
         embed.set_image(url=response["image_url"])
         await ctx.reply(embed=embed)
 
-    @commands.command(description="bite a user", usage="[user]")
-    async def bite(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/bite", headers=headers
-        )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.command(name="bite", help="roleplay", description="bite a user")
+    async def bite(self, ctx: commands, user: discord.Member):
+
+        images = f"https://r2.evict.cc/roleplay/bite/bite{random.randint(1, 20)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just bit **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just bit {f'**{str(user.mention)}**' if user else 'themselves'}!",
         )
+
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+        embed.set_image(url=images)
         await ctx.reply(embed=embed)
 
     @commands.command(description="yeet a user", usage="[user]")
