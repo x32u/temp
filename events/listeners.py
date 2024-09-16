@@ -640,35 +640,5 @@ class listeners(commands.Cog):
             except TypeError:
                 pass
 
-    @commands.Cog.listener("on_member_unban")
-    async def globalban_check1(self, guild: discord.Guild, user: discord.User):
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = {}".format(user.id)
-        )
-        if check is not None:
-            try:
-                await guild.ban(
-                    user,
-                    reason=f"{user} cannot be unbanned. globalban enforced for this user.",
-                )
-            except (discord.HTTPException, discord.Forbidden):
-                pass
-
-    @commands.Cog.listener("on_member_join")
-    async def globalban_check(self, member: discord.Member):
-        guild = member.guild
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = {}".format(member.id)
-        )
-        if check is not None:
-            try:
-                await guild.ban(
-                    member,
-                    reason=f"{member} cannot be unbanned. globalban enforced for this user.",
-                )
-            except (discord.HTTPException, discord.Forbidden):
-                pass
-
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(listeners(bot))

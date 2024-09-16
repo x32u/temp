@@ -323,7 +323,7 @@ class roleplay(commands.Cog):
     @commands.command(name="bite", help="roleplay", description="bite a user")
     async def bite(self, ctx: commands, user: discord.Member):
 
-        images = f"https://r2.evict.cc/roleplay/bite/bite{random.randint(1, 20)}.gif"
+        images = f"https://r2.evict.cc/roleplay/bite/bite{random.randint(1, 31)}.gif"
 
         embed = discord.Embed(
             colour=Colors.color,

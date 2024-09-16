@@ -6,13 +6,12 @@ from discord.ext.commands import Context
 from discord import Embed, Permissions as P
 from typing import Optional
 
-from patches.classes import OwnerConfig
 from patches.permissions import Permissions
 
 from bot.helpers import EvictContext
 from bot.bot import Evict
 
-from bot.managers.emojis import Emojis, Colors
+from bot.managers.emojis import Colors
 
 
 class owner(commands.Cog):
@@ -36,46 +35,6 @@ class owner(commands.Cog):
             hour = date.hour
             meridian = "PM"
         return f"{month}/{day}/{year} at {hour}:{minute} {meridian} ({discord.utils.format_dt(date, style='R')})"
-
-    @commands.is_owner()
-    @commands.group(invoke_without_command=True)
-    async def donor(self, ctx: EvictContext):
-        await ctx.create_pages()
-
-    @commands.is_owner()
-    @donor.command(
-        name="add",
-        description="add a user to donors",
-        usage="[member id]",
-        brief="bot owner",
-    )
-    async def add(self, ctx: EvictContext, *, member: discord.User):
-        result = await self.bot.db.fetchrow(
-            "SELECT * FROM donor WHERE user_id = {}".format(member.id)
-        )
-        if result is not None:
-            return await ctx.warning(f"{member} is already a donor")
-        ts = int(datetime.datetime.now().timestamp())
-        await self.bot.db.execute("INSERT INTO donor VALUES ($1,$2)", member.id, ts)
-        return await ctx.success(f"{member.mention} is now a donor")
-
-    @commands.is_owner()
-    @donor.command(
-        name="remove",
-        description="remove a user from donor",
-        usage="[member id]",
-        brief="bot owner",
-    )
-    async def remove(self, ctx: EvictContext, *, member: discord.User):
-        result = await self.bot.db.fetchrow(
-            "SELECT * FROM donor WHERE user_id = {}".format(member.id)
-        )
-        if result is None:
-            return await ctx.warning(f"{member} isn't a donor")
-        await self.bot.db.execute(
-            "DELETE FROM donor WHERE user_id = {}".format(member.id)
-        )
-        return await ctx.success(f"{member.mention} is not a donor anymore")
 
     @commands.command()
     @commands.is_owner()
@@ -175,69 +134,6 @@ class owner(commands.Cog):
         embed.set_author(name=f"Error Code: {code}")
 
         return await ctx.send(embed=embed)
-
-    @commands.is_owner()
-    @commands.command(
-        aliases=["globalban"],
-        description="ban a user from all servers",
-        usage="[user]",
-        brief="bot owner",
-    )
-    async def gban(self, ctx: EvictContext, *, member: discord.User):
-
-        if member.id in self.bot.owner_ids:
-            return await ctx.warning("do not globalban a bot owner, retard.")
-        if member.id == ctx.bot.user.id:
-            return await ctx.warning("do not globalban me retard.")
-
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        if check is not None:
-            return await ctx.warning(f"{member.mention} is already globalbanned.")
-
-        guild_ids = await self.bot.db.fetch("SELECT guild_id FROM mwhitelist")
-        guild = discord.Guild
-
-        for guild in member.mutual_guilds:
-
-            if guild.id in guild_ids:
-                continue
-
-            try:
-                await guild.ban(member, reason=f"globalbanned by {ctx.author}")
-
-            except discord.Forbidden:
-                await guild.leave()
-
-        await self.bot.db.execute("INSERT INTO globalban VALUES ($1)", member.id)
-        await self.bot.db.execute(
-            "INSERT INTO nodata VALUES ($1,$2)", member.id, "false"
-        )
-        await ctx.warning(f"globalbanned **{member}**")
-
-    @commands.is_owner()
-    @commands.command(
-        aliases=["unglobalban", "gunban"],
-        description="unban a user from all servers",
-        usage="[user]",
-        brief="bot owner",
-    )
-    async def ungban(self, ctx: EvictContext, *, member: discord.User):
-
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        if check is None:
-            return await ctx.warning(f"{member.mention} isn't globalbanned.")
-
-        await self.bot.db.execute(
-            "DELETE FROM globalban WHERE banned = {}".format(member.id)
-        )
-        await self.bot.db.execute(
-            "DELETE FROM nodata WHERE user_id = {}".format(member.id)
-        )
-        await ctx.success(f"unglobalbanned **{member}**")
 
     @Permissions.staff()
     @commands.command(

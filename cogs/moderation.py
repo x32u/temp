@@ -462,15 +462,6 @@ class moderation(commands.Cog):
     
     async def ban(self, ctx: EvictContext, target: Union[discord.Member, discord.User], *, reason: str = "No Reason Provided"):
         
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", target.id
-        )
-        
-        if check is not None:
-            return await ctx.warning(
-                f"{target.mention} is globalbanned, they cannot be unbanned."
-            )
-        
         if isinstance(target, discord.Member) and not Permissions.check_hierarchy(
             self.bot, ctx.author, target
         ):
@@ -534,15 +525,6 @@ class moderation(commands.Cog):
     async def unban(
         self, ctx: EvictContext, member: discord.User, *, reason: str = "No reason provided"
     ):
-        
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        
-        if check is not None:
-            return await ctx.warning(
-                f"{member.mention} is globalbanned, they cannot be unbanned."
-            )
         
         try:
             await ctx.guild.unban(
@@ -1784,15 +1766,6 @@ class moderation(commands.Cog):
         ):
             return await ctx.warning(f"You cannot autokick*{member.mention}.")
         
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        
-        if check is not None:
-            return await ctx.warning(
-                f"{member.mention} is **already** globalbanned, they **cannot** be autokicked."
-            )
-        
         che = await self.bot.db.fetchrow(
             "SELECT * FROM autokick WHERE guild_id = {} AND autokick_users = {}".format(
                 ctx.guild.id, member.id
@@ -1828,15 +1801,6 @@ class moderation(commands.Cog):
     async def autokick_remove(
         self, ctx: EvictContext, *, member: discord.User
     ):
-        
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        
-        if check is not None:
-            return await ctx.warning(
-                f"{member.mention} is globalbanned, they **cannot** be removed from autokick list."
-            )
         
         che = await self.bot.db.fetchrow(
             "SELECT * FROM autokick WHERE guild_id = {} AND autokick_users = {}".format(
@@ -1917,15 +1881,6 @@ class moderation(commands.Cog):
         self, ctx: EvictContext, *, member: discord.User
     ):
         
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        
-        if check is not None:
-            return await ctx.warning(
-                f"{member.mention} is **globalbanned**, they cannot be private unwhitelisted."
-            )
-        
         che = await self.bot.db.fetchrow(
             "SELECT * FROM private WHERE guild_id = {} AND private_users = {}".format(
                 ctx.guild.id, member.id
@@ -1957,14 +1912,6 @@ class moderation(commands.Cog):
     
     async def private_whitelist(
         self, ctx: EvictContext, *, member: Union[discord.Member, discord.User]):
-        
-        check = await self.bot.db.fetchrow(
-            "SELECT * FROM globalban WHERE banned = $1", member.id
-        )
-        if check is not None:
-            return await ctx.warning(
-                f"{member.mention} is **globalbanned**, they cannot be private whitelisted."
-            )
         
         che = await self.bot.db.fetchrow(
             "SELECT * FROM private WHERE guild_id = {} AND user_id = {}".format(

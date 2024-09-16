@@ -241,9 +241,6 @@ async def create_db(self: commands.Bot):
         "CREATE TABLE IF NOT EXISTS vanity (guild_id BIGINT, vanity_message TEXT, vanity_string TEXT, role_id BIGINT)"
     )
     await self.db.execute(
-        "CREATE TABLE IF NOT EXISTS globalban (banned BIGINT)"
-    )
-    await self.db.execute(
         "CREATE TABLE IF NOT EXISTS autoresponses (guild_id BIGINT, key TEXT, response TEXT)"
     )
     await self.db.execute(
