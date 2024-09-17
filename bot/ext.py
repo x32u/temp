@@ -140,7 +140,7 @@ class Client(object):
         class FormatDelta:
 
             def __init__(self, dt):
-                now = datetime.datetime.now()
+                now = datetime.now()
                 delta = now - dt
                 self.day = delta.days
                 self.second = delta.seconds
