@@ -452,8 +452,7 @@ class lastfm(commands.Cog):
     @lastfm.command(
         name="user",
         aliases=["ui"],
-        description="lastfm",
-        help="check info about a lastfm user",
+        description="check info about a lastfm user",
         usage="<username>",
     )
     async def lf_user(
@@ -927,7 +926,6 @@ class lastfm(commands.Cog):
 
     @commands.command(
         aliases=["np", "fm"],
-        help="lastfm",
         description="check what song is playing right now",
         usage="<user>",
     )

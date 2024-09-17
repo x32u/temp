@@ -35,7 +35,6 @@ class fun(commands.Cog):
     @commands.command(
         name="poll",
         description="start a quick poll",
-        help="fun",
         brief="manage messages",
     )
     async def poll(self, ctx: EvictContext, *, question: str):
@@ -47,12 +46,12 @@ class fun(commands.Cog):
         await message.add_reaction("👍")
         await message.add_reaction("👎")
 
-    @commands.command(description="flip a coin", help="fun")
+    @commands.command(description="flip a coin", )
     async def coinflip(self, ctx: EvictContext):
         await ctx.reply(random.choice(["heads", "tails"]))
 
     @commands.command(
-        aliases=["rps"], description="play rock paper scissors with the bot", help="fun"
+        aliases=["rps"], description="play rock paper scissors with the bot", 
     )
     async def rockpaperscisssors(self, ctx: EvictContext):
         view = RockPaperScissors(ctx)
@@ -67,15 +66,15 @@ class fun(commands.Cog):
     async def clock(self, ctx):
         return await ctx.create_pages()
 
-    @clock.command(name="in", help="fun", description="clock in")
+    @clock.command(name="in", description="clock in")
     async def clock_in(self, ctx: EvictContext):
         return await ctx.reply(f"🕰️ {ctx.author.mention}: clocks in...")
 
-    @clock.command(name="out", help="fun", description="clock out")
+    @clock.command(name="out", description="clock out")
     async def clock_out(self, ctx: EvictContext):
         return await ctx.reply(f"🕰️ {ctx.author.mention}: clocks out...")
 
-    @commands.command(description="retard rate an user", help="fun", usage="<member>")
+    @commands.command(description="retard rate an user", usage="<member>")
     async def howretarded(self, ctx, member: discord.Member = commands.Author):
         if member.id in self.bot.owner_ids:
             await ctx.reply(
@@ -94,7 +93,7 @@ class fun(commands.Cog):
                 )
             )
 
-    @commands.command(description="gay rate an user", help="fun", usage="<member>")
+    @commands.command(description="gay rate an user", usage="<member>")
     async def howgay(self, ctx, member: discord.Member = commands.Author):
         if member.id in self.bot.owner_ids:
             return await ctx.reply(
@@ -113,7 +112,7 @@ class fun(commands.Cog):
                 )
             )
 
-    @commands.command(description="cool rate an user", help="fun", usage="<member>")
+    @commands.command(description="cool rate an user", usage="<member>")
     async def howcool(self, ctx, member: discord.Member = commands.Author):
         if member.id in self.bot.owner_ids:
             return
@@ -126,7 +125,7 @@ class fun(commands.Cog):
                 )
             )
 
-    @commands.command(description="check an user's iq", help="fun", usage="<member>")
+    @commands.command(description="check an user's iq", usage="<member>")
     async def iq(self, ctx, member: discord.Member = commands.Author):
         if member.id in self.bot.owner_ids:
             return await ctx.reply(
@@ -145,7 +144,7 @@ class fun(commands.Cog):
                 )
             )
 
-    @commands.command(description="hot rate an user", help="fun", usage="<member>")
+    @commands.command(description="hot rate an user", usage="<member>")
     async def hot(self, ctx, member: discord.Member = commands.Author):
         if member.id in self.bot.owner_ids:
             return
@@ -173,7 +172,7 @@ class fun(commands.Cog):
         await ctx.reply(embed=embed)
 
     @commands.command(
-        description="check how many bitches an user has", help="fun", usage="<member>"
+        description="check how many bitches an user has", usage="<member>"
     )
     async def bitches(
         self, ctx: EvictContext, *, user: discord.Member = commands.Author
@@ -195,7 +194,7 @@ class fun(commands.Cog):
             )
         await ctx.reply(embed=embed)
 
-    @commands.command(description="send a random bird image", help="fun")
+    @commands.command(description="send a random bird image", )
     async def bird(self, ctx):
         data = await self.bot.session.json("https://api.alexflipnote.dev/birb")
         await ctx.reply(
@@ -205,7 +204,7 @@ class fun(commands.Cog):
             )
         )
 
-    @commands.command(description="send a random dog image", help="fun")
+    @commands.command(description="send a random dog image", )
     async def dog(self, ctx):
         data = await self.bot.session.json("https://random.dog/woof.json")
         await ctx.reply(
@@ -215,7 +214,7 @@ class fun(commands.Cog):
             )
         )
 
-    @commands.command(description="send a random cat image", help="fun")
+    @commands.command(description="send a random cat image", )
     async def cat(self, ctx):
         data = (
             await self.bot.session.json("https://api.thecatapi.com/v1/images/search")
@@ -226,7 +225,7 @@ class fun(commands.Cog):
             )
         )
 
-    @commands.command(description="send a random capybara image", help="fun")
+    @commands.command(description="send a random capybara image", )
     async def capybara(self, ctx):
         data = await self.bot.session.json("https://api.capy.lol/v1/capybara?json=true")
         await ctx.reply(
@@ -237,7 +236,7 @@ class fun(commands.Cog):
         )
 
     @commands.command(
-        description="return an useless fact", help="fun", aliases=["fact", "uf"]
+        description="return an useless fact", aliases=["fact", "uf"]
     )
     async def uselessfact(self, ctx):
         data = (
@@ -250,7 +249,6 @@ class fun(commands.Cog):
     @commands.command(
         description="screenshot a website",
         usage="[url]",
-        help="fun",
         aliases=["ss", "screen"],
     )
     async def screenshot(self, ctx: EvictContext, url: str):
@@ -266,7 +264,7 @@ class fun(commands.Cog):
             return await ctx.warning(f"This site **does not** appear to be valid.")
 
     @commands.command(
-        description="grab info on a snapchat profile", usage="[username]", help="fun"
+        description="grab info on a snapchat profile", usage="[username]", 
     )
     async def snapchat(self, ctx: EvictContext, *, username: str):
         try:
@@ -321,7 +319,7 @@ class fun(commands.Cog):
                 pass
 
     @commands.command(
-        description="grab info on a roblox profile", usage="[username]", help="fun"
+        description="grab info on a roblox profile", usage="[username]"
     )
     async def roblox(self, ctx: EvictContext, profile: str):
         try:
@@ -345,7 +343,7 @@ class fun(commands.Cog):
             return await ctx.warning(f"{profile} **does not** appear to be valid.")
 
     @commands.command(
-        description="grab info on a snapchat profile", usage="[username]", help="fun"
+        description="grab info on a snapchat profile", usage="[username]", 
     )
     async def snapchatuser(self, ctx: EvictContext, profile: str):
         try:
@@ -362,7 +360,7 @@ class fun(commands.Cog):
             return await ctx.warning(f"{profile} **does not** appear to be valid.")
 
     @commands.command(
-        description="grab info on a tiktok profile", usage="[username]", help="fun"
+        description="grab info on a tiktok profile", usage="[username]", 
     )
     async def tiktok(self, ctx: EvictContext, profile: str):
         try:
@@ -392,7 +390,7 @@ class fun(commands.Cog):
             return await ctx.warning(f"{profile} **does not** appear to be valid.")
 
     @commands.command(
-        description="grab info on a instagram profile", usage="[username]", help="fun"
+        description="grab info on a instagram profile", usage="[username]", 
     )
     async def instagram(self, ctx: EvictContext, profile: str):
         try:
@@ -417,20 +415,20 @@ class fun(commands.Cog):
         except Exception:
             return await ctx.warning(f"{profile} **does not** appear to be valid.")
 
-    @commands.command(description="ask chatgpt a question", usage="text", help="fun")
+    @commands.command(description="ask chatgpt a question", usage="text", )
     async def chatgpt(self, ctx: EvictContext, *, text: str):
         data = await api.ask_chatgpt(f"{text}")
         await ctx.reply(data)
 
     # except Exception: return await ctx.warning(f"API is either down or I have no ChatGPT credits. Please join https://discord.gg/evict and report this.")
 
-    @commands.command(description="ship rate an user", help="fun", usage="[member]")
+    @commands.command(description="ship rate an user", usage="[member]")
     async def ship(self, ctx, member: discord.Member):
         return await ctx.reply(
             f"**{ctx.author.name}** 💞 **{member.name}** = **{randrange(101)}%**"
         )
 
-    @commands.command(description="sends a random advice", help="fun")
+    @commands.command(description="sends a random advice", )
     async def advice(self, ctx: EvictContext):
         byte = await self.bot.session.read("https://api.adviceslip.com/advice")
         data = str(byte, "utf-8")
@@ -438,7 +436,7 @@ class fun(commands.Cog):
         js = json.loads(data)
         return await ctx.reply(js["slip"]["advice"])
 
-    @commands.command(description="pack someone", help="fun", usage="[user]")
+    @commands.command(description="pack someone", usage="[user]")
     async def pack(self, ctx: EvictContext, *, member: discord.Member):
         if member == ctx.author:
             return await ctx.warning(
@@ -449,7 +447,6 @@ class fun(commands.Cog):
     @commands.command(
         aliases=["ttt"],
         description="play tictactoe with your friends",
-        help="fun",
         usage="[member]",
     )
     async def tictactoe(self, ctx: EvictContext, *, member: discord.Member):
@@ -470,7 +467,7 @@ class fun(commands.Cog):
             allowed_mentions=discord.AllowedMentions(users=[member]),
         )
 
-    @commands.command(description="play blacktea with your friends", help="fun")
+    @commands.command(description="play blacktea with your friends", )
     async def blacktea(self, ctx: EvictContext):
         
         try:
@@ -608,7 +605,6 @@ class fun(commands.Cog):
         name="8ball",
         description="answers to your question",
         usage="[question]",
-        help="fun",
     )
     async def mtball(self, ctx: EvictContext, *, arg):
         rand = [

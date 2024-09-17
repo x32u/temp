@@ -143,7 +143,7 @@ class config(Cog):
         return await ctx.success("I have removed **all** channels from mediaonly.")
 
     @mediaonly.command(
-        name="list", description="return a list of mediaonly channels", help="config"
+        name="list", description="return a list of mediaonly channels"
     )
     async def mediaonly_list(self, ctx: EvictContext):
         i = 0
@@ -268,7 +268,7 @@ class config(Cog):
         return await ctx.success("I will **not** ping new members in any channel.")
 
     @pingonjoin.command(
-        name="list", description="get a list of pingonjoin channels", help="config"
+        name="list", description="get a list of pingonjoin channels"
     )
     async def poj_list(self, ctx: EvictContext):
 
@@ -526,7 +526,7 @@ class config(Cog):
         )
         return await ctx.success("I have **removed** all roles from autorole.")
 
-    @autorole.command(name="list", description="list of autoroles", help="config")
+    @autorole.command(name="list", description="list of autoroles")
     async def autorole_list(self, ctx: EvictContext):
 
         i = 0
@@ -577,8 +577,7 @@ class config(Cog):
 
     @commands.group(
         invoke_without_command=True,
-        description="manage custom punishment responses",
-        help="config",
+        description="manage custom punishment responses"
     )
     async def invoke(self, ctx):
         await ctx.create_pages()
@@ -747,9 +746,8 @@ class config(Cog):
 
     @commands.command(
         aliases=["enablecmd"],
-        help="enable a command that was previously disabled in this server",
+        description="enable a command that was previously disabled in this server",
         brief="administrator",
-        description="config",
         usage="[command name]",
     )
     @commands.has_permissions(administrator=True)
@@ -919,7 +917,7 @@ class config(Cog):
         return await ctx.success("I have **disabled** confessions for this server.")
 
     @confessions.command(
-        name="channel", description="get the confessions channel", help="config"
+        name="channel", description="get the confessions channel"
     )
     async def confessions_channel(self, ctx: EvictContext):
 
@@ -965,7 +963,7 @@ class config(Cog):
         )
 
     @commands.command(
-        description="set your own prefix", usage="[prefix]", help="config"
+        description="set your own prefix", usage="[prefix]"
     )
     async def selfprefix(self, ctx: EvictContext, prefix: str):
 
@@ -1092,7 +1090,6 @@ class config(Cog):
 
     @fakepermissions.command(
         description="Toggle Anti-Nuke",
-        help="[Module]",
         usage="ban",
         brief="Anti-Nuke Admin",
     )
@@ -1160,7 +1157,6 @@ class config(Cog):
     @fakepermissions.command(
         aliases=["perms"],
         description="list all the available permissions",
-        help="config",
     )
     async def permissions(self, ctx: EvictContext):
 
@@ -1679,7 +1675,6 @@ class config(Cog):
     @stickymessage.command(
         name="add",
         description="add a sticky message",
-        help="chat",
         brief="manage guild",
         aliases=["set"],
         usage="[channel] [message]",

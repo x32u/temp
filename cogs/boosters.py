@@ -111,7 +111,7 @@ class boosters(commands.Cog):
         return await ctx.success("Configured booster role module")
 
     @boosterrole.command(
-        help="config", description="unset the boosterrole module", brief="manage guild"
+        description="unset the boosterrole module", brief="manage guild"
     )
     @Permissions.has_permission(manage_guild=True)
     async def unset(self, ctx: EvictContext):

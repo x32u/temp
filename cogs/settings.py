@@ -78,7 +78,6 @@ class settings(commands.Cog):
         description="set reposter prefix (set to 'none' to have no prefix)",
         usage="[prefix]",
         brief="manage server",
-        help="",
     )
     @Permissions.has_permission(manage_guild=True)
     async def prefix(self, ctx: EvictContext, prefix: str = None):

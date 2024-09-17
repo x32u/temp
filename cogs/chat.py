@@ -104,7 +104,6 @@ class chat(commands.Cog):
 
     @autoresponder.command(
         name="variables",
-        help="config",
         description="returns variables for autoresponder",
     )
     async def ar_variables(self, ctx: EvictContext):
@@ -159,7 +158,6 @@ class chat(commands.Cog):
 
     @autoreact.command(
         name="remove",
-        help="config",
         description="remove auto reactions from a content",
         brief="manage guild",
         usage="[content]",

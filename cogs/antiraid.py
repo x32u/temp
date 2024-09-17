@@ -47,7 +47,6 @@ class antiraid(commands.Cog):
     @antiraid.command(
         aliases=["stats"],
         description="check antiraid settings",
-        help="antiraid",
         name="settings",
     )
     async def antiraid_settings(self, ctx: EvictContext):
@@ -83,7 +82,6 @@ class antiraid(commands.Cog):
         brief="server owner",
         aliases=["wl"],
         description="whitelist an user so they can use antiraid commands",
-        help="antiraid",
         usage="[member]",
     )
     @Permissions.server_owner()
@@ -116,7 +114,6 @@ class antiraid(commands.Cog):
         brief="server owner",
         aliases=["uwl"],
         description="unwhitelist an user from antiraid commands",
-        help="antiraid",
         usage="[member]",
     )
     @Permissions.server_owner()
@@ -167,7 +164,6 @@ class antiraid(commands.Cog):
     @antiraid.group(
         invoke_without_command=True,
         description="prevend join raids",
-        help="antiraid",
         usage="[status (enable/disable)] [punishment] [joins per 10 seconds]\nexample: antiraid massjoin enable 10",
     )
     async def massjoin(self, ctx: EvictContext):
@@ -177,7 +173,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="enable",
         description="prevent join raids",
-        help="antiraid",
         usage="[punishment] [joins per 10 seconds]\nexample: antiraid massjoin enable ban 10",
     )
     @check_whitelist("antiraid")
@@ -206,7 +201,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="disable",
         description="disable massjoin protection",
-        help="antiraid",
     )
     @check_whitelist("antiraid")
     async def massjoin_disable(self, ctx: EvictContext):
@@ -229,7 +223,6 @@ class antiraid(commands.Cog):
     @antiraid.group(
         invoke_without_command=True,
         description="prevent alt accounts from joining your server",
-        help="antiraid",
         usage="[subcommand] [time] [punishment]\nantiraid newaccounts on 2d ban",
     )
     async def newaccounts(self, ctx: EvictContext):
@@ -239,7 +232,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="whitelist",
         description="let a young account join",
-        help="antiraid",
         usage="[user]",
         aliases=["wl"],
     )
@@ -273,7 +265,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="unwhitelist",
         description="remove the whitelist of a new account",
-        help="antiraid",
         usage="[member]",
         aliases=["uwl"],
     )
@@ -315,7 +306,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="on",
         description="turn on newaccounts",
-        help="antiraid",
         usage="[time] [punishment]\nexample: antiraid newaccounts on 2d ban",
     )
     @check_whitelist("antiraid")
@@ -351,7 +341,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="off",
         description="turn off newaccounts",
-        help="antiraid",
     )
     @check_whitelist("antiraid")
     async def newaccounts_off(self, ctx: EvictContext):
@@ -374,7 +363,6 @@ class antiraid(commands.Cog):
     @antiraid.group(
         invoke_without_command=True,
         description="prevent members with no avatar from joining your server",
-        help="antiraid",
         aliases=["noavatar", "defaultpfp"],
     )
     async def defaultavatar(self, ctx: EvictContext):
@@ -382,7 +370,6 @@ class antiraid(commands.Cog):
 
     @defaultavatar.command(
         brief="antiraid whitelisted",
-        help="antiraid",
         name="on",
         description="turn on defaultavatar",
     )
@@ -411,7 +398,6 @@ class antiraid(commands.Cog):
 
     @defaultavatar.command(
         brief="antiraid whitelisted",
-        help="antiraid",
         name="off",
         description="turn off defaultavatar",
     )
@@ -437,7 +423,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="whitelist",
         description="let a person with no avatar",
-        help="antiraid",
         usage="[user]",
         aliases=["wl"],
     )
@@ -471,7 +456,6 @@ class antiraid(commands.Cog):
         brief="antiraid whitelisted",
         name="unwhitelist",
         description="remove the whitelist of a no avatar member",
-        help="antiraid",
         usage="[member]",
         aliases=["uwl"],
     )

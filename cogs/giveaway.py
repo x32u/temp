@@ -87,7 +87,7 @@ class giveaway(commands.Cog):
         )
 
     @commands.command(
-        description="returns a list of active giveaways in the server", help="config"
+        description="returns a list of active giveaways in the server"
     )
     @Permissions.has_permission(manage_guild=True)
     async def glist(self, ctx: commands.Context):
@@ -195,7 +195,6 @@ class giveaway(commands.Cog):
     @giveaway.command(
         name="list",
         description="returns a list of active giveaways in the server",
-        help="config",
     )
     @Permissions.has_permission(manage_guild=True)
     async def gw_list(self, ctx: commands.Context):

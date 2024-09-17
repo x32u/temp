@@ -140,256 +140,318 @@ class roleplay(commands.Cog):
 
     @commands.command(description="cuddle a user", usage="[user]")
     async def cuddle(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/cuddle", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/cuddle/cuddle{random.randint(1, 30)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just cuddled **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just cuddled {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="poke a user", usage="[user]")
     async def poke(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/poke", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/poke/poke{random.randint(1, 15)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just poked **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just poked {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="kiss a user", usage="[user]")
     async def kiss(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/kiss", headers=headers
-        )
+
+        images = f"https://r2.evict.cc/roleplay/kiss/kiss{random.randint(1, 20)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just kissed **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just kissed {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
 
     @commands.command(description="hug a user", usage="[user]")
     async def hug(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/hug", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/hug/hug{random.randint(1, 20)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just hugged **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just hugged {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="pat a user", usage="[user]")
     async def pat(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/pat", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/pat/pat{random.randint(1, 20)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just patted **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just patted {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="tickle a user", usage="[user]")
     async def tickle(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/tickle", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/tickle/tickle{random.randint(1, 18)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just tickled **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just tickled {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="lick a user", usage="[user]")
     async def lick(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/lick", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/lick/lick{random.randint(1, 16)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just licked **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just licked {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="slap a user", usage="[user]")
     async def slap(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/slap", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/slap/slap{random.randint(1, 15)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just slapped **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just slapped {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
 
     @commands.command(description="spank a user", usage="[user]")
     async def spank(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/spank", headers=headers
-        )
+
+        images = f"https://r2.evict.cc/roleplay/spank/spank{random.randint(1, 13)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just spanked **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just spanked {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
 
     @commands.command(description="feed a user", usage="[user]")
     async def feed(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/feed", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/feed/feed{random.randint(1, 11)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just fed **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just fed {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="punch a user", usage="[user]")
     async def punch(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/punch", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/punch/punch{random.randint(1, 19)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just punched **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just punched {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="highfive a user", usage="[user]")
     async def highfive(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/lick", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/highfive/highfive{random.randint(1, 10)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just highfived **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just highfived {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="kill a user", usage="[user]")
     async def kill(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/kill", headers=headers
-        )
+
+        images = f"https://r2.evict.cc/roleplay/kill/kill{random.randint(1, 13)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just killed **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just killed {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
         await ctx.reply(embed=embed)
 
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.command(name="bite", help="roleplay", description="bite a user")
-    async def bite(self, ctx: commands, user: discord.Member):
+    @commands.command(name="bite", description="bite a user")
+    async def bite(self, ctx: EvictContext, user: discord.Member):
 
-        images = f"https://r2.evict.cc/roleplay/bite/bite{random.randint(1, 31)}.gif"
+        images = f"https://r2.evict.cc/roleplay/bite/bite{random.randint(1, 30)}.gif"
 
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just bit {f'**{str(user.mention)}**' if user else 'themselves'}!",
+            description=f"**{ctx.author.mention}** just bit {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
 
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=images)
-        await ctx.reply(embed=embed)
-
-    @commands.command(description="yeet a user", usage="[user]")
-    async def lick(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/yeet", headers=headers
-        )
-        embed = discord.Embed(
-            colour=Colors.color,
-            description=f"**{ctx.author.mention}** just yeeted **{user.mention}**!",
-        )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
 
     @commands.command(description="nutkick a user", usage="[user]")
     async def nutkick(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/nutkick", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/nutkick/nutkick{random.randint(1, 8)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just nutkicked **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just nutkicked {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
+
 
     @commands.command(description="fuck a user", usage="[user]")
     async def fuck(self, ctx: EvictContext, user: discord.Member):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/fuck", headers=headers
-        )
+        
+        images = f"https://r2.evict.cc/roleplay/fuck/fuck{random.randint(1, 8)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
-            description=f"**{ctx.author.mention}** just fucked **{user.mention}**!",
+            description=f"**{ctx.author.mention}** just fucked {f'**{str(user.mention)}**' if user else 'themselves'}!"
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(
+            url=images)
+        
         await ctx.reply(embed=embed)
 
+
     @commands.command(description="have a threesome", usage="[user]")
-    async def threesome(
-        self, ctx: EvictContext, user: discord.Member, user1: discord.Member
-    ):
-        headers = {"api-key": self.bot.evict_api}
-        response = await self.bot.session.get_json(
-            "https://api.evict.cc/roleplay/threesome", headers=headers
-        )
+    async def threesome(self, ctx: EvictContext, user: discord.Member, user1: discord.Member):
+
+        images = f"https://r2.evict.cc/roleplay/spank/spank{random.randint(1, 13)}.gif"
+
         embed = discord.Embed(
             colour=Colors.color,
             description=f"**{ctx.author.mention}** just fucked {str(user.mention)} and {f'{str(user1.mention)}' if user else 'themselves'}!",
         )
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar)
-        embed.set_image(url=response["image_url"])
+        
+        embed.set_author(name=ctx.author.name, 
+                        icon_url=ctx.author.display_avatar) # type: ignore
+        
+        embed.set_image(url=images)
+        
         await ctx.reply(embed=embed)
 
     @commands.command(description="hump a user", usage="[user]")
